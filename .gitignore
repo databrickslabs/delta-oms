@@ -1,2 +1,11 @@
+/.idea/
+*.iml
 *.class
 *.log
+/.bsp/
+target/
+project/project/
+project/target/
+*.DS_Store
+/metastore_db/
+/derby.log
