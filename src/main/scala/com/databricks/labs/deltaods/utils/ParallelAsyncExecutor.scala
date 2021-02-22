@@ -1,9 +1,9 @@
 package com.databricks.labs.deltaods.utils
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, _}
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.Duration._
+import scala.concurrent.{Future, _}
 
 object ParallelAsyncExecutor {
 

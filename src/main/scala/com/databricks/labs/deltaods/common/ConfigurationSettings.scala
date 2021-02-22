@@ -13,7 +13,9 @@ import scala.io.BufferedSource
 import scala.util.{Failure, Success, Try}
 
 trait ConfigurationSettings extends Serializable with Logging {
-  lazy val environmentConfigFile: String = sys.props.get("ODS_CONFIG_FILE").getOrElse("inbuilt").toLowerCase
+  def environmentConfigFile: String =
+    sys.props.getOrElse("ODS_CONFIG_FILE",
+      sys.env.getOrElse("ODS_CONFIG_FILE","inbuilt")).toLowerCase
 
   def odsConfig: ODSConfig = configSource.loadOrThrow[ODSConfig]
 
