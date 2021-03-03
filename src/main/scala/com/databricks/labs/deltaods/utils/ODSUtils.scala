@@ -10,12 +10,11 @@ trait ODSUtils extends Serializable with Logging with ConfigurationSettings{
   private val odsVersion = "0.1"
   private val entityName = "ods"
   private val odsProperties = Map("entity" -> s"$entityName", "ods.version" -> s"$odsVersion")
-  private val rawCommitPartitions = Seq("qualifiedName","commitDate")
 
   lazy val odsDBPath = s"${odsConfig.baseLocation}/${odsConfig.dbName}"
-  lazy val lastVersionTablePath = s"${odsDBPath}/${odsConfig.latestVersionTable}/"
   lazy val rawCommitTablePath = s"${odsDBPath}/${odsConfig.rawCommitTable}/"
   lazy val pathConfigTablePath = s"${odsDBPath}/${odsConfig.pathConfigTable}/"
+  val rawCommitPartitions = Seq("puid","commitDate")
 
 
   def pathConfigTableDefinition(odsConfig: ODSConfig) = {
@@ -24,16 +23,6 @@ trait ODSUtils extends Serializable with Logging with ConfigurationSettings{
       ODSSchemas.pathConfig,
       s"$pathConfigTablePath",
       Some("ODS Path Config Table"),
-      odsProperties
-    )
-  }
-
-  def lastVersionTableDefinition(odsConfig: ODSConfig) = {
-    TableDefinition(odsConfig.latestVersionTable,
-      odsConfig.dbName,
-      ODSSchemas.lastVersion,
-      s"$lastVersionTablePath",
-      Some("ODS Last Table Version"),
       odsProperties
     )
   }

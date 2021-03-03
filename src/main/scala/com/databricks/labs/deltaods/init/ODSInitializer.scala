@@ -35,10 +35,10 @@ trait ODSInitializer extends Serializable with Logging {
   }
 
   def createODSTables(config: ODSConfig) = {
-    logInfo("Creating the Latest version table on ODS Delta Lake")
-    createTableIfAbsent(lastVersionTableDefinition(config))
     logInfo("Creating the Delta Raw Commit table on ODS Delta Lake")
     createTableIfAbsent(rawCommitTableDefinition(config))
+    logInfo("Creating the Path Config table on ODS Delta Lake")
+    createPathConfigTables(config)
   }
 
   def cleanupODS(config: ODSConfig) = {

@@ -2,7 +2,7 @@ package com.databricks.labs.deltaods.utils
 
 import java.net.URI
 
-import com.databricks.labs.deltaods.model.{DatabaseDefinition, DeltaTableHistory, DeltaTableIdentifierWithLatestVersion, TableDefinition}
+import com.databricks.labs.deltaods.model.{DatabaseDefinition, DeltaTableHistory, PathConfig, TableDefinition}
 import com.databricks.labs.deltaods.utils.UtilityOperations.getDeltaTablesFromMetastore
 import io.delta.tables.DeltaTable
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -28,7 +28,7 @@ trait UtilityOperations extends Serializable with Logging {
   }
 
   def getDeltaTablesFromMetastore(databases: Seq[String] = Seq.empty[String],
-                                  pattern: String = "*"): Seq[DeltaTableIdentifierWithLatestVersion] = {
+                                  pattern: String = "*"): Seq[DeltaTableIdentifier] = {
     val spark = SparkSession.active
     val sessionCatalog = spark.sessionState.catalog
     val databaseList = if(databases.nonEmpty)
@@ -37,7 +37,7 @@ trait UtilityOperations extends Serializable with Logging {
       sessionCatalog.listDatabases
     val allTables = databaseList.flatMap(dbName =>
       sessionCatalog.listTables(dbName,pattern,includeLocalTempViews = false))
-    allTables.flatMap(DeltaTableIdentifierWithLatestVersion(spark,_))
+    allTables.flatMap(DeltaTableIdentifier(spark,_))
   }
 
   def getDeltaPathFromDelTableIdentifiers(deltaTableIds: Seq[DeltaTableIdentifier]): Seq[Path] = {
@@ -97,26 +97,35 @@ trait UtilityOperations extends Serializable with Logging {
     }
   }
 
-  def getHistoryFromTableVersion(tableDefn: DeltaTableIdentifierWithLatestVersion,
+  def getHistoryFromTableVersion(tableDefn: PathConfig,
                                  versionFetchSize: Option[Long] = None,
-                                 fetchEarliestAvailable: Boolean = true): DeltaTableHistory = {
+                                 fetchEarliestAvailable: Boolean = true): Option[DeltaTableHistory]= {
     val spark = SparkSession.active
-    val deltaLog = tableDefn.table.getDeltaLog(spark)
-    val earliestVersionOpt = deltaLog.store.listFrom(FileNames.deltaFile(deltaLog.logPath, 0))
-      .filter(f => FileNames.isDeltaFile(f.getPath))
-      .take(1).toArray.headOption
-    if (earliestVersionOpt.isEmpty) {
-      logInfo(s"No Delta commits found for $tableDefn")
-      DeltaTableHistory(tableDefn,
-        Seq.empty[CommitInfo])
-    } else {
-      val startingVersion = math.max(FileNames.deltaVersion(earliestVersionOpt.get.getPath),tableDefn.version)
-      val endVersion: Option[Long] = versionFetchSize match {
-        case Some(fs) => Some(startingVersion+fs)
-        case _ => None
+    val deltaLog = tableDefn.getDeltaLog(spark)
+    val earliestVersionOption = Try {
+      deltaLog.store.listFrom(FileNames.deltaFile(deltaLog.logPath, 0))
+        .filter(f => FileNames.isDeltaFile(f.getPath))
+        .take(1).toArray.headOption
+    }
+    earliestVersionOption match {
+      case Success(evo) => {
+        if (evo.isEmpty) {
+          logInfo(s"No Delta commits found for $tableDefn")
+          None
+        } else {
+          val startingVersion = math.max(FileNames.deltaVersion(evo.get.getPath),tableDefn.version)
+          val endVersion: Option[Long] = versionFetchSize match {
+            case Some(fs) => Some(startingVersion+fs-1)
+            case _ => None
+          }
+          Some(DeltaTableHistory(tableDefn,
+            tableDefn.getDeltaLog(spark).history.getHistory(startingVersion, endVersion)))
+        }
       }
-      DeltaTableHistory(tableDefn,
-        tableDefn.table.getDeltaLog(spark).history.getHistory(startingVersion, endVersion))
+      case Failure(ex) => {
+        logInfo(s"Error while retrieving Delta Log for $tableDefn")
+        None
+      }
     }
   }
 
