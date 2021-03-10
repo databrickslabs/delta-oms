@@ -1,7 +1,7 @@
 package com.databricks.labs.deltaods.utils
 
-import com.databricks.labs.deltaods.common.{ConfigurationSettings, ODSSchemas}
-import com.databricks.labs.deltaods.configuration.ODSConfig
+import com.databricks.labs.deltaods.common.ODSSchemas
+import com.databricks.labs.deltaods.configuration.{ConfigurationSettings, ODSConfig}
 import com.databricks.labs.deltaods.model.{DatabaseDefinition, TableDefinition}
 import org.apache.spark.internal.Logging
 
@@ -13,8 +13,11 @@ trait ODSUtils extends Serializable with Logging with ConfigurationSettings{
 
   lazy val odsDBPath = s"${odsConfig.baseLocation}/${odsConfig.dbName}"
   lazy val rawCommitTablePath = s"${odsDBPath}/${odsConfig.rawCommitTable}/"
+  lazy val rawActionsTablePath = s"${odsDBPath}/${odsConfig.rawActionTable}/"
   lazy val pathConfigTablePath = s"${odsDBPath}/${odsConfig.pathConfigTable}/"
+
   val rawCommitPartitions = Seq("puid","commitDate")
+  val rawActionsPartitions = Seq("puid","commit_date")
 
 
   def pathConfigTableDefinition(odsConfig: ODSConfig) = {
@@ -36,6 +39,16 @@ trait ODSUtils extends Serializable with Logging with ConfigurationSettings{
       odsProperties,
       rawCommitPartitions
     )
+  }
+
+  def rawActionsTableDefinition(odsConfig: ODSConfig) = {
+    TableDefinition(odsConfig.rawActionTable,
+      odsConfig.dbName,
+      ODSSchemas.rawAction,
+      s"$rawActionsTablePath",
+      Some("ODS Delta Raw Actions Table"),
+      odsProperties,
+      rawActionsPartitions)
   }
 
   def odsDatabaseDefinition(odsConfig: ODSConfig): DatabaseDefinition = {

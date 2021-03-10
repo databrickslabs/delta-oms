@@ -7,11 +7,13 @@ import com.databricks.labs.deltaods.utils.UtilityOperations.getDeltaTablesFromMe
 import io.delta.tables.DeltaTable
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.internal.Logging
+import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.delta.actions.CommitInfo
 import org.apache.spark.sql.delta.util.FileNames
 import org.apache.spark.sql.delta.{DeltaErrors, DeltaTableIdentifier, DeltaTableUtils}
-import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.functions.{col, udf}
 import org.apache.spark.sql.{Row, SparkSession}
+import org.apache.spark.util.SerializableConfiguration
 
 import scala.util.{Failure, Success, Try}
 
@@ -37,7 +39,21 @@ trait UtilityOperations extends Serializable with Logging {
       sessionCatalog.listDatabases
     val allTables = databaseList.flatMap(dbName =>
       sessionCatalog.listTables(dbName,pattern,includeLocalTempViews = false))
-    allTables.flatMap(DeltaTableIdentifier(spark,_))
+    allTables.flatMap(tableIdentifierToDeltaTableIdentifier)
+  }
+
+  def tableIdentifierToDeltaTableIdentifier(identifier: TableIdentifier): Option[DeltaTableIdentifier] = {
+    val spark = SparkSession.active
+    val dTableIdTry = Try {
+      DeltaTableIdentifier(spark, identifier)
+    }
+    dTableIdTry match {
+      case Success(deltaID) => deltaID
+      case Failure(exception) => {
+        logError(s"Error while accessing table $identifier : $exception")
+        None
+      }
+    }
   }
 
   def getDeltaPathFromDelTableIdentifiers(deltaTableIds: Seq[DeltaTableIdentifier]): Seq[Path] = {
@@ -138,6 +154,25 @@ trait UtilityOperations extends Serializable with Logging {
   def dropDatabase(dbName: String) = {
     SparkSession.active.sql(s"DROP DATABASE IF EXISTS $dbName CASCADE")
   }
+
+  def getFileModificationTimeUDF() = {
+    val spark = SparkSession.active
+    val conf = spark.sparkContext.broadcast(
+      new SerializableConfiguration(spark.sessionState.newHadoopConf()))
+
+    udf((filePath: String) => {
+      val p = new Path(filePath)
+      p.getFileSystem(conf.value.value).listStatus(p).map(_.getModificationTime).head/1000
+    })
+  }
+
+  def getDeltaWildCardPathUDF() = {
+    udf((filePath: String) => {
+      filePath.split("/").zipWithIndex
+        .map{ case (v, i) => if(i < 3) v else "*" }.mkString("/")+"/_delta_log/*.json"
+    })
+  }
+
 }
 
 object UtilityOperations extends UtilityOperations

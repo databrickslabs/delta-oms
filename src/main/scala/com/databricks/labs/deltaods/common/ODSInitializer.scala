@@ -1,4 +1,4 @@
-package com.databricks.labs.deltaods.init
+package com.databricks.labs.deltaods.common
 
 import com.databricks.labs.deltaods.configuration.ODSConfig
 import com.databricks.labs.deltaods.utils.ODSUtils._
@@ -39,6 +39,8 @@ trait ODSInitializer extends Serializable with Logging {
     createTableIfAbsent(rawCommitTableDefinition(config))
     logInfo("Creating the Path Config table on ODS Delta Lake")
     createPathConfigTables(config)
+    logInfo("Creating the Delta Raw Actions table on ODS Delta Lake")
+    createTableIfAbsent(rawActionsTableDefinition(config))
   }
 
   def cleanupODS(config: ODSConfig) = {

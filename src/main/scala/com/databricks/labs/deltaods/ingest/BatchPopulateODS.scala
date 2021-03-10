@@ -1,6 +1,6 @@
-package com.databricks.labs.deltaods.execute
+package com.databricks.labs.deltaods.ingest
 
-import com.databricks.labs.deltaods.init.ODSInitializer
+import com.databricks.labs.deltaods.common.{ODSInitializer, ODSRunner}
 
 object BatchPopulateODS extends ODSRunner with ODSInitializer {
 

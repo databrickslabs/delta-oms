@@ -2,14 +2,18 @@ package com.databricks.labs.deltaods.common
 
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 
+import com.databricks.labs.deltaods.configuration.SparkSettings
 import com.databricks.labs.deltaods.model.{DeltaTableHistory, ODSDeltaCommitInfo, PathConfig}
 import com.databricks.labs.deltaods.utils.DataFrameOperations._
 import com.databricks.labs.deltaods.utils.ODSUtils._
 import com.databricks.labs.deltaods.utils.UtilityOperations._
 import io.delta.tables._
 import org.apache.spark.internal.Logging
+import org.apache.spark.sql.catalyst.ScalaReflection
+import org.apache.spark.sql.delta.actions.SingleAction
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{LongType, StructType}
 
 import scala.util.{Failure, Success, Try}
 
@@ -88,13 +92,12 @@ trait ODSOperations extends Serializable with SparkSettings with Logging {
 
   def updateODSPathConfigFromMetaStore(truncate: Boolean = false) = {
     val metaStoreDeltaTables = fetchMetaStoreDeltaTables(odsConfig.srcDatabases, odsConfig.tablePattern)
+    val deltaWildCardPath  = getDeltaWildCardPathUDF()
     val tablePaths = metaStoreDeltaTables.map(mdt => (mdt.unquotedString, mdt.getPath(spark).toString))
       .toDF("qualifiedName","path")
-    val regex_str = "^(.*)\\/(.*)\\/(.*)\\/(.*)$"
     val pathConfigDF = tablePaths
       .withColumn("puid",substring(sha1($"path"),0,7))
-      .withColumn("wildCardPath",
-        regexp_replace($"path",regex_str,"$1/$2/*/*/_delta_log/*.json"))
+      .withColumn("wildCardPath",deltaWildCardPath($"path"))
       .withColumn("wuid",substring(sha1($"wildCardPath"),0,7))
       .withColumn("automated", lit(true))
       .withColumn("version",lit(0L))
@@ -129,6 +132,10 @@ trait ODSOperations extends Serializable with SparkSettings with Logging {
     spark.read.format("delta").load(pathConfigTablePath).as[PathConfig]
   }
 
+  def fetchPathForStreamProcessing() ={
+    fetchPathConfigForProcessing().select("wildCardPath").distinct().as[String].collect()
+  }
+
   def updateRawCommitHistoryToODS() = {
     val deltaTables = fetchPathConfigForProcessing().collect()
     val recentTableHistories = deltaTables
@@ -147,5 +154,66 @@ trait ODSOperations extends Serializable with SparkSettings with Logging {
       .grouped(2)
       .map(it => ParallelAsyncExecutor.awaitSliding(it.iterator))
       .flatten*/
+  }
+
+  def streamingUpdateRawDeltaActionsToODS() = {
+    val uniquePaths = fetchPathForStreamProcessing()
+    val combinedFrame = uniquePaths.flatMap(p => fetchStreamingDeltaLogForPath(p))
+      .reduce(_ unionByName _)
+    val checkpointBaseDir = odsConfig.odsCheckpointBase.getOrElse("dbfs:/ods")
+    val checkpointPath = checkpointBaseDir + "/_ods_checkpoints/rawactions"
+    combinedFrame
+      .writeStream
+      .partitionBy(rawActionsPartitions: _*)
+      .outputMode("append")
+      .format("delta")
+      .option("checkpointLocation", checkpointPath)
+      .start(rawActionsTablePath)
+  }
+
+  def fetchStreamingDeltaLogForPath(path: String, useAutoloader: Boolean = false) = {
+    val actionSchema: StructType = ScalaReflection.schemaFor[SingleAction].dataType.asInstanceOf[StructType]
+    val regex_str = "^(.*)\\/_delta_log\\/(.*)\\.json$"
+    val file_modification_time = getFileModificationTimeUDF()
+    if(useAutoloader){
+      spark.conf.set("spark.databricks.cloudFiles.schemaInference.enabled", "true")
+      Some(spark.readStream.format("cloudFiles")
+        .option("cloudFiles.format", "json")
+        .option("failOnUnknownFields", "true")
+        .option("unparsedDataColumn", "_unparsed_data")
+        //.option("cloudFiles.maxFilesPerTrigger", 1)
+        .schema(actionSchema)
+        .load(path))
+    } else {
+      val deltaLogDFOpt = getDeltaLogs(actionSchema, path)
+      if(deltaLogDFOpt.nonEmpty){
+        val deltaLogDF = deltaLogDFOpt.get
+        Some(deltaLogDF
+          .withColumn("fileName", input_file_name())
+          .withColumn("path",regexp_extract($"fileName",regex_str,1))
+          .withColumn("puid",substring(sha1($"path"),0,7))
+          .withColumn("commit_version",regexp_extract($"fileName",regex_str,2).cast(LongType))
+          .withColumn("updateTs", lit(Instant.now()))
+          .withColumn("modTs",file_modification_time($"fileName"))
+          .withColumn("commitTs",to_timestamp($"modTs"))
+          .withColumn("commit_date",to_date($"commitTs"))
+          .drop("modTs"))
+      } else {
+        None
+      }
+    }
+  }
+
+  def getDeltaLogs(schema: StructType, path: String) = {
+    val deltaLogTry = Try {
+      spark.readStream.schema(schema).json(path)
+    }
+    deltaLogTry match {
+      case Success(value) => Some(value)
+      case Failure(exception) => {
+        logError(s"Exception while loading Delta log at $path: $exception")
+        None
+      }
+    }
   }
 }

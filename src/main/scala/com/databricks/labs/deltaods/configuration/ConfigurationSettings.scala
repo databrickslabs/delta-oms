@@ -1,14 +1,12 @@
-package com.databricks.labs.deltaods.common
+package com.databricks.labs.deltaods.configuration
 
 import java.net.URI
 
-import com.databricks.labs.deltaods.configuration.ODSConfig
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.internal.Logging
 import pureconfig.{ConfigObjectSource, ConfigSource}
 import pureconfig.generic.auto._
-
 import scala.io.BufferedSource
 import scala.util.{Failure, Success, Try}
 
