@@ -1,4 +1,4 @@
-package com.databricks.labs.deltaods.utils
+package com.databricks.labs.deltaoms.utils
 
 import org.apache.spark.sql.Dataset
 

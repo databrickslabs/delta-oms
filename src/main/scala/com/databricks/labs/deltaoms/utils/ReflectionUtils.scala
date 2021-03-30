@@ -1,4 +1,4 @@
-package com.databricks.labs.deltaods.utils
+package com.databricks.labs.deltaoms.utils
 
 import scala.reflect.runtime.universe._
 object ReflectionUtils {

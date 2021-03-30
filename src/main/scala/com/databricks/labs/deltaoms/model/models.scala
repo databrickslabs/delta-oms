@@ -1,4 +1,4 @@
-package com.databricks.labs.deltaods.model
+package com.databricks.labs.deltaoms.model
 
 import java.time.Instant
 
@@ -13,13 +13,17 @@ case class PathConfig(path: String,
                       wuid: String,
                       automated: Boolean = true,
                       qualifiedName: Option[String] = None,
-                      version: Long,
+                      commit_version: Long,
                       skipProcessing: Boolean = false,
-                      updateTs: Instant = Instant.now()) {
+                      update_ts: Instant = Instant.now()) {
   def getDeltaLog(spark: SparkSession): DeltaLog = {
     DeltaLog.forTable(spark, path)
   }
 }
+
+case class AddFileInfo(path: String, size: Long, numRecords: Long)
+case class RemoveFileInfo(path: String)
+case class PathSnapshot(puid: String,commit_version: Long, inputFiles: Seq[AddFileInfo])
 
 case class DeltaTableHistory(tableConfig: PathConfig,
                              history: Seq[CommitInfo] = Seq.empty[CommitInfo])
@@ -43,5 +47,5 @@ case class DatabaseDefinition(databaseName: String,
   assert(databaseName.nonEmpty, "Database Name is required")
 }
 
-case class ODSDeltaCommitInfo(puid: String, path: String, qualifiedName: Option[String],
+case class OMSDeltaCommitInfo(puid: String, path: String, qualifiedName: Option[String],
                               updateTs: Instant, commitInfo: Seq[CommitInfo])

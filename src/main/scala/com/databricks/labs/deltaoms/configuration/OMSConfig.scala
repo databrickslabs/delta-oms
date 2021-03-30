@@ -1,20 +1,21 @@
-package com.databricks.labs.deltaods.configuration
+package com.databricks.labs.deltaoms.configuration
 
-case class ODSConfig(baseLocation: String,
+case class OMSConfig(baseLocation: String,
                      dbName: String,
                      rawCommitTable: String,
                      rawActionTable: String,
                      pathConfigTable: String,
+                     pathSnapshotTable: String,
                      srcDatabases: Option[String] = None,
                      tablePattern: Option[String] = None,
                      versionFetchSize: Option[Long] = None,
-                     odsCheckpointBase: Option[String] = None){
+                     omsCheckpointBase: Option[String] = None){
   if(versionFetchSize.nonEmpty && versionFetchSize.get < 0){
     throw new IllegalArgumentException("Version Fetch Size should be non negative")
   }
 }
 
-case class ODSDatabase(name: String, path: String)
+case class OMSDatabase(name: String, path: String)
 
 
 

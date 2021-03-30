@@ -1,4 +1,4 @@
-package com.databricks.labs.deltaods.utils
+package com.databricks.labs.deltaoms.utils
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

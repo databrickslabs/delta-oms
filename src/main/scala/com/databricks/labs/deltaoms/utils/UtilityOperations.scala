@@ -1,9 +1,9 @@
-package com.databricks.labs.deltaods.utils
+package com.databricks.labs.deltaoms.utils
 
 import java.net.URI
 
-import com.databricks.labs.deltaods.model.{DatabaseDefinition, DeltaTableHistory, PathConfig, TableDefinition}
-import com.databricks.labs.deltaods.utils.UtilityOperations.getDeltaTablesFromMetastore
+import com.databricks.labs.deltaoms.model.{DatabaseDefinition, DeltaTableHistory, PathConfig, TableDefinition}
+import com.databricks.labs.deltaoms.utils.UtilityOperations.getDeltaTablesFromMetastore
 import io.delta.tables.DeltaTable
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.internal.Logging
@@ -20,13 +20,13 @@ import scala.util.{Failure, Success, Try}
 trait UtilityOperations extends Serializable with Logging {
 
   def fetchMetaStoreDeltaTables(databases: Option[String], pattern: Option[String]) = {
-    val odsSrcDatabases = if(databases.isDefined && databases.get.trim.nonEmpty) {
+    val srcDatabases = if(databases.isDefined && databases.get.trim.nonEmpty) {
       databases.get.trim.split("[,;:]").map(_.trim).toSeq
     } else {
       Seq.empty[String]
     }
     val tablePattern: String = pattern.map{_.trim}.filterNot{_.isEmpty}.getOrElse("*")
-    getDeltaTablesFromMetastore(odsSrcDatabases, tablePattern)
+    getDeltaTablesFromMetastore(srcDatabases, tablePattern)
   }
 
   def getDeltaTablesFromMetastore(databases: Seq[String] = Seq.empty[String],
@@ -129,7 +129,7 @@ trait UtilityOperations extends Serializable with Logging {
           logInfo(s"No Delta commits found for $tableDefn")
           None
         } else {
-          val startingVersion = math.max(FileNames.deltaVersion(evo.get.getPath),tableDefn.version)
+          val startingVersion = math.max(FileNames.deltaVersion(evo.get.getPath),tableDefn.commit_version)
           val endVersion: Option[Long] = versionFetchSize match {
             case Some(fs) => Some(startingVersion+fs-1)
             case _ => None

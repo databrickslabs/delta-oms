@@ -1,2 +1,2 @@
-# deltaods
-ODS on Delta Lake
+# deltaoms
+OMS on Delta Lake

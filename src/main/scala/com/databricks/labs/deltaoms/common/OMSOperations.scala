@@ -1,12 +1,11 @@
-package com.databricks.labs.deltaods.common
+package com.databricks.labs.deltaoms.common
 
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 
-import com.databricks.labs.deltaods.configuration.SparkSettings
-import com.databricks.labs.deltaods.model.{DeltaTableHistory, ODSDeltaCommitInfo, PathConfig}
-import com.databricks.labs.deltaods.utils.DataFrameOperations._
-import com.databricks.labs.deltaods.utils.ODSUtils._
-import com.databricks.labs.deltaods.utils.UtilityOperations._
+import com.databricks.labs.deltaoms.configuration.SparkSettings
+import com.databricks.labs.deltaoms.model.{DeltaTableHistory, OMSDeltaCommitInfo, PathConfig}
+import com.databricks.labs.deltaoms.utils.UtilityOperations._
+import com.databricks.labs.deltaoms.common.OMSUtils._
 import io.delta.tables._
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.catalyst.ScalaReflection
@@ -17,11 +16,11 @@ import org.apache.spark.sql.types.{LongType, StructType}
 
 import scala.util.{Failure, Success, Try}
 
-trait ODSOperations extends Serializable with SparkSettings with Logging {
+trait OMSOperations extends Serializable with SparkSettings with Logging with OMSchemas {
   val implicits = spark.implicits
   import implicits._
 
-  def updateLatestVersions(lastUpdatedDF: DataFrame) = {
+  def updatePathConfigWithLatestVersions(lastUpdatedDF: DataFrame) = {
     val pathConfigDeltaTableOption = Try {
       DeltaTable.forPath(pathConfigTablePath)
     }
@@ -29,20 +28,20 @@ trait ODSOperations extends Serializable with SparkSettings with Logging {
       case Success(pct) => {
         pct.as("pct")
           .merge(lastUpdatedDF.as("recent_pct"),
-          """pct.puid = recent_pct.puid """.stripMargin)
+          s"pct.$PUID = recent_pct.$PUID ")
           .whenMatched.updateExpr(Map(
-          "updateTs" -> "recent_pct.updateTs",
-          "version" -> "recent_pct.version"))
+          s"$UPDATE_TS" -> s"recent_pct.$UPDATE_TS",
+          s"$COMMIT_VERSION" -> s"recent_pct.$COMMIT_VERSION"))
           .execute()
       }
       case Failure(ex) => throw new RuntimeException(s"Unable to update the last version table $ex ")
     }
   }
 
-  def updateTableCommitHistoryToODS(rths: Seq[DeltaTableHistory]): Unit = {
+  def updateTableCommitHistoryToOMS(rths: Seq[DeltaTableHistory]): Unit = {
 
-    val recentTableCommitInfoDS: Dataset[ODSDeltaCommitInfo] = rths.map(rth =>
-      ODSDeltaCommitInfo(rth.tableConfig.puid, rth.tableConfig.path,
+    val recentTableCommitInfoDS: Dataset[OMSDeltaCommitInfo] = rths.map(rth =>
+      OMSDeltaCommitInfo(rth.tableConfig.puid, rth.tableConfig.path,
       rth.tableConfig.qualifiedName,
         Instant.now(),
       rth.history)).toDS()
@@ -66,10 +65,10 @@ trait ODSOperations extends Serializable with SparkSettings with Logging {
       .withColumn("updateTs", lit(Instant.now()))
     updateLatestVersions(latestVersionsDF)*/
 
-    val rawCommitODSDeltaTable = Try {
+    val rawCommitOMSDeltaTable = Try {
       DeltaTable.forPath(rawCommitTablePath)
     }
-    rawCommitODSDeltaTable match {
+    rawCommitOMSDeltaTable match {
       case Success(rct) => {
         rct.as("raw_commit")
           .merge(recentTableHistoriesDS.as("recent_history_updates"),
@@ -80,39 +79,39 @@ trait ODSOperations extends Serializable with SparkSettings with Logging {
           .whenNotMatched.insertAll().execute()
 
         val latestVersionsDF = recentTableHistoriesDS
-          .select("puid","version")
-          .groupBy("puid")
-          .agg((max("version")+1).as("version"))
-          .withColumn("updateTs", lit(Instant.now()))
-        updateLatestVersions(latestVersionsDF)
+          .select(PUID,COMMIT_VERSION)
+          .groupBy(PUID)
+          .agg((max(COMMIT_VERSION)+1).as(COMMIT_VERSION))
+          .withColumn(UPDATE_TS, lit(Instant.now()))
+        updatePathConfigWithLatestVersions(latestVersionsDF)
       }
       case Failure(ex) => throw new RuntimeException(s"Unable to update the raw commit table. $ex")
     }
   }
 
-  def updateODSPathConfigFromMetaStore(truncate: Boolean = false) = {
-    val metaStoreDeltaTables = fetchMetaStoreDeltaTables(odsConfig.srcDatabases, odsConfig.tablePattern)
+  def updateOMSPathConfigFromMetaStore(truncate: Boolean = false) = {
+    val metaStoreDeltaTables = fetchMetaStoreDeltaTables(omsConfig.srcDatabases, omsConfig.tablePattern)
     val deltaWildCardPath  = getDeltaWildCardPathUDF()
     val tablePaths = metaStoreDeltaTables.map(mdt => (mdt.unquotedString, mdt.getPath(spark).toString))
-      .toDF("qualifiedName","path")
+      .toDF(QUALIFIED_NAME,PATH)
     val pathConfigDF = tablePaths
-      .withColumn("puid",substring(sha1($"path"),0,7))
+      .withColumn(PUID,substring(sha1($"path"),0,7))
       .withColumn("wildCardPath",deltaWildCardPath($"path"))
       .withColumn("wuid",substring(sha1($"wildCardPath"),0,7))
       .withColumn("automated", lit(true))
-      .withColumn("version",lit(0L))
+      .withColumn(COMMIT_VERSION,lit(0L))
       .withColumn("skipProcessing", lit(false))
-      .withColumn("updateTs", lit(Instant.now())).as[PathConfig]
+      .withColumn(UPDATE_TS, lit(Instant.now())).as[PathConfig]
 
-    updatePathConfigToODS(pathConfigDF, truncate)
+    updatePathConfigToOMS(pathConfigDF, truncate)
 
   }
 
-  def updatePathConfigToODS(pathConfigs: Dataset[PathConfig], truncate: Boolean = false) = {
-    val pathConfigODSDeltaTable = Try {
-      DeltaTable.forName(s"${odsConfig.dbName}.${odsConfig.pathConfigTable}")
+  def updatePathConfigToOMS(pathConfigs: Dataset[PathConfig], truncate: Boolean = false) = {
+    val pathConfigOMSDeltaTable = Try {
+      DeltaTable.forName(s"${omsConfig.dbName}.${omsConfig.pathConfigTable}")
     }
-    pathConfigODSDeltaTable match {
+    pathConfigOMSDeltaTable match {
       case Success(pct) => {
         if(truncate) pct.delete()
         pct.as("pathconfig")
@@ -136,11 +135,11 @@ trait ODSOperations extends Serializable with SparkSettings with Logging {
     fetchPathConfigForProcessing().select("wildCardPath").distinct().as[String].collect()
   }
 
-  def updateRawCommitHistoryToODS() = {
+  def updateRawCommitHistoryToOMS() = {
     val deltaTables = fetchPathConfigForProcessing().collect()
     val recentTableHistories = deltaTables
-      .flatMap(lvt => getHistoryFromTableVersion(lvt,odsConfig.versionFetchSize))
-    updateTableCommitHistoryToODS(recentTableHistories)
+      .flatMap(lvt => getHistoryFromTableVersion(lvt,omsConfig.versionFetchSize))
+    updateTableCommitHistoryToOMS(recentTableHistories)
 
     /*val recentTableHistories = odsLastVersionForTables
       .map(dt => ParallelAsyncExecutor.executeAsync(
@@ -156,12 +155,12 @@ trait ODSOperations extends Serializable with SparkSettings with Logging {
       .flatten*/
   }
 
-  def streamingUpdateRawDeltaActionsToODS() = {
+  def streamingUpdateRawDeltaActionsToOMS() = {
     val uniquePaths = fetchPathForStreamProcessing()
     val combinedFrame = uniquePaths.flatMap(p => fetchStreamingDeltaLogForPath(p))
       .reduce(_ unionByName _)
-    val checkpointBaseDir = odsConfig.odsCheckpointBase.getOrElse("dbfs:/ods")
-    val checkpointPath = checkpointBaseDir + "/_ods_checkpoints/rawactions"
+    val checkpointBaseDir = omsConfig.omsCheckpointBase.getOrElse("dbfs:/oms")
+    val checkpointPath = checkpointBaseDir + "/_oms_checkpoints/rawactions"
     combinedFrame
       .writeStream
       .partitionBy(rawActionsPartitions: _*)
@@ -189,14 +188,14 @@ trait ODSOperations extends Serializable with SparkSettings with Logging {
       if(deltaLogDFOpt.nonEmpty){
         val deltaLogDF = deltaLogDFOpt.get
         Some(deltaLogDF
-          .withColumn("fileName", input_file_name())
-          .withColumn("path",regexp_extract($"fileName",regex_str,1))
-          .withColumn("puid",substring(sha1($"path"),0,7))
-          .withColumn("commit_version",regexp_extract($"fileName",regex_str,2).cast(LongType))
-          .withColumn("updateTs", lit(Instant.now()))
-          .withColumn("modTs",file_modification_time($"fileName"))
-          .withColumn("commitTs",to_timestamp($"modTs"))
-          .withColumn("commit_date",to_date($"commitTs"))
+          .withColumn(FILE_NAME, input_file_name())
+          .withColumn(PATH,regexp_extract(col(s"$FILE_NAME"),regex_str,1))
+          .withColumn(PUID,substring(sha1(col(s"$PATH")),0,7))
+          .withColumn(COMMIT_VERSION,regexp_extract(col(s"$FILE_NAME"),regex_str,2).cast(LongType))
+          .withColumn(UPDATE_TS, lit(Instant.now()))
+          .withColumn("modTs",file_modification_time(col(s"$FILE_NAME")))
+          .withColumn(COMMIT_TS,to_timestamp($"modTs"))
+          .withColumn(COMMIT_DATE,to_date(col(s"$COMMIT_TS")))
           .drop("modTs"))
       } else {
         None

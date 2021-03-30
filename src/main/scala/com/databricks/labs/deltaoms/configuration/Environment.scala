@@ -1,4 +1,4 @@
-package com.databricks.labs.deltaods.configuration
+package com.databricks.labs.deltaoms.configuration
 
 sealed trait Environment
 

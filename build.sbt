@@ -1,4 +1,4 @@
-name := "deltaods"
+name := "deltaoms"
 
 version := "0.1"
 

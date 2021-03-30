@@ -1,4 +1,4 @@
-package com.databricks.labs.deltaods.configuration
+package com.databricks.labs.deltaoms.configuration
 
 import java.net.URI
 
@@ -12,10 +12,10 @@ import scala.util.{Failure, Success, Try}
 
 trait ConfigurationSettings extends Serializable with Logging {
   def environmentConfigFile: String =
-    sys.props.getOrElse("ODS_CONFIG_FILE",
-      sys.env.getOrElse("ODS_CONFIG_FILE","inbuilt")).toLowerCase
+    sys.props.getOrElse("OMS_CONFIG_FILE",
+      sys.env.getOrElse("OMS_CONFIG_FILE","inbuilt")).toLowerCase
 
-  def odsConfig: ODSConfig = configSource.loadOrThrow[ODSConfig]
+  def omsConfig: OMSConfig = configSource.loadOrThrow[OMSConfig]
 
   logInfo(s"Loading configuration from : ${environmentConfigFile}")
   logInfo(s"Environment set to : ${environment}")
