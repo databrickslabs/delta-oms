@@ -20,10 +20,11 @@ case class PathConfig(path: String,
     DeltaLog.forTable(spark, path)
   }
 }
+case class TableConfig(path: String,skipProcessing: Boolean = false)
 
 case class AddFileInfo(path: String, size: Long, numRecords: Long)
 case class RemoveFileInfo(path: String)
-case class PathSnapshot(puid: String,commit_version: Long, inputFiles: Seq[AddFileInfo])
+case class ProcessedHistory(tableName: String, lastVersion: Long, update_ts: Instant = Instant.now())
 
 case class DeltaTableHistory(tableConfig: PathConfig,
                              history: Seq[CommitInfo] = Seq.empty[CommitInfo])
@@ -46,6 +47,3 @@ case class DatabaseDefinition(databaseName: String,
                               properties: Map[String, String] = Map.empty){
   assert(databaseName.nonEmpty, "Database Name is required")
 }
-
-case class OMSDeltaCommitInfo(puid: String, path: String, qualifiedName: Option[String],
-                              updateTs: Instant, commitInfo: Seq[CommitInfo])

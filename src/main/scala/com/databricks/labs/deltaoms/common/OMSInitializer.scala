@@ -35,14 +35,14 @@ trait OMSInitializer extends Serializable with Logging {
   }
 
   def createOMSTables(config: OMSConfig) = {
-    logInfo("Creating the Delta Raw Commit table on OMS Delta Lake")
-    createTableIfAbsent(rawCommitTableDefinition(config))
-    logInfo("Creating the Path Config table on OMS Delta Lake")
+    logInfo("Creating the EXTERNAL Path Config table on OMS Delta Lake")
+    createTableIfAbsent(tableConfigDefinition(config))
+    logInfo("Creating the INTERNAL Path Config table on OMS Delta Lake")
     createPathConfigTables(config)
     logInfo("Creating the Delta Raw Actions table on OMS Delta Lake")
     createTableIfAbsent(rawActionsTableDefinition(config))
     logInfo("Creating the Path Snapshot table on OMS Delta Lake")
-    createTableIfAbsent(pathSnapshotTableDefinition(config))
+    createTableIfAbsent(processedHistoryTableDefinition(config))
   }
 
   def cleanupOMS(config: OMSConfig) = {

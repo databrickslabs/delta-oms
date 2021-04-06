@@ -5,10 +5,8 @@ import com.databricks.labs.deltaoms.common.{OMSInitializer, OMSRunner}
 object InitializeOMSTables extends OMSRunner with OMSInitializer {
 
   def main(args: Array[String]): Unit = {
-    logInfo(s"Starting Delta table path configuration update for OMS with Configuration : $omsConfig")
-    //Create the OMS Database and Path Config Table Structures , if needed
-    initializeOMSPathConfig(omsConfig)
-    // Fetch the latest metastore delta tables and update the Path in the config table
-    updateOMSPathConfigFromMetaStore()
+    logInfo(s"Initializing Delta OMS Database and tables with Configuration : $omsConfig")
+    //Create the OMS Database and Table Structures , if needed
+    initializeOMS(omsConfig, dropAndRecreate=true)
   }
 }

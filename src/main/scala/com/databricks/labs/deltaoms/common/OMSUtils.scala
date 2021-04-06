@@ -11,13 +11,17 @@ trait OMSUtils extends Serializable with Logging with ConfigurationSettings with
   private val omsProperties = Map("entity" -> s"$entityName", "oms.version" -> s"$omsVersion")
 
   lazy val omsDBPath = s"${omsConfig.baseLocation}/${omsConfig.dbName}"
-  lazy val rawCommitTablePath = s"${omsDBPath}/${omsConfig.rawCommitTable}/"
   lazy val rawActionsTablePath = s"${omsDBPath}/${omsConfig.rawActionTable}/"
   lazy val pathConfigTablePath = s"${omsDBPath}/${omsConfig.pathConfigTable}/"
-  lazy val pathSnapshotTablePath = s"${omsDBPath}/${omsConfig.pathSnapshotTable}/"
+  lazy val tableConfigPath = s"${omsDBPath}/${omsConfig.tableConfig}/"
+  lazy val processedHistoryTablePath = s"${omsDBPath}/${omsConfig.processedHistoryTable}/"
 
-  val rawCommitPartitions = Seq(PUID,COMMIT_DATE)
-  val rawActionsPartitions = Seq(PUID,COMMIT_DATE)
+  lazy val commitSnapshotTablePath = s"${omsDBPath}/${omsConfig.commitInfoSnapshotTable}/"
+  lazy val commitSnapshotTableName = s"${omsConfig.dbName}.${omsConfig.commitInfoSnapshotTable}"
+  lazy val actionSnapshotTablePath = s"${omsDBPath}/${omsConfig.actionSnapshotTable}/"
+  lazy val actionSnapshotTableName = s"${omsConfig.dbName}.${omsConfig.actionSnapshotTable}"
+
+  val puidCommitDatePartitions = Seq(PUID,COMMIT_DATE)
 
 
   def pathConfigTableDefinition(omsConfig: OMSConfig) = {
@@ -25,19 +29,18 @@ trait OMSUtils extends Serializable with Logging with ConfigurationSettings with
       omsConfig.dbName,
       pathConfig,
       s"$pathConfigTablePath",
-      Some("OMS Path Config Table"),
+      Some("Delta OMS Path Config Table"),
       omsProperties
     )
   }
 
-  def rawCommitTableDefinition(omsConfig: OMSConfig) = {
-    TableDefinition(omsConfig.rawCommitTable,
+  def tableConfigDefinition(omsConfig: OMSConfig) = {
+    TableDefinition(omsConfig.tableConfig,
       omsConfig.dbName,
-      rawCommit,
-      s"$rawCommitTablePath",
-      Some("OMS Delta Raw Commit Table"),
-      omsProperties,
-      rawCommitPartitions
+      tableConfig,
+      s"$tableConfigPath",
+      Some("Delta OMS Table Config"),
+      omsProperties
     )
   }
 
@@ -46,17 +49,17 @@ trait OMSUtils extends Serializable with Logging with ConfigurationSettings with
       omsConfig.dbName,
       rawAction,
       s"$rawActionsTablePath",
-      Some("OMS Delta Raw Actions Table"),
+      Some("Delta OMS Raw Actions Table"),
       omsProperties,
-      rawActionsPartitions)
+      puidCommitDatePartitions)
   }
 
-  def pathSnapshotTableDefinition(omsConfig: OMSConfig) = {
-    TableDefinition(omsConfig.pathSnapshotTable,
+  def processedHistoryTableDefinition(omsConfig: OMSConfig) = {
+    TableDefinition(omsConfig.processedHistoryTable,
       omsConfig.dbName,
-      pathSnapshot,
-      s"$pathSnapshotTablePath",
-      Some("OMS Path Snapshot Table"),
+      processedHistory,
+      s"$processedHistoryTablePath",
+      Some("Delta OMS Processed History Table"),
       omsProperties
     )
   }
@@ -64,7 +67,7 @@ trait OMSUtils extends Serializable with Logging with ConfigurationSettings with
   def omsDatabaseDefinition(omsConfig: OMSConfig): DatabaseDefinition = {
     DatabaseDefinition(omsConfig.dbName,
       Some(s"$omsDBPath"),
-      Some("OMS Database"),
+      Some("Delta OMS Database"),
       omsProperties
     )
   }

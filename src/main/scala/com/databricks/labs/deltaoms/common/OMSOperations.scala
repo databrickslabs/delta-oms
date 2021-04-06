@@ -3,7 +3,7 @@ package com.databricks.labs.deltaoms.common
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import com.databricks.labs.deltaoms.configuration.SparkSettings
-import com.databricks.labs.deltaoms.model.{DeltaTableHistory, OMSDeltaCommitInfo, PathConfig}
+import com.databricks.labs.deltaoms.model.{PathConfig, TableConfig}
 import com.databricks.labs.deltaoms.utils.UtilityOperations._
 import com.databricks.labs.deltaoms.common.OMSUtils._
 import io.delta.tables._
@@ -13,8 +13,9 @@ import org.apache.spark.sql.delta.actions.SingleAction
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{LongType, StructType}
+import org.apache.spark.sql.streaming.Trigger
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Random, Success, Try}
 
 trait OMSOperations extends Serializable with SparkSettings with Logging with OMSchemas {
   val implicits = spark.implicits
@@ -38,73 +39,43 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
     }
   }
 
-  def updateTableCommitHistoryToOMS(rths: Seq[DeltaTableHistory]): Unit = {
+  def fetchTableConfigForProcessing() = {
+    val spark = SparkSession.active
+    spark.read.format("delta").load(tableConfigPath)
+         .where("skipProcessing <> true").select(PATH)
+         .as[String]
+         .collect()
+  }
 
-    val recentTableCommitInfoDS: Dataset[OMSDeltaCommitInfo] = rths.map(rth =>
-      OMSDeltaCommitInfo(rth.tableConfig.puid, rth.tableConfig.path,
-      rth.tableConfig.qualifiedName,
-        Instant.now(),
-      rth.history)).toDS()
+  def updateOMSPathConfigFromTableConfig() = {
+    // Fetch the latest tables configured
+    val configuredTables = fetchTableConfigForProcessing()
+    //Update the OMS Path Config
+    updateOMSPathConfigFromList(configuredTables.toSeq, omsConfig.truncatePathConfig)
+  }
 
-    val recentTableHistoriesDS = recentTableCommitInfoDS
-      .withColumn("commitInfoExploded",explode($"commitInfo"))
-      .select($"puid",$"path",$"qualifiedName",$"updateTs",$"commitInfoExploded.*")
-      .withColumn("commitDate", to_date($"timestamp"))
+  def tablePathToPathConfig(tablePaths: DataFrame) = {
+    val deltaWildCardPath  = getDeltaWildCardPathUDF()
+    tablePaths
+      .withColumn(PUID,substring(sha1($"path"),0,7))
+      .withColumn("wildCardPath",deltaWildCardPath($"path"))
+      .withColumn(WUID,substring(sha1($"wildCardPath"),0,7))
+      .withColumn("automated", lit(false))
+      .withColumn(COMMIT_VERSION,lit(0L))
+      .withColumn("skipProcessing", lit(false))
+      .withColumn(UPDATE_TS, lit(Instant.now())).as[PathConfig]
+  }
 
-    /*recentTableHistoriesDS
-      .write
-      .partitionBy(rawCommitPartitions: _*)
-      .mode("append")
-      .format("delta")
-      .save(rawCommitTablePath)
-
-    val latestVersionsDF = recentTableHistoriesDS
-      .select("puid","version")
-      .groupBy("puid")
-      .agg(max("version").as("version"))
-      .withColumn("updateTs", lit(Instant.now()))
-    updateLatestVersions(latestVersionsDF)*/
-
-    val rawCommitOMSDeltaTable = Try {
-      DeltaTable.forPath(rawCommitTablePath)
-    }
-    rawCommitOMSDeltaTable match {
-      case Success(rct) => {
-        rct.as("raw_commit")
-          .merge(recentTableHistoriesDS.as("recent_history_updates"),
-            """raw_commit.puid = recent_history_updates.puid and
-                    raw_commit.commitDate = recent_history_updates.commitDate and
-                    raw_commit.version = recent_history_updates.version""")
-          .whenMatched.updateAll()
-          .whenNotMatched.insertAll().execute()
-
-        val latestVersionsDF = recentTableHistoriesDS
-          .select(PUID,COMMIT_VERSION)
-          .groupBy(PUID)
-          .agg((max(COMMIT_VERSION)+1).as(COMMIT_VERSION))
-          .withColumn(UPDATE_TS, lit(Instant.now()))
-        updatePathConfigWithLatestVersions(latestVersionsDF)
-      }
-      case Failure(ex) => throw new RuntimeException(s"Unable to update the raw commit table. $ex")
-    }
+  def updateOMSPathConfigFromList(tables: Seq[String], truncate: Boolean = false) = {
+    val tablePaths = tables.map(validateDeltaTablePathOrName).toDF(QUALIFIED_NAME, PATH)
+    updatePathConfigToOMS(tablePathToPathConfig(tablePaths), truncate)
   }
 
   def updateOMSPathConfigFromMetaStore(truncate: Boolean = false) = {
     val metaStoreDeltaTables = fetchMetaStoreDeltaTables(omsConfig.srcDatabases, omsConfig.tablePattern)
-    val deltaWildCardPath  = getDeltaWildCardPathUDF()
     val tablePaths = metaStoreDeltaTables.map(mdt => (mdt.unquotedString, mdt.getPath(spark).toString))
       .toDF(QUALIFIED_NAME,PATH)
-    val pathConfigDF = tablePaths
-      .withColumn(PUID,substring(sha1($"path"),0,7))
-      .withColumn("wildCardPath",deltaWildCardPath($"path"))
-      .withColumn("wuid",substring(sha1($"wildCardPath"),0,7))
-      .withColumn("automated", lit(true))
-      .withColumn(COMMIT_VERSION,lit(0L))
-      .withColumn("skipProcessing", lit(false))
-      .withColumn(UPDATE_TS, lit(Instant.now())).as[PathConfig]
-
-    updatePathConfigToOMS(pathConfigDF, truncate)
-
+    updatePathConfigToOMS(tablePathToPathConfig(tablePaths), truncate)
   }
 
   def updatePathConfigToOMS(pathConfigs: Dataset[PathConfig], truncate: Boolean = false) = {
@@ -116,10 +87,10 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
         if(truncate) pct.delete()
         pct.as("pathconfig")
           .merge(pathConfigs.toDF().as("pathconfig_updates"),
-            """pathconfig.puid = pathconfig_updates.puid and
-              |pathconfig.wuid = pathconfig_updates.wuid
+            s"""pathconfig.$PUID = pathconfig_updates.$PUID and
+              |pathconfig.$WUID = pathconfig_updates.$WUID
               |""".stripMargin)
-          .whenMatched.updateExpr(Map("updateTs" -> "pathconfig_updates.updateTs"))
+          .whenMatched.updateExpr(Map(s"$UPDATE_TS" -> s"pathconfig_updates.$UPDATE_TS"))
           .whenNotMatched.insertAll().execute()
       }
       case Failure(ex) => throw new RuntimeException(s"Unable to update the Path Config table. $ex")
@@ -131,42 +102,37 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
     spark.read.format("delta").load(pathConfigTablePath).as[PathConfig]
   }
 
-  def fetchPathForStreamProcessing() ={
-    fetchPathConfigForProcessing().select("wildCardPath").distinct().as[String].collect()
-  }
-
-  def updateRawCommitHistoryToOMS() = {
-    val deltaTables = fetchPathConfigForProcessing().collect()
-    val recentTableHistories = deltaTables
-      .flatMap(lvt => getHistoryFromTableVersion(lvt,omsConfig.versionFetchSize))
-    updateTableCommitHistoryToOMS(recentTableHistories)
-
-    /*val recentTableHistories = odsLastVersionForTables
-      .map(dt => ParallelAsyncExecutor.executeAsync(
-        getHistoryFromTableVersion(TableDefinition(dt.tableName,
-          dt.databaseName,
-          None,
-          dt.,
-          Some("ODS Last Table Version"),
-          odsProperties
-        ))))
-      .grouped(2)
-      .map(it => ParallelAsyncExecutor.awaitSliding(it.iterator))
-      .flatten*/
+  def fetchPathForStreamProcessing(useWildCardPath: Boolean = true) ={
+    if(useWildCardPath)
+      fetchPathConfigForProcessing()
+        .select("wildCardPath")
+        .distinct().as[String].collect()
+    else
+      fetchPathConfigForProcessing()
+        .select(concat(col("path"),lit("/_delta_log/*.json")).as("path"))
+        .distinct().as[String].collect()
   }
 
   def streamingUpdateRawDeltaActionsToOMS() = {
-    val uniquePaths = fetchPathForStreamProcessing()
+    val uniquePaths = fetchPathForStreamProcessing(omsConfig.useWildcardPath)
     val combinedFrame = uniquePaths.flatMap(p => fetchStreamingDeltaLogForPath(p))
       .reduce(_ unionByName _)
-    val checkpointBaseDir = omsConfig.omsCheckpointBase.getOrElse("dbfs:/oms")
-    val checkpointPath = checkpointBaseDir + "/_oms_checkpoints/rawactions"
+    val checkpointBaseDir = omsConfig.checkpointBase.getOrElse("dbfs:/tmp/oms")
+    val checkpointSuffix = omsConfig.checkpointSuffix.getOrElse(Random.alphanumeric.take(5).mkString)
+    val checkpointPath = checkpointBaseDir + "/_oms_checkpoints/raw_actions" + checkpointSuffix
+    val triggerInterval = omsConfig.triggerInterval.getOrElse("once")
+    val trigger = if(triggerInterval.equalsIgnoreCase("once"))
+      Trigger.Once()
+    else
+      Trigger.ProcessingTime(triggerInterval)
+
     combinedFrame
       .writeStream
-      .partitionBy(rawActionsPartitions: _*)
+      .partitionBy(puidCommitDatePartitions: _*)
       .outputMode("append")
       .format("delta")
       .option("checkpointLocation", checkpointPath)
+      .trigger(trigger)
       .start(rawActionsTablePath)
   }
 

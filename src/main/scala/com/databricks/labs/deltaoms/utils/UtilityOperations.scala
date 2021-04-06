@@ -2,15 +2,12 @@ package com.databricks.labs.deltaoms.utils
 
 import java.net.URI
 
-import com.databricks.labs.deltaoms.model.{DatabaseDefinition, DeltaTableHistory, PathConfig, TableDefinition}
-import com.databricks.labs.deltaoms.utils.UtilityOperations.getDeltaTablesFromMetastore
+import com.databricks.labs.deltaoms.model.{DatabaseDefinition, TableDefinition}
 import io.delta.tables.DeltaTable
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.catalyst.TableIdentifier
-import org.apache.spark.sql.delta.actions.CommitInfo
-import org.apache.spark.sql.delta.util.FileNames
-import org.apache.spark.sql.delta.{DeltaErrors, DeltaTableIdentifier, DeltaTableUtils}
+import org.apache.spark.sql.delta.{ DeltaTableIdentifier, DeltaTableUtils}
 import org.apache.spark.sql.functions.{col, udf}
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.util.SerializableConfiguration
@@ -52,6 +49,19 @@ trait UtilityOperations extends Serializable with Logging {
       case Failure(exception) => {
         logError(s"Error while accessing table $identifier : $exception")
         None
+      }
+    }
+  }
+
+  def validateDeltaTablePathOrName(tablePathOrName: String) = {
+    val spark = SparkSession.active
+    val pathDTableTry = Try { DeltaTable.forPath(spark, tablePathOrName) }
+    pathDTableTry match {
+      case Success(_) => (None, tablePathOrName)
+      case Failure(e) => {
+        DeltaTable.forName(spark, tablePathOrName)
+        val tableId = spark.sessionState.sqlParser.parseTableIdentifier(tablePathOrName)
+        (Some(tablePathOrName),new Path(spark.sessionState.catalog.getTableMetadata(tableId).location).toString)
       }
     }
   }
@@ -109,38 +119,6 @@ trait UtilityOperations extends Serializable with Logging {
         dataFrameCreateWriterWithProperties
           .using("delta")
           .createOrReplace()
-      }
-    }
-  }
-
-  def getHistoryFromTableVersion(tableDefn: PathConfig,
-                                 versionFetchSize: Option[Long] = None,
-                                 fetchEarliestAvailable: Boolean = true): Option[DeltaTableHistory]= {
-    val spark = SparkSession.active
-    val deltaLog = tableDefn.getDeltaLog(spark)
-    val earliestVersionOption = Try {
-      deltaLog.store.listFrom(FileNames.deltaFile(deltaLog.logPath, 0))
-        .filter(f => FileNames.isDeltaFile(f.getPath))
-        .take(1).toArray.headOption
-    }
-    earliestVersionOption match {
-      case Success(evo) => {
-        if (evo.isEmpty) {
-          logInfo(s"No Delta commits found for $tableDefn")
-          None
-        } else {
-          val startingVersion = math.max(FileNames.deltaVersion(evo.get.getPath),tableDefn.commit_version)
-          val endVersion: Option[Long] = versionFetchSize match {
-            case Some(fs) => Some(startingVersion+fs-1)
-            case _ => None
-          }
-          Some(DeltaTableHistory(tableDefn,
-            tableDefn.getDeltaLog(spark).history.getHistory(startingVersion, endVersion)))
-        }
-      }
-      case Failure(ex) => {
-        logInfo(s"Error while retrieving Delta Log for $tableDefn")
-        None
       }
     }
   }
