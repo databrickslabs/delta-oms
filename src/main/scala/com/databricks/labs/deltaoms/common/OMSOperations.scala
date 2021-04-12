@@ -66,8 +66,8 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
       .withColumn(UPDATE_TS, lit(Instant.now())).as[PathConfig]
   }
 
-  def updateOMSPathConfigFromList(tables: Seq[String], truncate: Boolean = false) = {
-    val tablePaths = tables.map(validateDeltaTablePathOrName).toDF(QUALIFIED_NAME, PATH)
+  def updateOMSPathConfigFromList(locations: Seq[String], truncate: Boolean = false) = {
+    val tablePaths = locations.flatMap(validateDeltaLocation).toDF(QUALIFIED_NAME, PATH)
     updatePathConfigToOMS(tablePathToPathConfig(tablePaths), truncate)
   }
 

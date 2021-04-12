@@ -53,15 +53,36 @@ trait UtilityOperations extends Serializable with Logging {
     }
   }
 
-  def validateDeltaTablePathOrName(tablePathOrName: String) = {
+  def validateDeltaLocation(locationId: String) = {
     val spark = SparkSession.active
-    val pathDTableTry = Try { DeltaTable.forPath(spark, tablePathOrName) }
-    pathDTableTry match {
-      case Success(_) => (None, tablePathOrName)
-      case Failure(e) => {
-        DeltaTable.forName(spark, tablePathOrName)
-        val tableId = spark.sessionState.sqlParser.parseTableIdentifier(tablePathOrName)
-        (Some(tablePathOrName),new Path(spark.sessionState.catalog.getTableMetadata(tableId).location).toString)
+    val sessionCatalog = spark.sessionState.catalog
+
+    if(sessionCatalog.databaseExists(locationId)){
+      val dbTables = sessionCatalog.listTables(locationId,"*",includeLocalTempViews = false)
+      val dbDeltaTableIds = dbTables.flatMap(tableIdentifierToDeltaTableIdentifier)
+      dbDeltaTableIds.map(ddt => (Some(ddt.unquotedString), ddt.getPath(spark).toString))
+    } else {
+      val pathDTableTry = Try { DeltaTable.forPath(spark, locationId) }
+      pathDTableTry match {
+        case Success(_) => Seq((None, locationId))
+        case Failure(e) => {
+          val nameDTableTry = Try {
+            DeltaTable.forName(spark, locationId)
+          }
+          nameDTableTry match {
+            case Success(_) => {
+              val tableId = spark.sessionState.sqlParser.parseTableIdentifier(locationId)
+              Seq((Some(locationId),
+                new Path(spark.sessionState.catalog.getTableMetadata(tableId).location).toString))
+            }
+            case Failure(ex) => {
+              logError(s"Error while accessing Delta location $locationId." +
+                s"It should be a valid database, path or fully qualified table name.\n " +
+                s"Exception thrown: $ex")
+              throw ex
+            }
+          }
+        }
       }
     }
   }
