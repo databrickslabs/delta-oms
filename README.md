@@ -1,8 +1,8 @@
-# PROJECT NAME
-Standard Project Template for Databricks Labs Projects
+# Delta OMS
+Automated Observability on Delta Lake
 
 ## Project Description
-Short description of project's purpose
+This project provides a solution for automatically collecting operational metrics from Delta Lake tables into a centralized database. This will enable customers to gain operational insights and traceability around Delta Lake operations.
 
 ## Project Support
 Please note that all projects in the /databrickslabs github account are provided for your exploration only, and are not formally supported by Databricks with Service Level Agreements (SLAs).  They are provided AS-IS and we do not make any guarantees of any kind.  Please do not submit a support ticket relating to any issues arising from the use of these projects.
@@ -11,13 +11,16 @@ Any issues discovered through the use of this project should be filed as GitHub 
 
 
 ## Building the Project
-Instructions for how to build the project
+This scala project uses `sbt` as the build tool. Following are the high level building steps:
 
-## Deploying / Installing the Project
-Instructions for how to deploy the project, or install it
+- `git clone` the repo to a local directory
+- Execute `sbt clean compile` to compile the code
+- Build the jar using `sbt clean compile assembly`
+- Refer to the [build.sbt](./build.sbt) for library dependencies
+
+## Deploying / Installing / Using the Project
+Please follow the [Getting Started](./docs/GETTING%20STARTED.md) guide for instructions on using the solution.
 
 ## Releasing the Project
-Instructions for how to release a version of the project
+The solution is released as a `jar` to be used for setting up jobs. It also provides sample notebooks for analysis.Refer to the [Getting Started](./docs/GETTING%20STARTED.md) guide 
 
-## Using the Project
-Simple examples on how to use the project
