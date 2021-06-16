@@ -30,14 +30,14 @@ object StreamPopulateOMS extends OMSRunner with OMSInitializer {
     }
     // Update the OMS Path Config from Table Config
     if(!omsCommandArgs.skipPathConfig) {
-      updateOMSPathConfigFromTableConfig()
+      updateOMSPathConfigFromSourceConfig()
     }
-    val useWildCardPath = if (omsCommandArgs.useWildCardPaths) {
+    val useConsolidatedWildCardPath = if (omsCommandArgs.consolidatedWildCardPaths) {
       true
     } else {
-      omsConfig.useWildcardPath
+      omsConfig.consolidateWildcardPath
     }
     // Streaming Ingest the Raw Actions for configured Delta tables
-    streamingUpdateRawDeltaActionsToOMS(useWildCardPath)
+    streamingUpdateRawDeltaActionsToOMS(useConsolidatedWildCardPath)
   }
 }

@@ -48,7 +48,7 @@ trait OMSInitializer extends Serializable with Logging {
 
   def createOMSTables(config: OMSConfig): Unit = {
     logInfo("Creating the EXTERNAL Path Config table on OMS Delta Lake")
-    createTableIfAbsent(tableConfigDefinition(config))
+    createTableIfAbsent(sourceConfigDefinition(config))
     logInfo("Creating the INTERNAL Path Config table on OMS Delta Lake")
     createPathConfigTables(config)
     logInfo("Creating the Delta Raw Actions table on OMS Delta Lake")

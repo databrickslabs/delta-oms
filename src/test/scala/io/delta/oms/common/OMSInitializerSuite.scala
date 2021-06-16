@@ -37,7 +37,7 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
     assert(!spark.catalog.databaseExists(omsConfig.dbName))
     initializeOMS(omsConfig, dropAndRecreate = true)
     assert(spark.catalog.databaseExists(omsConfig.dbName))
-    assert(spark.catalog.tableExists(omsConfig.dbName, omsConfig.tableConfig))
+    assert(spark.catalog.tableExists(omsConfig.dbName, omsConfig.sourceConfigTable))
     assert(spark.catalog.tableExists(omsConfig.dbName, omsConfig.pathConfigTable))
     assert(spark.catalog.tableExists(omsConfig.dbName, omsConfig.rawActionTable))
     assert(spark.catalog.tableExists(omsConfig.dbName, omsConfig.processedHistoryTable))

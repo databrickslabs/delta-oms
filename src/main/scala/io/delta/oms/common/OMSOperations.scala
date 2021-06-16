@@ -21,7 +21,7 @@ import java.time.Instant
 import scala.util.{Failure, Random, Success, Try}
 import io.delta.oms.common.OMSUtils._
 import io.delta.oms.configuration.SparkSettings
-import io.delta.oms.model.PathConfig
+import io.delta.oms.model.{PathConfig, SourceConfig, StreamTargetInfo}
 import io.delta.oms.utils.UtilityOperations._
 import io.delta.tables._
 
@@ -56,23 +56,28 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
     }
   }
 
-  def updateOMSPathConfigFromTableConfig(): Unit = {
+  def updateOMSPathConfigFromSourceConfig(): Unit = {
     // Fetch the latest tables configured
-    val configuredTables = fetchTableConfigForProcessing()
+    val configuredSources: Array[SourceConfig] = fetchSourceConfigForProcessing()
     // Update the OMS Path Config
-    updateOMSPathConfigFromList(configuredTables.toSeq, omsConfig.truncatePathConfig)
+    updateOMSPathConfigFromList(configuredSources.toSeq, omsConfig.truncatePathConfig)
   }
 
-  def fetchTableConfigForProcessing(): Array[String] = {
+  def fetchSourceConfigForProcessing(): Array[SourceConfig] = {
     val spark = SparkSession.active
-    spark.read.format("delta").load(tableConfigPath)
-      .where("skipProcessing <> true").select(PATH)
-      .as[String]
+    val sourceConfigs = spark.read.format("delta").load(sourceConfigTablePath)
+      .where(s"$SKIP_PROCESSING <> true").select(PATH, SKIP_PROCESSING, PARAMETERS)
+      .as[SourceConfig]
       .collect()
+    sourceConfigs.foreach(sc => assert(sc.parameters.contains(WILDCARD_LEVEL),
+      s"Source Config $sc missing Wild Card Level Parameter"))
+    sourceConfigs
   }
 
-  def updateOMSPathConfigFromList(locations: Seq[String], truncate: Boolean = false): Unit = {
-    val tablePaths = locations.flatMap(validateDeltaLocation).toDF(QUALIFIED_NAME, PATH)
+  def updateOMSPathConfigFromList(sourceConfigs: Seq[SourceConfig], truncate: Boolean = false)
+  : Unit = {
+    val tablePaths: DataFrame = sourceConfigs.flatMap(validateDeltaLocation)
+      .toDF(QUALIFIED_NAME, PATH, PARAMETERS)
     updatePathConfigToOMS(tablePathToPathConfig(tablePaths), truncate)
   }
 
@@ -80,8 +85,8 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
     val metaStoreDeltaTables = fetchMetaStoreDeltaTables(omsConfig.srcDatabases,
       omsConfig.tablePattern)
     val tablePaths = metaStoreDeltaTables.map(mdt => (mdt.unquotedString,
-      mdt.getPath(spark).toString))
-      .toDF(QUALIFIED_NAME, PATH)
+      mdt.getPath(spark).toString, Map(WILDCARD_LEVEL -> 1)))
+      .toDF(QUALIFIED_NAME, PATH, PARAMETERS)
     updatePathConfigToOMS(tablePathToPathConfig(tablePaths), truncate)
   }
 
@@ -89,7 +94,8 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
     val deltaWildCardPath = getDeltaWildCardPathUDF()
     tablePaths
       .withColumn(PUID, substring(sha1($"path"), 0, 7))
-      .withColumn("wildCardPath", deltaWildCardPath($"path"))
+      .withColumn("wildCardPath",
+        deltaWildCardPath(col(s"$PATH"), col(s"${PARAMETERS}.${WILDCARD_LEVEL}")))
       .withColumn(WUID, substring(sha1($"wildCardPath"), 0, 7))
       .withColumn("automated", lit(false))
       .withColumn(COMMIT_VERSION, lit(0L))
@@ -115,46 +121,78 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
     }
   }
 
-  def streamingUpdateRawDeltaActionsToOMS(useWildCardPath: Boolean): StreamingQuery = {
-    val uniquePaths = fetchPathForStreamProcessing(useWildCardPath)
-    val combinedFrame = uniquePaths.flatMap(p => fetchStreamingDeltaLogForPath(p))
-      .reduce(_ unionByName _)
-    val checkpointBaseDir = omsConfig.checkpointBase.getOrElse("dbfs:/tmp/oms")
-    val checkpointSuffix = omsConfig.checkpointSuffix.getOrElse(Random.alphanumeric.take(5)
-      .mkString)
-    val checkpointPath = checkpointBaseDir + "/_oms_checkpoints/raw_actions" + checkpointSuffix
+  def processStreams(streamTargetAndLog: (DataFrame, StreamTargetInfo)):
+  (String, StreamingQuery) = {
+    val readStream = streamTargetAndLog._1
+    val targetInfo = streamTargetAndLog._2
+    assert(targetInfo.wuid.isDefined, "OMS Readstreams should be associated with WildcardPath")
     val triggerInterval = omsConfig.triggerInterval.getOrElse("once")
     val trigger = if (triggerInterval.equalsIgnoreCase("once")) {
       Trigger.Once()
     } else {
       Trigger.ProcessingTime(triggerInterval)
     }
+    val wuid = targetInfo.wuid.get
+    val poolName = "pool_" + wuid
+    val queryName = "query_" + wuid
 
-    combinedFrame
+    spark.sparkContext.setLocalProperty("spark.scheduler.pool", poolName)
+    (wuid, readStream
       .writeStream
+      .queryName(queryName)
       .partitionBy(puidCommitDatePartitions: _*)
       .outputMode("append")
       .format("delta")
-      .option("checkpointLocation", checkpointPath)
+      .option("checkpointLocation", targetInfo.checkpointPath)
       .trigger(trigger)
-      .start(rawActionsTablePath)
+      .start(targetInfo.path))
   }
 
-  def fetchPathForStreamProcessing(useWildCardPath: Boolean = true): Array[String] = {
+  def streamingUpdateRawDeltaActionsToOMS(useConsolidatedWildCardPath: Boolean): Unit = {
+    val uniquePaths = if (useConsolidatedWildCardPath) {
+      consolidateWildCardPaths(fetchPathForStreamProcessing())
+    } else {
+      fetchPathForStreamProcessing()
+    }
+    val logReadStreams = uniquePaths.flatMap(p => fetchStreamTargetAndDeltaLogForPath(p))
+    val logWriteStreamQueries = logReadStreams.map(processStreams)
+
+    spark.streams.awaitAnyTermination()
+  }
+
+  def fetchPathForStreamProcessing(useWildCardPath: Boolean = true): Seq[(String, String)] = {
     if (useWildCardPath) {
       fetchPathConfigForProcessing()
-        .select("wildCardPath")
-        .distinct().as[String].collect()
+        .select(WILDCARD_PATH, WUID)
+        .distinct().as[(String, String)].collect()
     } else {
       fetchPathConfigForProcessing()
-        .select(concat(col("path"), lit("/_delta_log/*.json")).as("path"))
-        .distinct().as[String].collect()
+        .select(concat(col(PATH), lit("/_delta_log/*.json")).as(PATH), col(PUID))
+        .distinct().as[(String, String)].collect()
     }
   }
 
   def fetchPathConfigForProcessing(): Dataset[PathConfig] = {
     val spark = SparkSession.active
     spark.read.format("delta").load(pathConfigTablePath).as[PathConfig]
+  }
+
+  def fetchStreamTargetAndDeltaLogForPath(pathInfo: (String, String)):
+  Option[(DataFrame, StreamTargetInfo)] = {
+    val checkpointBaseDir = omsConfig.checkpointBase.getOrElse("dbfs:/tmp/oms")
+    val checkpointSuffix = omsConfig.checkpointSuffix.getOrElse(Random.alphanumeric.take(5)
+      .mkString)
+    val checkpointPath = checkpointBaseDir + "/_oms_checkpoints/raw_actions_" +
+       pathInfo._2 + checkpointSuffix
+
+    val readPathStream = fetchStreamingDeltaLogForPath(pathInfo._1)
+    if(readPathStream.isDefined) {
+      Some(readPathStream.get,
+        StreamTargetInfo(path = rawActionsTablePath, checkpointPath = checkpointPath,
+          wuid = Some(pathInfo._2)))
+    } else {
+      None
+    }
   }
 
   def fetchStreamingDeltaLogForPath(path: String, useAutoloader: Boolean = false)

@@ -18,8 +18,9 @@ package io.delta.oms.utils
 
 import java.net.URI
 
+import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
-import io.delta.oms.model.{DatabaseDefinition, TableDefinition}
+import io.delta.oms.model.{DatabaseDefinition, SourceConfig, TableDefinition}
 import io.delta.tables.DeltaTable
 import org.apache.hadoop.fs.{FileSystem, Path}
 
@@ -62,31 +63,35 @@ trait UtilityOperations extends Serializable with Logging {
     allTables.flatMap(tableIdentifierToDeltaTableIdentifier)
   }
 
-  def validateDeltaLocation(locationId: String): Seq[(Option[String], String)] = {
+  def validateDeltaLocation(sourceConfig: SourceConfig): Seq[(Option[String], String,
+    Map[String, String])] = {
     val spark = SparkSession.active
     val sessionCatalog = spark.sessionState.catalog
 
-    if (sessionCatalog.databaseExists(locationId)) {
-      val dbTables = sessionCatalog.listTables(locationId, "*", includeLocalTempViews = false)
+    if (sessionCatalog.databaseExists(sourceConfig.path)) {
+      val dbTables = sessionCatalog.listTables(sourceConfig.path, "*",
+        includeLocalTempViews = false)
       val dbDeltaTableIds = dbTables.flatMap(tableIdentifierToDeltaTableIdentifier)
-      dbDeltaTableIds.map(ddt => (Some(ddt.unquotedString), ddt.getPath(spark).toString))
+      dbDeltaTableIds.map(ddt => (Some(ddt.unquotedString), ddt.getPath(spark).toString,
+        sourceConfig.parameters))
     } else {
       val pathDTableTry = Try {
-        DeltaTable.forPath(spark, locationId)
+        DeltaTable.forPath(spark, sourceConfig.path)
       }
       pathDTableTry match {
-        case Success(_) => Seq((None, locationId))
+        case Success(_) => Seq((None, sourceConfig.path, sourceConfig.parameters))
         case Failure(e) =>
           val nameDTableTry = Try {
-            DeltaTable.forName(spark, locationId)
+            DeltaTable.forName(spark, sourceConfig.path)
           }
           nameDTableTry match {
             case Success(_) =>
-              val tableId = spark.sessionState.sqlParser.parseTableIdentifier(locationId)
-              Seq((Some(locationId),
-                new Path(spark.sessionState.catalog.getTableMetadata(tableId).location).toString))
+              val tableId = spark.sessionState.sqlParser.parseTableIdentifier(sourceConfig.path)
+              Seq((Some(sourceConfig.path),
+                new Path(spark.sessionState.catalog.getTableMetadata(tableId).location).toString,
+                sourceConfig.parameters))
             case Failure(ex) =>
-              logError(s"Error while accessing Delta location $locationId." +
+              logError(s"Error while accessing Delta location $sourceConfig." +
                 s"It should be a valid database, path or fully qualified table name.\n " +
                 s"Exception thrown: $ex")
               throw ex
@@ -190,10 +195,39 @@ trait UtilityOperations extends Serializable with Logging {
   }
 
   def getDeltaWildCardPathUDF(): UserDefinedFunction = {
-    udf((filePath: String) => {
-      filePath.split("/").zipWithIndex
-        .map { case (v, i) => if (i < 4) v else "*" }.mkString("/") + "/_delta_log/*.json"
+    udf((filePath: String, wildCardLevel: Int) => {
+      assert(wildCardLevel >= 0 && wildCardLevel <= 1, "WildCard Level should be 0 or 1")
+      val modifiedPath = if (wildCardLevel == 0) {
+        (filePath.split("/").dropRight(1):+"*")
+      } else {
+        (filePath.split("/").dropRight(2):+"*":+"*")
+      }
+      modifiedPath.mkString("/") + "/_delta_log/*.json"
     })
+  }
+
+  def consolidateWildCardPaths(wildCardPaths: Seq[(String, String)]): Seq[(String, String)] = {
+    wildCardPaths.foldLeft(ListBuffer.empty[(String, String)]) { (l, a) =>
+      if (l.nonEmpty) {
+        val split_a = a._1.split("\\*")(0)
+        for (b <- l.toList) {
+          val split_b = b._1.split("\\*")(0)
+          if (split_b contains split_a) {
+            l -= b
+            if (! l.contains(a)) {
+              l += a
+            }
+          } else {
+            if (!(split_a contains split_b) && ! l.contains(a)) {
+              l += a
+            }
+          }
+        }
+        l
+      } else {
+        l += a
+      }
+    }.toList
   }
 }
 

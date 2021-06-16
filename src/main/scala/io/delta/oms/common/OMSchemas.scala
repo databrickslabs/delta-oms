@@ -16,7 +16,7 @@
 
 package io.delta.oms.common
 
-import io.delta.oms.model.{PathConfig, ProcessedHistory, TableConfig}
+import io.delta.oms.model.{PathConfig, ProcessedHistory, SourceConfig}
 
 import org.apache.spark.sql.catalyst.ScalaReflection
 import org.apache.spark.sql.delta.actions.{CommitInfo, SingleAction}
@@ -32,6 +32,10 @@ trait OMSchemas {
   final val COMMIT_TS = "commit_ts"
   final val COMMIT_VERSION = "commit_version"
   final val FILE_NAME = "file_name"
+  final val WILDCARD_LEVEL = "wildCardLevel"
+  final val WILDCARD_PATH = "wildCardPath"
+  final val PARAMETERS = "parameters"
+  final val SKIP_PROCESSING = "skipProcessing"
 
   final val rawCommit = ScalaReflection.schemaFor[CommitInfo].dataType.asInstanceOf[StructType]
     .add(StructField(PATH, StringType))
@@ -48,7 +52,7 @@ trait OMSchemas {
     .add(StructField(COMMIT_TS, TimestampType))
     .add(StructField(COMMIT_DATE, DateType))
   final val pathConfig = ScalaReflection.schemaFor[PathConfig].dataType.asInstanceOf[StructType]
-  final val tableConfig = ScalaReflection.schemaFor[TableConfig].dataType.asInstanceOf[StructType]
+  final val sourceConfig = ScalaReflection.schemaFor[SourceConfig].dataType.asInstanceOf[StructType]
   final val processedHistory = ScalaReflection.schemaFor[ProcessedHistory].dataType
     .asInstanceOf[StructType]
 }

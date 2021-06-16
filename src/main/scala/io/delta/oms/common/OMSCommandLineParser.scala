@@ -39,7 +39,7 @@ object OMSCommandLineParser {
             option match {
               case SKIP_PATH_CONFIG => omsCommandArgs.copy(skipPathConfig = true)
               case SKIP_INITIALIZE_OMS => omsCommandArgs.copy(skipInitializeOMS = true)
-              case USE_WILDCARD_PATHS => omsCommandArgs.copy(useWildCardPaths = true)
+              case USE_WILDCARD_PATHS => omsCommandArgs.copy(consolidatedWildCardPaths = true)
             }
         }
       }

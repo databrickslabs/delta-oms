@@ -26,7 +26,7 @@ trait OMSUtils extends Serializable with Logging with ConfigurationSettings with
   lazy val omsDBPath = s"${omsConfig.baseLocation}/${omsConfig.dbName}"
   lazy val rawActionsTablePath = s"${omsDBPath}/${omsConfig.rawActionTable}/"
   lazy val pathConfigTablePath = s"${omsDBPath}/${omsConfig.pathConfigTable}/"
-  lazy val tableConfigPath = s"${omsDBPath}/${omsConfig.tableConfig}/"
+  lazy val sourceConfigTablePath = s"${omsDBPath}/${omsConfig.sourceConfigTable}/"
   lazy val processedHistoryTablePath = s"${omsDBPath}/${omsConfig.processedHistoryTable}/"
   lazy val commitSnapshotTablePath = s"${omsDBPath}/${omsConfig.commitInfoSnapshotTable}/"
   lazy val commitSnapshotTableName = s"${omsConfig.dbName}.${omsConfig.commitInfoSnapshotTable}"
@@ -47,11 +47,11 @@ trait OMSUtils extends Serializable with Logging with ConfigurationSettings with
     )
   }
 
-  def tableConfigDefinition(omsConfig: OMSConfig): TableDefinition = {
-    TableDefinition(omsConfig.tableConfig,
+  def sourceConfigDefinition(omsConfig: OMSConfig): TableDefinition = {
+    TableDefinition(omsConfig.sourceConfigTable,
       omsConfig.dbName,
-      tableConfig,
-      s"$tableConfigPath",
+      sourceConfig,
+      s"$sourceConfigTablePath",
       Some("Delta OMS Table Config"),
       omsProperties
     )

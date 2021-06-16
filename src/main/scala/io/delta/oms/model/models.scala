@@ -27,6 +27,7 @@ case class PathConfig(path: String,
   puid: String,
   wildCardPath: String,
   wuid: String,
+  parameters: Map[String, String] = Map.empty[String, String],
   automated: Boolean = true,
   qualifiedName: Option[String] = None,
   commit_version: Long,
@@ -37,17 +38,11 @@ case class PathConfig(path: String,
   }
 }
 
-case class TableConfig(path: String, skipProcessing: Boolean = false)
-
-case class AddFileInfo(path: String, size: Long, numRecords: Long)
-
-case class RemoveFileInfo(path: String)
+case class SourceConfig(path: String, skipProcessing: Boolean = false,
+  parameters: Map[String, String] = Map.empty[String, String])
 
 case class ProcessedHistory(tableName: String, lastVersion: Long,
   update_ts: Instant = Instant.now())
-
-case class DeltaTableHistory(tableConfig: PathConfig,
-  history: Seq[CommitInfo] = Seq.empty[CommitInfo])
 
 case class TableDefinition(
   tableName: String,
@@ -70,4 +65,7 @@ case class DatabaseDefinition(databaseName: String,
 
 case class OMSCommandLineArgs(skipPathConfig: Boolean = false,
   skipInitializeOMS: Boolean = false,
-  useWildCardPaths: Boolean = false)
+  consolidatedWildCardPaths: Boolean = false)
+
+case class StreamTargetInfo(path: String, checkpointPath: String,
+  wuid: Option[String] = None, puid: Option[String] = None)
