@@ -143,6 +143,13 @@ trait UtilityOperations extends Serializable with Logging {
     }
   }
 
+  def populateOMSSourceConfigTableWithSelf(dbName: String, tableName: String): DataFrame = {
+    val spark = SparkSession.active
+    // Populate OMS SourceConfig with Self Database Name
+    spark.sql(s"INSERT INTO ${dbName}.${tableName} " +
+      s"VALUES ('${dbName}', false, Map('wildCardLevel','0'))")
+  }
+
   def createTableIfAbsent(tableDefn: TableDefinition): Unit = {
     val spark = SparkSession.active
     val fqTableName = s"${tableDefn.databaseName}.${tableDefn.tableName}"

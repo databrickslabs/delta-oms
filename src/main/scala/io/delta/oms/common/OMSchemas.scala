@@ -37,12 +37,6 @@ trait OMSchemas {
   final val PARAMETERS = "parameters"
   final val SKIP_PROCESSING = "skipProcessing"
 
-  final val rawCommit = ScalaReflection.schemaFor[CommitInfo].dataType.asInstanceOf[StructType]
-    .add(StructField(PATH, StringType))
-    .add(StructField(PUID, StringType))
-    .add(StructField(QUALIFIED_NAME, StringType))
-    .add(StructField(UPDATE_TS, TimestampType))
-    .add(StructField(COMMIT_DATE, DateType))
   final val rawAction = ScalaReflection.schemaFor[SingleAction].dataType.asInstanceOf[StructType]
     .add(StructField(FILE_NAME, StringType))
     .add(StructField(PATH, StringType))

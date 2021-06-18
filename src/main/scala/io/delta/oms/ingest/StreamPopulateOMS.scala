@@ -17,7 +17,6 @@
 package io.delta.oms.ingest
 
 import io.delta.oms.common.{OMSCommandLineParser, OMSInitializer, OMSRunner}
-import io.delta.oms.configuration.OMSConfig
 
 object StreamPopulateOMS extends OMSRunner with OMSInitializer {
 

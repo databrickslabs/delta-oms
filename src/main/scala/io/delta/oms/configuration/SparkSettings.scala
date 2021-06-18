@@ -25,15 +25,21 @@ trait SparkSettings extends Serializable with ConfigurationSettings {
       .config("spark.driver.host", "localhost")
       .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
       .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-      .appName("OMS_INBUILT").getOrCreate()
+      .appName("DELTA_OMS_INBUILT").getOrCreate()
     case Local => SparkSession.builder()
       .master("local[*]")
       .config("spark.driver.host", "localhost")
       .config("spark.sql.warehouse.dir", omsConfig.baseLocation)
-      .appName("OMS_LOCAL")
+      .appName("DELTA_OMS_LOCAL")
       .enableHiveSupport()
       .getOrCreate()
-    case _ => SparkSession.builder().appName("OMS").getOrCreate()
+    case _ => val spark = SparkSession.builder().appName("Delta OMS").getOrCreate()
+      spark.conf.set("spark.databricks.delta.properties.defaults.enableChangeDataFeed",
+        value = true)
+      spark.conf.set("spark.databricks.delta.optimizeWrite.enabled", value = true)
+      spark.conf.set("spark.databricks.delta.autoCompact.enabled", value = true)
+      spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", value = true)
+      spark
   }
 
   def spark: SparkSession = SparkSession.active

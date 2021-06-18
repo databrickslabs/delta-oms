@@ -25,6 +25,7 @@ trait OMSUtils extends Serializable with Logging with ConfigurationSettings with
 
   lazy val omsDBPath = s"${omsConfig.baseLocation}/${omsConfig.dbName}"
   lazy val rawActionsTablePath = s"${omsDBPath}/${omsConfig.rawActionTable}/"
+  lazy val rawActionsTableName = s"${omsConfig.dbName}.${omsConfig.rawActionTable}"
   lazy val pathConfigTablePath = s"${omsDBPath}/${omsConfig.pathConfigTable}/"
   lazy val sourceConfigTablePath = s"${omsDBPath}/${omsConfig.sourceConfigTable}/"
   lazy val processedHistoryTablePath = s"${omsDBPath}/${omsConfig.processedHistoryTable}/"

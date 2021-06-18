@@ -39,6 +39,10 @@ trait OMSInitializer extends Serializable with Logging {
     }
     createOMSDB(config)
     createOMSTables(config)
+    /* Uncomment to add the new created OMS Database to be monitored by OMS
+    if (dropAndRecreate) {
+      populateOMSSourceConfigTableWithSelf(config.dbName, config.sourceConfigTable)
+    } */
   }
 
   def createOMSDB(config: OMSConfig): Unit = {
@@ -47,13 +51,13 @@ trait OMSInitializer extends Serializable with Logging {
   }
 
   def createOMSTables(config: OMSConfig): Unit = {
-    logInfo("Creating the EXTERNAL Path Config table on OMS Delta Lake")
+    logInfo("Creating the EXTERNAL Source Config table on OMS Delta Lake")
     createTableIfAbsent(sourceConfigDefinition(config))
     logInfo("Creating the INTERNAL Path Config table on OMS Delta Lake")
     createPathConfigTables(config)
     logInfo("Creating the Delta Raw Actions table on OMS Delta Lake")
     createTableIfAbsent(rawActionsTableDefinition(config))
-    logInfo("Creating the Path Snapshot table on OMS Delta Lake")
+    logInfo("Creating the Processing History table on OMS Delta Lake")
     createTableIfAbsent(processedHistoryTableDefinition(config))
   }
 

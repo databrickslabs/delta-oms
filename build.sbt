@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-name := "delta-oms"
+name := "delta-oms-oss"
 
 organization := "io.delta"
 
 scalaVersion := "2.12.10"
 
 val sparkVersion = "3.1.1"
+val deltaVersion = "1.0.0"
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
@@ -28,7 +29,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-catalyst" % sparkVersion % "provided",
   "org.apache.spark" %% "spark-hive" % sparkVersion % "provided",
   "com.github.pureconfig" %% "pureconfig" % "0.14.0",
-  "io.delta" %% "delta-core" % "1.0.0" % "provided",
+  "io.delta" %% "delta-core" % deltaVersion % "provided",
 
   // Test Dependencies
   "org.scalatest" %% "scalatest" % "3.1.0" % Test,
@@ -43,13 +44,11 @@ libraryDependencies ++= Seq(
   compilerPlugin("com.typesafe.genjavadoc" %% "genjavadoc-plugin" % "0.16" cross CrossVersion.full)
 )
 
-testOptions in Test += Tests.Argument("-oDF")
+parallelExecution in ThisBuild := false
 
-testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
+crossScalaVersions in ThisBuild := Seq("2.12.10", "2.11.12")
 
-parallelExecution in Test := false
-
-fork in Test := true
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
 scalacOptions ++= Seq(
   "-target:jvm-1.8",
@@ -67,6 +66,14 @@ javaOptions in Test ++= Seq(
   "-Dspark.sql.sources.parallelPartitionDiscovery.parallelism=5",
   "-Xmx1024m"
 )
+
+testOptions in Test += Tests.Argument("-oDF")
+
+testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
+
+parallelExecution in Test := false
+
+fork in Test := true
 
 /**********************
  * ScalaStyle settings *
