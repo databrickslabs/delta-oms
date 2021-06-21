@@ -221,9 +221,8 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
 
   def fetchStreamTargetAndDeltaLogForPath(pathInfo: (String, String)):
   Option[(DataFrame, StreamTargetInfo)] = {
-    val checkpointBaseDir = omsConfig.checkpointBase.getOrElse("dbfs:/tmp/oms")
-    val checkpointSuffix = omsConfig.checkpointSuffix.getOrElse(Random.alphanumeric.take(5)
-      .mkString)
+    val checkpointBaseDir = omsConfig.checkpointBase
+    val checkpointSuffix = omsConfig.checkpointSuffix
     val checkpointPath = checkpointBaseDir + "/_oms_checkpoints/raw_actions_" +
        pathInfo._2 + checkpointSuffix
 

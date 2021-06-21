@@ -16,25 +16,20 @@
 
 package io.delta.oms.configuration
 
+import scala.util.Random
+
 case class OMSConfig(baseLocation: String,
   dbName: String,
-  rawActionTable: String,
-  sourceConfigTable: String,
-  pathConfigTable: String,
-  processedHistoryTable: String,
-  commitInfoSnapshotTable: String,
-  actionSnapshotTable: String,
+  checkpointBase: String = "dbfs:/tmp/oms",
+  checkpointSuffix: String = Random.alphanumeric.take(5).mkString,
+  rawActionTable: String = "rawactions",
+  sourceConfigTable: String = "sourceconfig",
+  pathConfigTable: String = "pathconfig",
+  processedHistoryTable: String = "processedhistory",
+  commitInfoSnapshotTable: String = "commitinfosnapshots",
+  actionSnapshotTable: String = "actionsnapshots",
   consolidateWildcardPath: Boolean = true,
   truncatePathConfig: Boolean = false,
   srcDatabases: Option[String] = None,
   tablePattern: Option[String] = None,
-  versionFetchSize: Option[Long] = None,
-  checkpointBase: Option[String] = None,
-  checkpointSuffix: Option[String] = None,
-  triggerInterval: Option[String] = None) {
-  if (versionFetchSize.nonEmpty && versionFetchSize.get < 0) {
-    throw new IllegalArgumentException("Version Fetch Size should be non negative")
-  }
-}
-
-case class OMSDatabase(name: String, path: String)
+  triggerInterval: Option[String] = None)
