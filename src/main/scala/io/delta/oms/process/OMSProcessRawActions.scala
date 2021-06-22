@@ -22,17 +22,22 @@ object OMSProcessRawActions extends OMSRunner with OMSInitializer {
 
   def main(args: Array[String]): Unit = {
     logInfo(s"Starting processing the OMS Raw Data : $omsConfig")
+    // Get the current version for Raw Actions
+    val currentRawActionsVersion = getCurrentRawActionsVersion()
     // Get Last OMS Raw Actions Commit Version that was processed
     val lastProcessedRawActionsVersion = getLastProcessedRawActionsVersion()
-    // Read the changed data since that version
-    val newRawActions = getUpdatedRawActions(lastProcessedRawActionsVersion)
-    // Extract and Persist Commit Info from the new Raw Actions
-    processCommitInfoFromRawActions(newRawActions)
-    // Extract, Compute Version Snapshots and Persist Action Info from the new Raw Actions
-    processActionSnapshotsFromRawActions(newRawActions)
-    // Find the latest version from the newly processed raw actions
-    val latestRawActionVersion = getLatestRawActionsVersion(newRawActions)
-    // Update history with the version
-    updateLastProcessedRawActions(latestRawActionVersion)
+    if (currentRawActionsVersion == 0 ||
+      lastProcessedRawActionsVersion < currentRawActionsVersion) {
+      // Read the changed data since that version
+      val newRawActions = getUpdatedRawActions(lastProcessedRawActionsVersion)
+      // Extract and Persist Commit Info from the new Raw Actions
+      processCommitInfoFromRawActions(newRawActions)
+      // Extract, Compute Version Snapshots and Persist Action Info from the new Raw Actions
+      processActionSnapshotsFromRawActions(newRawActions)
+      // Find the latest version from the newly processed raw actions
+      val latestRawActionVersion = getLatestRawActionsVersion(newRawActions)
+      // Update history with the version
+      updateLastProcessedRawActions(latestRawActionVersion)
+    }
   }
 }

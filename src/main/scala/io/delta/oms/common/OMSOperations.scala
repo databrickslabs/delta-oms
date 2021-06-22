@@ -271,6 +271,11 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
     }
   }
 
+  def getCurrentRawActionsVersion(): Long = {
+    spark.sql(s"describe history delta.`$rawActionsTablePath`")
+      .select(max("version").as("max_version")).as[Long].head()
+  }
+
   def getLastProcessedRawActionsVersion(): Long = {
     Try {
       spark.read.format("delta")
@@ -422,14 +427,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
     val addRemoveFileActions = dedupedAddFileActions.unionByName(removeFileActions)
       .select(col(PUID), col("data_path"), col(COMMIT_VERSION), col(COMMIT_TS),
         col(COMMIT_DATE),
-        when(col("add").isNotNull, struct(col("add.path"),
-          coalesce(col("add.size"), lit(0L)).as("size"),
-          coalesce(get_json_object(col("add.stats"), "$.numRecords")
-            .cast(LongType), lit(0L)).as("numRecords")))
-          .otherwise(lit(null: StructType)).as("add_file"),
-        when(col("remove.path").isNotNull,
-          struct(col("remove.path"))).otherwise(lit(null: StructType))
-          .as("remove_file"))
+        col("add").as("add_file"), col("remove").as("remove_file"))
     addRemoveFileActions
   }
 
