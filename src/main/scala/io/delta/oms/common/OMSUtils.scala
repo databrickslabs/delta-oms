@@ -53,7 +53,7 @@ trait OMSUtils extends Serializable with Logging with ConfigurationSettings with
       omsConfig.dbName,
       sourceConfig,
       s"$sourceConfigTablePath",
-      Some("Delta OMS Table Config"),
+      Some("Delta OMS Source Config Table"),
       omsProperties
     )
   }

@@ -25,6 +25,10 @@ object OMSCommandLineParser {
   final val SKIP_PATH_CONFIG = "--skipPathConfig"
   final val SKIP_INITIALIZE_OMS = "--skipInitializeOMS"
   final val USE_WILDCARD_PATHS = "--useWildcardPaths"
+  final val DB_NAME = "--dbName"
+  final val BASE_LOCATION = "--baseLocation"
+  final val CHECKPOINT_BASE = "--checkpointBase"
+  final val CHECKPOINT_SUFFIX = "--checkpointSuffix"
 
   def parseOMSCommandArgs(args: Array[String]): OMSCommandLineArgs = {
     val parsedCommandArgs: Array[(String, String)] = args.map(arg => arg match {
@@ -40,6 +44,10 @@ object OMSCommandLineParser {
               case SKIP_PATH_CONFIG => omsCommandArgs.copy(skipPathConfig = true)
               case SKIP_INITIALIZE_OMS => omsCommandArgs.copy(skipInitializeOMS = true)
               case USE_WILDCARD_PATHS => omsCommandArgs.copy(consolidatedWildCardPaths = true)
+              case DB_NAME => omsCommandArgs.copy(dbName = Some(value))
+              case BASE_LOCATION => omsCommandArgs.copy(baseLocation = Some(value))
+              case CHECKPOINT_BASE => omsCommandArgs.copy(checkpointBase = Some(value))
+              case CHECKPOINT_SUFFIX => omsCommandArgs.copy(checkpointSuffix = Some(value))
             }
         }
       }

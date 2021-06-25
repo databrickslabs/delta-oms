@@ -38,10 +38,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-catalyst" % sparkVersion % Test classifier "tests",
   "org.apache.spark" %% "spark-core" % sparkVersion % Test classifier "tests",
   "org.apache.spark" %% "spark-sql" % sparkVersion % Test classifier "tests",
-  "org.apache.spark" %% "spark-hive" % sparkVersion % Test classifier "tests",
-  // Compiler plugins
-  // -- Bump up the genjavadoc version explicitly to 0.16 to work with Scala 2.12
-  compilerPlugin("com.typesafe.genjavadoc" %% "genjavadoc-plugin" % "0.16" cross CrossVersion.full)
+  "org.apache.spark" %% "spark-hive" % sparkVersion % Test classifier "tests"
 )
 
 parallelExecution in ThisBuild := false
@@ -51,8 +48,7 @@ crossScalaVersions in ThisBuild := Seq("2.12.10", "2.11.12")
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
 scalacOptions ++= Seq(
-  "-target:jvm-1.8",
-  "-P:genjavadoc:strictVisibility=true" // hide package private types and methods in javadoc
+  "-target:jvm-1.8"
 )
 
 javaOptions += "-Xmx1024m"

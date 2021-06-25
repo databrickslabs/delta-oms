@@ -18,7 +18,7 @@ package io.delta.oms.ingest
 
 import io.delta.oms.common.{OMSCommandLineParser, OMSInitializer, OMSRunner}
 
-object StreamPopulateOMS extends OMSRunner with OMSInitializer {
+object StreamPopulateOMS extends OMSRunner {
 
   def main(args: Array[String]): Unit = {
     logInfo(s"Starting Streaming OMS with Configuration : $omsConfig")

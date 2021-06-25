@@ -18,7 +18,7 @@ package io.delta.oms.ingest
 
 import io.delta.oms.common.{OMSInitializer, OMSRunner}
 
-object InitializeOMSTables extends OMSRunner with OMSInitializer {
+object InitializeOMSTables extends OMSRunner {
 
   def main(args: Array[String]): Unit = {
     logInfo(s"Initializing Delta OMS Database and tables with Configuration : $omsConfig")

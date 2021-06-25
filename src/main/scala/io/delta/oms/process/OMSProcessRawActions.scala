@@ -18,7 +18,7 @@ package io.delta.oms.process
 
 import io.delta.oms.common.{OMSInitializer, OMSRunner}
 
-object OMSProcessRawActions extends OMSRunner with OMSInitializer {
+object OMSProcessRawActions extends OMSRunner {
 
   def main(args: Array[String]): Unit = {
     logInfo(s"Starting processing the OMS Raw Data : $omsConfig")

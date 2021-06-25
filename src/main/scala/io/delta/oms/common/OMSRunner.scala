@@ -21,5 +21,9 @@ import io.delta.oms.configuration.SparkSettings
 import org.apache.spark.internal.Logging
 
 
-trait OMSRunner extends Serializable with SparkSettings with OMSOperations with Logging {
+trait OMSRunner extends Serializable
+  with SparkSettings
+  with OMSInitializer
+  with OMSOperations
+  with Logging {
 }

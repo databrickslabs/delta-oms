@@ -75,10 +75,10 @@ trait OMSInitializer extends Serializable with Logging {
       case Failure(exception) => throw exception
     }
     val dbDrop = Try {
-      dropDatabase(omsConfig.dbName)
+      dropDatabase(config.dbName)
     }
     dbDrop match {
-      case Success(value) => logInfo(s"Successfully dropped OMS database ${omsConfig.dbName}")
+      case Success(value) => logInfo(s"Successfully dropped OMS database ${config.dbName}")
       case Failure(exception) => throw exception
     }
   }

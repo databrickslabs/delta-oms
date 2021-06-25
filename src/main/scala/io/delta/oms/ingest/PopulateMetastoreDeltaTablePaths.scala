@@ -18,7 +18,7 @@ package io.delta.oms.ingest
 
 import io.delta.oms.common.{OMSInitializer, OMSRunner}
 
-object PopulateMetastoreDeltaTablePaths extends OMSRunner with OMSInitializer {
+object PopulateMetastoreDeltaTablePaths extends OMSRunner {
 
   def main(args: Array[String]): Unit = {
     logInfo(s"Starting Delta table path configuration update for OMS with Configuration : " +

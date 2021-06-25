@@ -65,7 +65,11 @@ case class DatabaseDefinition(databaseName: String,
 
 case class OMSCommandLineArgs(skipPathConfig: Boolean = false,
   skipInitializeOMS: Boolean = false,
-  consolidatedWildCardPaths: Boolean = false)
+  consolidatedWildCardPaths: Boolean = false,
+  dbName: Option[String] = None,
+  baseLocation: Option[String] = None,
+  checkpointBase: Option[String] = None,
+  checkpointSuffix: Option[String] = None)
 
 case class StreamTargetInfo(path: String, checkpointPath: String,
   wuid: Option[String] = None, puid: Option[String] = None)
