@@ -68,14 +68,14 @@ trait OMSInitializer extends Serializable with Logging {
 
   def cleanupOMS(config: OMSConfig): Unit = {
     val deleteDBPath = Try {
-      deleteDirectory(omsDBPath)
+      deleteDirectory(getOMSDBPath(config))
     }
     deleteDBPath match {
-      case Success(value) => logInfo(s"Successfully deleted the directory $omsDBPath")
+      case Success(value) => logInfo(s"Successfully deleted the directory ${getOMSDBPath(config)}")
       case Failure(exception) => throw exception
     }
     val dbDrop = Try {
-      dropDatabase(config.dbName)
+      dropDatabase(config.dbName.get)
     }
     dbDrop match {
       case Success(value) => logInfo(s"Successfully dropped OMS database ${config.dbName}")

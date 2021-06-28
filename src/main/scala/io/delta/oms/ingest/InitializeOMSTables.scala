@@ -16,13 +16,24 @@
 
 package io.delta.oms.ingest
 
-import io.delta.oms.common.{OMSInitializer, OMSRunner}
+import io.delta.oms.common.BatchOMSRunner
 
-object InitializeOMSTables extends OMSRunner {
+object InitializeOMSTables extends BatchOMSRunner {
 
   def main(args: Array[String]): Unit = {
-    logInfo(s"Initializing Delta OMS Database and tables with Configuration : $omsConfig")
+
+    val consolidatedOMSConfig = consolidateAndValidateOMSConfig(args, omsConfig)
+    logInfo(s"Initializing Delta OMS Database and tables with Configuration " +
+      s": $consolidatedOMSConfig")
     // Create the OMS Database and Table Structures , if needed
-    initializeOMS(omsConfig, dropAndRecreate = true)
+    if(!consolidatedOMSConfig.skipInitializeOMS) {
+      initializeOMS(consolidatedOMSConfig)
+    }
+    // Update the OMS Path Config from Table Config
+    if(!consolidatedOMSConfig.skipPathConfig) {
+      updateOMSPathConfigFromSourceConfig(consolidatedOMSConfig)
+    }
+    // Create the OMS Database and Table Structures , if needed
+    initializeOMS(consolidatedOMSConfig, dropAndRecreate = true)
   }
 }

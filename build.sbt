@@ -53,6 +53,10 @@ scalacOptions ++= Seq(
 
 javaOptions += "-Xmx1024m"
 
+parallelExecution in Test := false
+
+fork in Test := true
+
 javaOptions in Test ++= Seq(
   "-Dspark.ui.enabled=false",
   "-Dspark.ui.showConsoleProgress=false",
@@ -60,20 +64,13 @@ javaOptions in Test ++= Seq(
   "-Dspark.sql.shuffle.partitions=5",
   "-Ddelta.log.cacheSize=3",
   "-Dspark.sql.sources.parallelPartitionDiscovery.parallelism=5",
+  "-DOMS_CONFIG_FILE=inbuilt",
   "-Xmx1024m"
 )
 
 testOptions in Test += Tests.Argument("-oDF")
 
 testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
-
-parallelExecution in Test := false
-
-fork in Test := true
-
-/**********************
- * ScalaStyle settings *
- **********************/
 
 scalastyleConfig := baseDirectory.value / "scalastyle-config.xml"
 

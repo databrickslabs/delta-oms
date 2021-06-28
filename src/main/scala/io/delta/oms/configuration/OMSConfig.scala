@@ -16,20 +16,20 @@
 
 package io.delta.oms.configuration
 
-import scala.util.Random
-
-case class OMSConfig(baseLocation: String,
-  dbName: String,
-  checkpointBase: String = "dbfs:/tmp/oms",
-  checkpointSuffix: String = Random.alphanumeric.take(5).mkString,
+case class OMSConfig(baseLocation: Option[String] = None,
+  dbName: Option[String] = None,
+  checkpointBase: Option[String] = None,
+  checkpointSuffix: Option[String] = None,
   rawActionTable: String = "rawactions",
   sourceConfigTable: String = "sourceconfig",
   pathConfigTable: String = "pathconfig",
   processedHistoryTable: String = "processedhistory",
   commitInfoSnapshotTable: String = "commitinfosnapshots",
   actionSnapshotTable: String = "actionsnapshots",
-  consolidateWildcardPath: Boolean = true,
+  consolidateWildcardPaths: Boolean = true,
   truncatePathConfig: Boolean = false,
+  skipPathConfig: Boolean = false,
+  skipInitializeOMS: Boolean = false,
   srcDatabases: Option[String] = None,
   tablePattern: Option[String] = None,
   triggerInterval: Option[String] = None)

@@ -29,7 +29,7 @@ trait SparkSettings extends Serializable with ConfigurationSettings {
     case Local => SparkSession.builder()
       .master("local[*]")
       .config("spark.driver.host", "localhost")
-      .config("spark.sql.warehouse.dir", omsConfig.baseLocation)
+      .config("spark.sql.warehouse.dir", omsConfig.baseLocation.get)
       .appName("DELTA_OMS_LOCAL")
       .enableHiveSupport()
       .getOrCreate()

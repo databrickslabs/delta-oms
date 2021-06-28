@@ -30,16 +30,17 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
   test("Inbuilt Configuration Settings") {
     assert(environmentConfigFile == "inbuilt")
     assert(environment == EnvironmentResolver.fetchEnvironment("inbuilt"))
-    assert(omsConfig.dbName == "oms_default_inbuilt")
+    assert(omsConfig.dbName.get == "oms_default_inbuilt")
   }
 
   test("Initialize OMS Database and tables") {
-    assert(!spark.catalog.databaseExists(omsConfig.dbName))
+    val dbName = omsConfig.dbName.get
+    assert(!spark.catalog.databaseExists(dbName))
     initializeOMS(omsConfig, dropAndRecreate = true)
-    assert(spark.catalog.databaseExists(omsConfig.dbName))
-    assert(spark.catalog.tableExists(omsConfig.dbName, omsConfig.sourceConfigTable))
-    assert(spark.catalog.tableExists(omsConfig.dbName, omsConfig.pathConfigTable))
-    assert(spark.catalog.tableExists(omsConfig.dbName, omsConfig.rawActionTable))
-    assert(spark.catalog.tableExists(omsConfig.dbName, omsConfig.processedHistoryTable))
+    assert(spark.catalog.databaseExists(dbName))
+    assert(spark.catalog.tableExists(dbName, omsConfig.sourceConfigTable))
+    assert(spark.catalog.tableExists(dbName, omsConfig.pathConfigTable))
+    assert(spark.catalog.tableExists(dbName, omsConfig.rawActionTable))
+    assert(spark.catalog.tableExists(dbName, omsConfig.processedHistoryTable))
   }
 }

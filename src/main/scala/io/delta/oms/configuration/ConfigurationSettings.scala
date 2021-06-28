@@ -31,19 +31,17 @@ trait ConfigurationSettings extends Serializable with Logging {
   def omsConfig: OMSConfig = configSource.loadOrThrow[OMSConfig]
 
   def configSource: ConfigObjectSource = environment match {
+    case Empty => ConfigSource.empty
     case InBuilt => ConfigSource.default
     case Local => ConfigSource.string(fetchConfigFileContent(environmentConfigFile))
     case _ => ConfigSource.string(fetchConfigFileContent(environmentConfigFile))
   }
 
-  logInfo(s"Loading configuration from : ${environmentConfigFile}")
-  logInfo(s"Environment set to : ${environment}")
-
   def environment: Environment = EnvironmentResolver.fetchEnvironment(environmentConfigFile)
 
   def environmentConfigFile: String =
     sys.props.getOrElse("OMS_CONFIG_FILE",
-      sys.env.getOrElse("OMS_CONFIG_FILE", "inbuilt")).toLowerCase
+      sys.env.getOrElse("OMS_CONFIG_FILE", "empty")).toLowerCase
 
   def fetchConfigFileContent(fullFilePath: String): String = {
     val fileSystem = FileSystem.get(new URI(fullFilePath), new Configuration())
@@ -61,3 +59,5 @@ trait ConfigurationSettings extends Serializable with Logging {
   }
 
 }
+
+object ConfigurationSettings extends ConfigurationSettings

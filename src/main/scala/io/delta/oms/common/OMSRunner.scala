@@ -16,7 +16,8 @@
 
 package io.delta.oms.common
 
-import io.delta.oms.configuration.SparkSettings
+import io.delta.oms.configuration.{OMSConfig, SparkSettings}
+import io.delta.oms.ingest.InitializeOMSTables.omsConfig
 
 import org.apache.spark.internal.Logging
 
@@ -26,4 +27,22 @@ trait OMSRunner extends Serializable
   with OMSInitializer
   with OMSOperations
   with Logging {
+
+  logInfo(s"Loading configuration from : ${environmentConfigFile}")
+  logInfo(s"Environment set to : ${environment}")
+  logInfo(s"OMS Config from configuration file : ${omsConfig}")
+
+  def consolidateAndValidateOMSConfig(args: Array[String], config: OMSConfig): OMSConfig
+}
+
+trait BatchOMSRunner extends OMSRunner {
+  def consolidateAndValidateOMSConfig(args: Array[String], config: OMSConfig): OMSConfig = {
+    OMSCommandLineParser.consolidateAndValidateOMSConfig(args, omsConfig)
+  }
+}
+
+trait StreamOMSRunner extends OMSRunner{
+  def consolidateAndValidateOMSConfig(args: Array[String], config: OMSConfig): OMSConfig = {
+    OMSCommandLineParser.consolidateAndValidateOMSConfig(args, omsConfig, isBatch = false)
+  }
 }

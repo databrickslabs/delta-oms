@@ -16,23 +16,34 @@
 
 package io.delta.oms.common
 
-import io.delta.oms.configuration.{ConfigurationSettings, OMSConfig}
+import io.delta.oms.configuration.OMSConfig
 import io.delta.oms.model.{DatabaseDefinition, TableDefinition}
 
 import org.apache.spark.internal.Logging
 
-trait OMSUtils extends Serializable with Logging with ConfigurationSettings with OMSchemas {
+trait OMSUtils extends Serializable with Logging with OMSchemas {
 
-  lazy val omsDBPath = s"${omsConfig.baseLocation}/${omsConfig.dbName}"
-  lazy val rawActionsTablePath = s"${omsDBPath}/${omsConfig.rawActionTable}/"
-  lazy val rawActionsTableName = s"${omsConfig.dbName}.${omsConfig.rawActionTable}"
-  lazy val pathConfigTablePath = s"${omsDBPath}/${omsConfig.pathConfigTable}/"
-  lazy val sourceConfigTablePath = s"${omsDBPath}/${omsConfig.sourceConfigTable}/"
-  lazy val processedHistoryTablePath = s"${omsDBPath}/${omsConfig.processedHistoryTable}/"
-  lazy val commitSnapshotTablePath = s"${omsDBPath}/${omsConfig.commitInfoSnapshotTable}/"
-  lazy val commitSnapshotTableName = s"${omsConfig.dbName}.${omsConfig.commitInfoSnapshotTable}"
-  lazy val actionSnapshotTablePath = s"${omsDBPath}/${omsConfig.actionSnapshotTable}/"
-  lazy val actionSnapshotTableName = s"${omsConfig.dbName}.${omsConfig.actionSnapshotTable}"
+  def getOMSDBPath(config: OMSConfig): String =
+    s"${config.baseLocation.get}/${config.dbName.get}"
+  def getRawActionsTableName(config: OMSConfig): String =
+    s"${config.dbName.get}.${config.rawActionTable}"
+  def getRawActionsTablePath(config: OMSConfig): String =
+    s"${getOMSDBPath(config)}/${config.rawActionTable}/"
+  def getPathConfigTablePath(config: OMSConfig): String =
+    s"${getOMSDBPath(config)}/${config.pathConfigTable}/"
+  def getSourceConfigTablePath(config: OMSConfig): String =
+    s"${getOMSDBPath(config)}/${config.sourceConfigTable}/"
+  def getProcessedHistoryTablePath(config: OMSConfig): String =
+    s"${getOMSDBPath(config)}/${config.processedHistoryTable}/"
+  def getCommitSnapshotTablePath(config: OMSConfig): String =
+    s"${getOMSDBPath(config)}/${config.commitInfoSnapshotTable}/"
+  def getCommitSnapshotTableName(config: OMSConfig): String =
+    s"${config.dbName.get}.${config.commitInfoSnapshotTable}"
+  def getActionSnapshotTablePath(config: OMSConfig): String =
+    s"${getOMSDBPath(config)}/${config.actionSnapshotTable}/"
+  def getActionSnapshotTableName(config: OMSConfig): String =
+    s"${config.dbName.get}.${config.actionSnapshotTable}"
+
   val puidCommitDatePartitions = Seq(PUID, COMMIT_DATE)
   private val omsVersion = "0.1"
   private val entityName = "oms"
@@ -40,9 +51,9 @@ trait OMSUtils extends Serializable with Logging with ConfigurationSettings with
 
   def pathConfigTableDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(omsConfig.pathConfigTable,
-      omsConfig.dbName,
+      omsConfig.dbName.get,
       pathConfig,
-      s"$pathConfigTablePath",
+      getPathConfigTablePath(omsConfig),
       Some("Delta OMS Path Config Table"),
       omsProperties
     )
@@ -50,9 +61,9 @@ trait OMSUtils extends Serializable with Logging with ConfigurationSettings with
 
   def sourceConfigDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(omsConfig.sourceConfigTable,
-      omsConfig.dbName,
+      omsConfig.dbName.get,
       sourceConfig,
-      s"$sourceConfigTablePath",
+      getSourceConfigTablePath(omsConfig),
       Some("Delta OMS Source Config Table"),
       omsProperties
     )
@@ -60,9 +71,9 @@ trait OMSUtils extends Serializable with Logging with ConfigurationSettings with
 
   def rawActionsTableDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(omsConfig.rawActionTable,
-      omsConfig.dbName,
+      omsConfig.dbName.get,
       rawAction,
-      s"$rawActionsTablePath",
+      getRawActionsTablePath(omsConfig),
       Some("Delta OMS Raw Actions Table"),
       omsProperties,
       puidCommitDatePartitions)
@@ -70,17 +81,17 @@ trait OMSUtils extends Serializable with Logging with ConfigurationSettings with
 
   def processedHistoryTableDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(omsConfig.processedHistoryTable,
-      omsConfig.dbName,
+      omsConfig.dbName.get,
       processedHistory,
-      s"$processedHistoryTablePath",
+      getProcessedHistoryTablePath(omsConfig),
       Some("Delta OMS Processed History Table"),
       omsProperties
     )
   }
 
   def omsDatabaseDefinition(omsConfig: OMSConfig): DatabaseDefinition = {
-    DatabaseDefinition(omsConfig.dbName,
-      Some(s"$omsDBPath"),
+    DatabaseDefinition(omsConfig.dbName.get,
+      Some(getOMSDBPath(omsConfig)),
       Some("Delta OMS Database"),
       omsProperties
     )

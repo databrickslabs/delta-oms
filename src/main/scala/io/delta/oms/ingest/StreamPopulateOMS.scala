@@ -16,27 +16,23 @@
 
 package io.delta.oms.ingest
 
-import io.delta.oms.common.{OMSCommandLineParser, OMSInitializer, OMSRunner}
+import io.delta.oms.common.StreamOMSRunner
 
-object StreamPopulateOMS extends OMSRunner {
+object StreamPopulateOMS extends StreamOMSRunner {
 
   def main(args: Array[String]): Unit = {
-    logInfo(s"Starting Streaming OMS with Configuration : $omsConfig")
-    val omsCommandArgs = OMSCommandLineParser.parseOMSCommandArgs(args)
+
+    val consolidatedOMSConfig = consolidateAndValidateOMSConfig(args, omsConfig)
     // Create the OMS Database and Table Structures , if needed
-    if(!omsCommandArgs.skipInitializeOMS) {
-      initializeOMS(omsConfig)
+    if(!consolidatedOMSConfig.skipInitializeOMS) {
+      initializeOMS(consolidatedOMSConfig)
     }
     // Update the OMS Path Config from Table Config
-    if(!omsCommandArgs.skipPathConfig) {
-      updateOMSPathConfigFromSourceConfig()
+    if(!consolidatedOMSConfig.skipPathConfig) {
+      updateOMSPathConfigFromSourceConfig(consolidatedOMSConfig)
     }
-    val useConsolidatedWildCardPath = if (omsCommandArgs.consolidatedWildCardPaths) {
-      true
-    } else {
-      omsConfig.consolidateWildcardPath
-    }
+    logInfo(s"Starting Streaming OMS with Configuration : $consolidatedOMSConfig")
     // Streaming Ingest the Raw Actions for configured Delta tables
-    streamingUpdateRawDeltaActionsToOMS(useConsolidatedWildCardPath)
+    streamingUpdateRawDeltaActionsToOMS(consolidatedOMSConfig)
   }
 }
