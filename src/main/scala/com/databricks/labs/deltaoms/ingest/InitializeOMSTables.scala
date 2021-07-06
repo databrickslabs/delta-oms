@@ -1,12 +1,38 @@
+/*
+ * Copyright (2021) Databricks, Inc.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+ * AND NONINFRINGEMENT.
+ *
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+ * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * See the Full License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.databricks.labs.deltaoms.ingest
 
-import com.databricks.labs.deltaoms.common.{OMSInitializer, OMSRunner}
+import com.databricks.labs.deltaoms.common.BatchOMSRunner
 
-object InitializeOMSTables extends OMSRunner with OMSInitializer {
+object InitializeOMSTables extends BatchOMSRunner {
 
   def main(args: Array[String]): Unit = {
-    logInfo(s"Initializing Delta OMS Database and tables with Configuration : $omsConfig")
-    //Create the OMS Database and Table Structures , if needed
-    initializeOMS(omsConfig, dropAndRecreate=true)
+
+    val consolidatedOMSConfig = consolidateAndValidateOMSConfig(args, omsConfig)
+    logInfo(s"Initializing Delta OMS Database and tables with Configuration " +
+      s": $consolidatedOMSConfig")
+    // Create the OMS Database and Table Structures , if needed
+    if(!consolidatedOMSConfig.skipInitializeOMS) {
+      initializeOMS(consolidatedOMSConfig)
+    }
+    // Update the OMS Path Config from Table Config
+    if(!consolidatedOMSConfig.skipPathConfig) {
+      updateOMSPathConfigFromSourceConfig(consolidatedOMSConfig)
+    }
+    // Create the OMS Database and Table Structures , if needed
+    initializeOMS(consolidatedOMSConfig, dropAndRecreate = true)
   }
 }

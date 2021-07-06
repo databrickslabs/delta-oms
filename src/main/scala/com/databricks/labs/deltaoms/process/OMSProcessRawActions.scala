@@ -1,0 +1,55 @@
+/*
+ * Copyright (2021) Databricks, Inc.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+ * AND NONINFRINGEMENT.
+ *
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+ * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * See the Full License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.databricks.labs.deltaoms.process
+
+import com.databricks.labs.deltaoms.common.BatchOMSRunner
+import com.databricks.labs.deltaoms.common.OMSUtils._
+
+object OMSProcessRawActions extends BatchOMSRunner {
+
+  def main(args: Array[String]): Unit = {
+    val consolidatedOMSConfig = consolidateAndValidateOMSConfig(args, omsConfig)
+    logInfo(s"Starting processing the OMS Raw Data : $consolidatedOMSConfig")
+    // Get the current version for Raw Actions
+    val currentRawActionsVersion =
+      getCurrentRawActionsVersion(getRawActionsTablePath(consolidatedOMSConfig))
+    // Get Last OMS Raw Actions Commit Version that was processed
+    val lastProcessedRawActionsVersion =
+      getLastProcessedRawActionsVersion(getProcessedHistoryTablePath(consolidatedOMSConfig),
+        consolidatedOMSConfig.rawActionTable)
+    if (currentRawActionsVersion == 0 ||
+      lastProcessedRawActionsVersion < currentRawActionsVersion) {
+      // Read the changed data since that version
+      val newRawActions = getUpdatedRawActions(lastProcessedRawActionsVersion,
+        getRawActionsTablePath(consolidatedOMSConfig))
+      // Extract and Persist Commit Info from the new Raw Actions
+      processCommitInfoFromRawActions(newRawActions,
+        getCommitSnapshotTablePath(consolidatedOMSConfig),
+        getCommitSnapshotTableName(consolidatedOMSConfig))
+      // Extract, Compute Version Snapshots and Persist Action Info from the new Raw Actions
+      processActionSnapshotsFromRawActions(newRawActions,
+        getActionSnapshotTablePath(consolidatedOMSConfig),
+        getActionSnapshotTableName(consolidatedOMSConfig))
+      // Find the latest version from the newly processed raw actions
+      val latestRawActionVersion = getLatestRawActionsVersion(newRawActions)
+      // Update history with the version
+      updateLastProcessedRawActions(latestRawActionVersion,
+        consolidatedOMSConfig.rawActionTable,
+        getProcessedHistoryTablePath(consolidatedOMSConfig))
+    }
+  }
+}

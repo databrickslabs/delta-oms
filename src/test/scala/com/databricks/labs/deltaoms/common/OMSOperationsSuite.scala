@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package com.databricks.labs.deltaoms.utils
+package com.databricks.labs.deltaoms.common
 
-import scala.reflect.runtime.universe._
-object ReflectionUtils {
+import com.databricks.labs.deltaoms.configuration.ConfigurationSettings
+import org.scalatest.BeforeAndAfter
 
-  def accessClassMembers[T: TypeTag]: Seq[MethodSymbol] = typeOf[T].members.collect {
-    case m: MethodSymbol if m.isCaseAccessor => m
-  }.toList
+import org.apache.spark.sql.QueryTest
+import org.apache.spark.sql.delta.test.DeltaTestSharedSession
+import org.apache.spark.sql.test.SharedSparkSession
 
-  def getDataTypeByColumnName[T: TypeTag](colName: String): String = {
-    accessClassMembers[T].find(m => colName.equals(m.name.toString))
-      .get.typeSignature.resultType.toString
-  }
+class OMSOperationsSuite extends QueryTest with SharedSparkSession with DeltaTestSharedSession
+  with BeforeAndAfter with ConfigurationSettings {
+
 }

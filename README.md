@@ -1,5 +1,5 @@
 # Delta Operational Metrics Store (DeltaOMS)
-Automated Observability on Delta Lake
+DeltaOMS is a solution providing "Automated Observability" on [Delta Lake](https://github.com/delta-io/delta)
 
 ## Project Description
 This project provides a solution for automatically collecting operational metrics from Delta Lake tables into a centralized database. This will enable customers to gain operational insights and traceability around Delta Lake operations.
@@ -13,8 +13,8 @@ Any issues discovered through the use of this project should be filed as GitHub 
 This scala project uses `sbt` as the build tool. Following are the high level building steps:
 
 - `git clone` the repo to a local directory
-- Execute `sbt clean compile` to compile the code
-- Build the jar using `sbt clean compile assembly`
+- Execute `build/sbt clean compile` to compile the code
+- Build the jar using `build/sbt clean compile assembly`
 - Refer to the [build.sbt](./build.sbt) for library dependencies
 
 ## Deploying / Installing / Using the Project
@@ -23,3 +23,8 @@ Please follow the [Getting Started](./docs/GETTING%20STARTED.md) guide for instr
 ## Releasing the Project
 The solution is released as a `jar` to be used for setting up jobs. It also provides sample notebooks for analysis.Refer to the [Getting Started](./docs/GETTING%20STARTED.md) guide 
 
+# Contributing 
+We welcome contributions to DeltaOMS. See our [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
+
+# License
+See [LICENSE](LICENSE).
