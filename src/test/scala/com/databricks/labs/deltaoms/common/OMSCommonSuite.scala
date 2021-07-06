@@ -107,4 +107,9 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
       .contains("Mandatory configuration OMS Checkpoint Suffix missing."))
   }
 
+  test("Command Line Parameters not passed") {
+    val argsEmpty = Array.empty[String]
+    assert(OMSCommandLineParser.consolidateAndValidateOMSConfig(argsEmpty, omsConfig) == omsConfig)
+  }
+
 }
