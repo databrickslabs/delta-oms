@@ -36,9 +36,21 @@ job_create_template = {
             },
             "node_type_id": f"{node_type_id}",
             "driver_node_type_id": f"{node_type_id}",
+            "cluster_log_conf": {
+                "dbfs": {
+                    "destination": "dbfs:/cluster-logs/oms/"
+                }
+            },
             "spark_env_vars": {
                 "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
             },
+            "init_scripts": [
+                {
+                    "dbfs": {
+                        "destination": "dbfs:/init_scripts/oms/update_log4j_properties.sh"
+                    }
+                }
+            ],
             "policy_id": f"{policy_id}",
             "autoscale": {
                 "min_workers": 1,
