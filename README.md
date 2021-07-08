@@ -2,7 +2,7 @@
 DeltaOMS is a solution providing "Automated Observability" on [Delta Lake](https://github.com/delta-io/delta)
 
 ## Project Description
-This project provides a solution for automatically collecting operational metrics from Delta Lake tables into a centralized database. This will enable customers to gain operational insights and traceability around Delta Lake operations.
+This project provides a solution for automatically collecting operational metrics from Delta Lake tables into a centralized database. This will enable you to gain operational insights and traceability around Delta Lake operations.
 
 ## Project Support
 Please note that all projects in the /databrickslabs github account are provided for your exploration only, and are not formally supported by Databricks with Service Level Agreements (SLAs).  They are provided AS-IS and we do not make any guarantees of any kind.  Please do not submit a support ticket relating to any issues arising from the use of these projects.
