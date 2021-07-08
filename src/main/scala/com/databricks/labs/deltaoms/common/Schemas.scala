@@ -22,7 +22,7 @@ import org.apache.spark.sql.catalyst.ScalaReflection
 import org.apache.spark.sql.delta.actions.SingleAction
 import org.apache.spark.sql.types._
 
-trait OMSchemas {
+trait Schemas {
   final val PATH = "path"
   final val PUID = "puid"
   final val WUID = "wuid"
@@ -51,4 +51,4 @@ trait OMSchemas {
     .asInstanceOf[StructType]
 }
 
-object OMSSchemas extends OMSchemas
+object Schemas extends Schemas

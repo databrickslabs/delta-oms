@@ -29,6 +29,8 @@ object OMSCommandLineParser {
   final val BASE_LOCATION = "--baseLocation"
   final val CHECKPOINT_BASE = "--checkpointBase"
   final val CHECKPOINT_SUFFIX = "--checkpointSuffix"
+  final val STARTING_STREAM = "--startingStream"
+  final val ENDING_STREAM = "--endingStream"
 
   def consolidateAndValidateOMSConfig(args: Array[String], fileOMSConfig: OMSConfig,
     isBatch: Boolean = true): OMSConfig = {
@@ -60,6 +62,8 @@ object OMSCommandLineParser {
               case BASE_LOCATION => omsCommandArgsConfig.copy(baseLocation = Some(value))
               case CHECKPOINT_BASE => omsCommandArgsConfig.copy(checkpointBase = Some(value))
               case CHECKPOINT_SUFFIX => omsCommandArgsConfig.copy(checkpointSuffix = Some(value))
+              case STARTING_STREAM => omsCommandArgsConfig.copy(startingStream = value.toInt)
+              case ENDING_STREAM => omsCommandArgsConfig.copy(endingStream = value.toInt)
             }
         }
       }

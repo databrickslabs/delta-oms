@@ -17,7 +17,7 @@
 package com.databricks.labs.deltaoms.process
 
 import com.databricks.labs.deltaoms.common.BatchOMSRunner
-import com.databricks.labs.deltaoms.common.OMSUtils._
+import com.databricks.labs.deltaoms.common.Utils._
 
 object OMSProcessRawActions extends BatchOMSRunner {
 

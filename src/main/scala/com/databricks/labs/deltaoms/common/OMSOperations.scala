@@ -21,7 +21,7 @@ import java.time.Instant
 import scala.util.{Failure, Success, Try}
 import com.databricks.labs.deltaoms.configuration.{OMSConfig, SparkSettings}
 import com.databricks.labs.deltaoms.model.{PathConfig, SourceConfig, StreamTargetInfo}
-import OMSUtils._
+import Utils._
 import com.databricks.labs.deltaoms.utils.UtilityOperations._
 import io.delta.tables._
 
@@ -34,7 +34,7 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.streaming.{StreamingQuery, Trigger}
 import org.apache.spark.sql.types.{LongType, StructType}
 
-trait OMSOperations extends Serializable with SparkSettings with Logging with OMSchemas {
+trait OMSOperations extends Serializable with SparkSettings with Logging with Schemas {
   val implicits = spark.implicits
 
   import implicits._
@@ -184,9 +184,12 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
 
   def streamingUpdateRawDeltaActionsToOMS(config: OMSConfig): Unit = {
     val uniquePaths = if (config.consolidateWildcardPaths) {
-      consolidateWildCardPaths(fetchPathForStreamProcessing(getPathConfigTablePath(config)))
+      consolidateWildCardPaths(
+        fetchPathForStreamProcessing(getPathConfigTablePath(config),
+          startingStream = config.startingStream, endingStream = config.endingStream))
     } else {
-      fetchPathForStreamProcessing(getPathConfigTablePath(config))
+      fetchPathForStreamProcessing(getPathConfigTablePath(config),
+        startingStream = config.startingStream, endingStream = config.endingStream)
     }
     val logReadStreams = uniquePaths.flatMap(p =>
       fetchStreamTargetAndDeltaLogForPath(p,
@@ -203,16 +206,27 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with OM
   }
 
 
-  def fetchPathForStreamProcessing(pathConfigTablePath: String, useWildCardPath: Boolean = true):
+  def fetchPathForStreamProcessing(pathConfigTablePath: String,
+    useWildCardPath: Boolean = true, startingStream: Int = 1, endingStream: Int = 50):
   Seq[(String, String)] = {
     if (useWildCardPath) {
+      val wildcard_window = Window.orderBy(WUID)
       fetchPathConfigForProcessing(pathConfigTablePath)
         .select(WILDCARD_PATH, WUID)
-        .distinct().as[(String, String)].collect()
+        .distinct()
+        .withColumn("wildcard_row_id", row_number().over(wildcard_window))
+        .where($"wildcard_row_id".between(startingStream, endingStream))
+        .drop("wildcard_row_id")
+        .as[(String, String)].collect()
     } else {
+      val path_window = Window.orderBy(PUID)
       fetchPathConfigForProcessing(pathConfigTablePath)
         .select(concat(col(PATH), lit("/_delta_log/*.json")).as(PATH), col(PUID))
-        .distinct().as[(String, String)].collect()
+        .distinct()
+        .withColumn("path_row_id", row_number().over(path_window))
+        .where($"path_row_id".between(startingStream, endingStream))
+        .drop("path_row_id")
+        .as[(String, String)].collect()
     }
   }
 

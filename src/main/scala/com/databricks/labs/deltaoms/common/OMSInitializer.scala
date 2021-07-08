@@ -18,7 +18,7 @@ package com.databricks.labs.deltaoms.common
 
 import scala.util.{Failure, Success, Try}
 import com.databricks.labs.deltaoms.configuration.OMSConfig
-import OMSUtils._
+import Utils._
 import com.databricks.labs.deltaoms.utils.UtilityOperations._
 
 import org.apache.spark.internal.Logging

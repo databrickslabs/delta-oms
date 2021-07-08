@@ -13,26 +13,23 @@
  * See the Full License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.databricks.labs.deltaoms.ingest
+
+package com.databricks.labs.deltaoms.init
 
 import com.databricks.labs.deltaoms.common.BatchOMSRunner
 
-object InitializeOMSTables extends BatchOMSRunner {
+object ConfigurePathsFromMetastore extends BatchOMSRunner {
 
   def main(args: Array[String]): Unit = {
-
     val consolidatedOMSConfig = consolidateAndValidateOMSConfig(args, omsConfig)
-    logInfo(s"Initializing Delta OMS Database and tables with Configuration " +
-      s": $consolidatedOMSConfig")
-    // Create the OMS Database and Table Structures , if needed
+    logInfo(s"Starting Delta table path configuration update for OMS with Configuration : " +
+      s"$consolidatedOMSConfig")
+    // Create the OMS Database and Path Config Table Structures , if needed
     if(!consolidatedOMSConfig.skipInitializeOMS) {
       initializeOMS(consolidatedOMSConfig)
     }
-    // Update the OMS Path Config from Table Config
-    if(!consolidatedOMSConfig.skipPathConfig) {
-      updateOMSPathConfigFromSourceConfig(consolidatedOMSConfig)
-    }
-    // Create the OMS Database and Table Structures , if needed
-    initializeOMS(consolidatedOMSConfig, dropAndRecreate = true)
+
+    // Fetch the latest metastore delta tables and update the Path in the config table
+    updateOMSPathConfigFromMetaStore(consolidatedOMSConfig)
   }
 }

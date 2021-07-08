@@ -27,7 +27,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.catalyst.TableIdentifier
-import org.apache.spark.sql.delta.{DeltaLog, DeltaTableIdentifier, DeltaTableUtils}
+import org.apache.spark.sql.delta.{DeltaTableIdentifier, DeltaTableUtils}
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions.{col, udf}
 import org.apache.spark.util.SerializableConfiguration
@@ -203,11 +203,14 @@ trait UtilityOperations extends Serializable with Logging {
 
   def getDeltaWildCardPathUDF(): UserDefinedFunction = {
     udf((filePath: String, wildCardLevel: Int) => {
-      assert(wildCardLevel >= 0 && wildCardLevel <= 1, "WildCard Level should be 0 or 1")
+      assert(wildCardLevel == -1 || wildCardLevel == 0 || wildCardLevel == 1,
+        "WildCard Level should be -1, 0 or 1")
       val modifiedPath = if (wildCardLevel == 0) {
         (filePath.split("/").dropRight(1):+"*")
-      } else {
+      } else if (wildCardLevel == 1) {
         (filePath.split("/").dropRight(2):+"*":+"*")
+      } else {
+        filePath.split("/")
       }
       modifiedPath.mkString("/") + "/_delta_log/*.json"
     })

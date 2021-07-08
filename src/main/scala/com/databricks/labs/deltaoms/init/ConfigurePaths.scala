@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.databricks.labs.deltaoms.ingest
+package com.databricks.labs.deltaoms.init
 
 import com.databricks.labs.deltaoms.common.BatchOMSRunner
 
-object PopulateDeltaTablePaths extends BatchOMSRunner {
+object ConfigurePaths extends BatchOMSRunner {
 
   def main(args: Array[String]): Unit = {
     val consolidatedOMSConfig = consolidateAndValidateOMSConfig(args, omsConfig)

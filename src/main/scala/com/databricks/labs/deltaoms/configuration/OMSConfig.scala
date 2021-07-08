@@ -31,4 +31,6 @@ case class OMSConfig(baseLocation: Option[String] = None,
   skipInitializeOMS: Boolean = false,
   srcDatabases: Option[String] = None,
   tablePattern: Option[String] = None,
-  triggerInterval: Option[String] = None)
+  triggerInterval: Option[String] = None,
+  startingStream: Int = 1,
+  endingStream: Int = 50)

@@ -20,7 +20,7 @@ import com.databricks.labs.deltaoms.model.{DatabaseDefinition, TableDefinition}
 
 import org.apache.spark.internal.Logging
 
-trait OMSUtils extends Serializable with Logging with OMSchemas {
+trait Utils extends Serializable with Logging with Schemas {
 
   def getOMSDBPath(config: OMSConfig): String =
     s"${config.baseLocation.get}/${config.dbName.get}"
@@ -97,4 +97,4 @@ trait OMSUtils extends Serializable with Logging with OMSchemas {
   }
 }
 
-object OMSUtils extends OMSUtils
+object Utils extends Utils
