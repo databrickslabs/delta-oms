@@ -18,10 +18,10 @@ print(omsBaseLocation,omsDBName,omsCheckpointBase,omsCheckpointSuffix)
 
 import json
 dbr_version = '8.3.x-scala2.12'
-instance_profile_arn = 'arn:aws:iam::997819012307:instance-profile/shard-demo-s3-access'
+instance_profile_arn = 'INSTANCE_PROFILE_ARN'
 zone_id = 'us-west-2a'
 node_type_id = 'i3.xlarge'
-policy_id = 'E05E27B13F0003A0'
+policy_id = 'POLICY_ID'
 oms_jar_location = 'dbfs:/FileStore/jars/397e03ea_3499_4de0_ba4c_00a7e7c6f524-delta_oms_assembly_0_0_1_SNAPSHOT-a03d9.jar'
 oms_ingest_main_class_name = 'com.databricks.labs.deltaoms.ingest.StreamPopulateOMS'
 
