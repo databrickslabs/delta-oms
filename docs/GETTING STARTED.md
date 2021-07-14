@@ -30,7 +30,7 @@ DeltaOMS can be configured through two methods :
 For this tutorial we will use the first option.Follow the below steps to initialize the 
 DeltaOMS centralized Database and tables.
 
-- Import and Open the DeltaOMS Setup notebook [STEP 1](../scrips/job/OMS_Setup_STEP1.scala) into 
+- Import and Open the DeltaOMS Setup notebook [STEP 1](../scripts/job/OMS_Setup_STEP1.scala) into 
   your Databricks environment
 - Modify the value of the variables `omsBaseLocation`, `omsDBName`, 
 `omsCheckpointSuffix`, `omsCheckpointBase` as appropriate for your environment
@@ -65,7 +65,7 @@ This is done using the same notebook.
 Next, we will create couple of databricks jobs to stream the delta logs from the tracked tables 
 and also to process the data for further analytics.
 
-- Import and Open the DeltaOMS Setup notebook [STEP 2](../scrips/job/OMS_Setup_STEP2.py) into 
+- Import and Open the DeltaOMS Setup notebook [STEP 2](../scripts/job/OMS_Setup_STEP2.py) into 
   your Databricks environment
 - Define the values for the `omsBaseLocation`, `omsDBName`, `omsCheckpointSuffix`, `omsCheckpointBase` 
 - Upload the DeltaOMS jar to a cloud path of your choice and copy the full path
