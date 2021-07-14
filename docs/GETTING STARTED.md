@@ -20,7 +20,7 @@ sample notebooks and documentations)
 
 ## Setup
 
-#### Initialize the DeltaOMS Database
+### Initialize the DeltaOMS Database
 
 DeltaOMS can be configured through two methods :
 - Command line parameters - Limited to few basic mandatory configurations
@@ -47,7 +47,7 @@ DeltaOMS centralized Database and tables.
 - Execute `com.databricks.labs.deltaoms.init.InitializeOMS.main` method to create the OMS DB and tables.
 - Validate the DeltaOMS database and tables were created
 
-#### Configure Delta Lakehouse objects for DeltaOMS tracking
+### Configure Delta Lakehouse objects for DeltaOMS tracking
 
 Next, we will add few input sources (existing Delta databases or tables) to be tracked by DeltaOMS.
 This is done using the same notebook.
@@ -61,7 +61,7 @@ This is done using the same notebook.
   This will populate the internal configuration table `pathconfig` with the detailed path 
   information for all delta tables under the database
   
-#### Create Databricks Jobs
+### Create Databricks Jobs
 Next, we will create couple of databricks jobs to stream the delta logs from the tracked tables 
 and also to process the data for further analytics.
 
@@ -80,7 +80,7 @@ and also to process the data for further analytics.
 
 ## Execute
 
-#### Execute the DeltaOMS Jobs
+### Execute the DeltaOMS Jobs
 You can run the jobs created in the above step to ingest and process the delta transaction 
 information for the configured tables into the centralized DeltaOMS database.
 
@@ -90,7 +90,7 @@ databases/tables. The `OMS_ProcessMetrics` job formats and enrich the raw delta 
 
 ## Analyze
 
-#### Run analytics using sample notebooks
+### Run analytics using sample notebooks
 
 You can run some sample analytics on the data from the OMS database 
 using the provided [notebook](./notebooks/DeltaOMS_SQL_Analytics.sql)
@@ -107,7 +107,7 @@ create your own Analytics insights and dashboards through Databricks notebooks a
 
 ## Additional Configurations and Execution Options
 
-#### Configuration
+### Configuration
 
 DeltaOMS can also be configured using a 
 [HOCON](https://github.com/lightbend/config/blob/master/HOCON.md#hocon-human-optimized-config-object-notation) format file. 
@@ -154,7 +154,7 @@ The configuration file can be uploaded to DBFS or your cloud storage provider.
 **Tip**: You could directly create the configuration file on DBFS from a notebook using 
 [dbutils](https://docs.databricks.com/dev-tools/databricks-utils.html) APIs
 
-#### Execution
+### Execution
 
 The setup and execution of DeltaOMS can also be configured through the above configuration file 
 instead of command line parameters. The configuration approach provides you access to more 
