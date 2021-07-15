@@ -1,4 +1,4 @@
-# Delta OMS - Getting Started
+# DeltaOMS - Getting Started
 
 The following tutorial will guide you through the process for setting up the Delta Operational 
 Metrics Store (DeltaOMS) on your Databricks Lakehouse environment.
@@ -25,7 +25,7 @@ sample notebooks and documentations)
 DeltaOMS can be configured through two methods :
 - Command line parameters - Limited to few basic mandatory configurations
 - Configuration file - Access to all the configuration options. Refer to 
-   [Additional Configurations](#Additional Configurations) section below for full details
+   [Additional Configurations](#additional-configurations-and-execution-options) section below for full details
 
 For this tutorial we will use the first option.Follow the below steps to initialize the 
 DeltaOMS centralized Database and tables.
@@ -42,8 +42,6 @@ DeltaOMS centralized Database and tables.
   | omsCheckpointBase | DeltaOMS ingestion is a streaming process.This defines the Base path for the checkpoints |
   | omsCheckpointSuffix | Suffix to be added to the checkpoint path (Helps in making the path unique) |
 
-  Example :
-
 - Execute `com.databricks.labs.deltaoms.init.InitializeOMS.main` method to create the OMS DB and tables.
 - Validate the DeltaOMS database and tables were created
 
@@ -54,8 +52,11 @@ This is done using the same notebook.
 
 - Add the names of few databases you want to track via DeltaOMS to the `sourceconfig` table in the DeltaOMD DB. 
   This is done by using a simple SQL `INSERT` statement: 
+  
   `INSERT INTO <omsDBName>.sourceconfig VALUES('<Database Name>',false, Map('wildCardLevel','0'))`
-
+   
+   Refer to the [Developer Guide](./DEVELOPER.md) for more details on the tables.
+   
 - Configure the internal DeltaOMS configuration tables by executing 
   `com.databricks.labs.deltaoms.init.ConfigurePaths.main`. 
   This will populate the internal configuration table `pathconfig` with the detailed path 
@@ -77,6 +78,9 @@ and also to process the data for further analytics.
 - Once all the parameters are updated, run the command on the notebok to create the jobs. 
   Depending on the total number of objects tracked multiple Databricks jobs could be created
 - You can navigate to the `Jobs` UI to look at the created jobs
+
+Refer to the [Developer Guide](./DEVELOPER.md) for more details on multiple stream approach 
+for DeltaOMS ingestion.
 
 ## Execute
 
@@ -119,12 +123,12 @@ The different configuration parameters available are described below :
 | db-name   | OMS Database Name. This is the database where all the Delta log details will be collected | Y | oms.db | None |
 | checkpoint-base   | Base path for the checkpoints for OMS streaming pipeline for collecting the Delta logs for the configured tables | Y | dbfs:/_oms_checkpoints/ | None |
 | checkpoint-suffix   | Suffix to be added to the checkpoint path. Useful during testing for starting off a fresh process | Y | _1234 | None |
-| raw-action-table   | OMS table name for storing the raw delta logs collected from the configured tables | N | oms_raw_actions | raw_actions |
-| source-config-table   | Configuration table name for setting the list of Delta Path, databases and/or tables for which the delta logs should be collected by OMS | N | oms_source_config | source_config |
-| path-config-table   | Configuration table name for storing Delta path details and few related metadata for internal processing purposes by OMS | N | oms_path_config | path_config |
-| processed-history-table   | Configuration table name for storing processing details for OMS ETL Pipelines. Used internally by OMS | N | oms_processed_history | processed_history |
-| commit-info-snapshot-table   | Table name for storing the Delta Commit Information generated from the processed raw Delta logs for configured tables/paths | N | oms_commitinfo_snapshots | commitinfo_snapshots |
-| action-snapshot-table   | Table name for storing the Delta Actions information snapshots. Generated from processing the Raw Delta logs | N | oms_action_snapshot | action_snapshot |
+| raw-action-table   | OMS table name for storing the raw delta logs collected from the configured tables | N | oms_raw_actions | rawactions |
+| source-config-table   | Configuration table name for setting the list of Delta Path, databases and/or tables for which the delta logs should be collected by OMS | N | oms_source_config | sourceconfig |
+| path-config-table   | Configuration table name for storing Delta path details and few related metadata for internal processing purposes by OMS | N | oms_path_config | pathconfig |
+| processed-history-table   | Configuration table name for storing processing details for OMS ETL Pipelines. Used internally by OMS | N | oms_processed_history | processedhistory |
+| commit-info-snapshot-table   | Table name for storing the Delta Commit Information generated from the processed raw Delta logs for configured tables/paths | N | oms_commitinfo_snapshots | commitinfosnapshots |
+| action-snapshot-table   | Table name for storing the Delta Actions information snapshots. Generated from processing the Raw Delta logs | N | oms_action_snapshots | actionsnapshots |
 | consolidate-wildcard-path   | Flag to enable/disable processing Delta logs using consolidated wildcard patterns extracted from the path configured for OMS | N | false | true |
 | trigger-interval   | Trigger interval for processing the Delta logs from the configured tables/paths  | N | 30s | Once |
 | src-database   | Comma separated list of Source database used for filtering when extracting the Delta table path information from metastore  | N | Sample_db,test_db |  |
