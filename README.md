@@ -19,7 +19,7 @@ persisted into different tables as actions and commit information. Refer to the
 [Delta Transaction Log Protocol](https://github.com/delta-io/delta/blob/master/PROTOCOL.md#actions) 
 for more details on Actions and CommitInfo.
 
-High-Level Process Flow:
+## High-Level Process Flow:
 
 ![DeltaOMS High-Level Process Flow](./docs/images/Delta_OMS_High_Level_Flow.png)
 
@@ -46,6 +46,9 @@ DeltaOMS uses `sbt` as the build tool. Following are the high level building ste
 - Refer to the [build.sbt](./build.sbt) for library dependencies
 
 ## Deploying / Installing / Using the Project
+The DeltaOMS solution is available through Maven. You can get the jar using the following maven
+co-ordinates : `"com.databricks.labs" % "delta-oms_2.12" % "0.1.0"`
+
 Please follow the [Getting Started](./docs/GETTING%20STARTED.md) guide for instructions on 
 using DeltaOMS on Databricks environment.
 

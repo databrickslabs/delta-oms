@@ -12,13 +12,21 @@ import sbt.Level
  * limitations under the License.
  */
 
+import ReleaseTransformations._
+
+parallelExecution in ThisBuild := false
+scalastyleConfig in ThisBuild := baseDirectory.value / "scalastyle-config.xml"
+crossScalaVersions in ThisBuild := Seq("2.12.10", "2.11.12")
+
+lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
+lazy val testScalastyle = taskKey[Unit]("testScalastyle")
+
 name := "delta-oms"
 
 organization := "com.databricks.labs"
 
 scalaVersion := "2.12.10"
 
-val gitUrl = "https://github.com/databrickslabs/delta-oms"
 val sparkVersion = "3.1.1"
 val deltaVersion = "1.0.0"
 
@@ -39,10 +47,6 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % sparkVersion % Test classifier "tests",
   "org.apache.spark" %% "spark-hive" % sparkVersion % Test classifier "tests"
 )
-
-parallelExecution in ThisBuild := false
-
-crossScalaVersions in ThisBuild := Seq("2.12.10", "2.11.12")
 
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
@@ -73,13 +77,9 @@ testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
 
 scalastyleConfig := baseDirectory.value / "scalastyle-config.xml"
 
-lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
-
 compileScalastyle := scalastyle.in(Compile).toTask("").value
 
 (compile in Compile) := ((compile in Compile) dependsOn compileScalastyle).value
-
-lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 
 testScalastyle := scalastyle.in(Test).toTask("").value
 
@@ -99,12 +99,34 @@ assemblyShadeRules in assembly := Seq(
 
 logLevel in assembly := Level.Error
 
+/*
+ ********************
+ * Release settings *
+ ********************
+ */
+
+val gitUrl = "https://github.com/databrickslabs/delta-oms"
+publishMavenStyle := true
+releaseCrossBuild := true
 homepage := Some(url(gitUrl))
 scmInfo := Some(ScmInfo(url(gitUrl), "git@github.com:databrickslabs/delta-oms.git"))
 developers := List(Developer("himanishk", "Himanish Kushary", "himanish@databricks.com",
   url("https://github.com/himanishk")))
 licenses += ("Databricks", url(gitUrl +"/blob/dev/LICENSE"))
-publishMavenStyle := true
+
+pomExtra :=
+  <url>https://github.com/databrickslabs/delta-oms</url>
+    <scm>
+      <url>git@github.com:databrickslabs/delta-oms.git</url>
+      <connection>scm:git:git@github.com:databrickslabs/delta-oms.git</connection>
+    </scm>
+    <developers>
+      <developer>
+        <id>himanishk</id>
+        <name>Himanish Kushary</name>
+        <url>https://github.com/himanishk</url>
+      </developer>
+    </developers>
 
 publishTo := Some(
   if (version.value.endsWith("SNAPSHOT")) {
@@ -112,4 +134,18 @@ publishTo := Some(
   } else {
     Opts.resolver.sonatypeStaging
   }
+)
+
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  releaseStepCommand("publishLocal"),
+  // publishArtifacts,
+  setNextVersion,
+  commitNextVersion
 )
