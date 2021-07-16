@@ -20,11 +20,11 @@ resolvers += Resolver.url(
   "typesafe sbt-plugins",
   url("https://dl.bintray.com/typesafe/sbt-plugins"))(Resolver.ivyStylePatterns)
 
-addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.6")
-
 addSbtPlugin("com.github.sbt" % "sbt-release" % "1.0.15")
 
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.9")
+
+addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "2.3")
 
 addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.3")
 
