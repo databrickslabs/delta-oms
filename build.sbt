@@ -136,6 +136,8 @@ publishTo := Some(
   }
 )
 
+releasePublishArtifactsAction := PgpKeys.publishSigned.value
+
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
   inquireVersions,
