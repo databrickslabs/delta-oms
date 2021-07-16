@@ -18,6 +18,7 @@ organization := "com.databricks.labs"
 
 scalaVersion := "2.12.10"
 
+val gitUrl = "https://github.com/databrickslabs/delta-oms"
 val sparkVersion = "3.1.1"
 val deltaVersion = "1.0.0"
 
@@ -98,4 +99,17 @@ assemblyShadeRules in assembly := Seq(
 
 logLevel in assembly := Level.Error
 
+homepage := Some(url(gitUrl))
+scmInfo := Some(ScmInfo(url(gitUrl), "git@github.com:databrickslabs/delta-oms.git"))
+developers := List(Developer("himanishk", "Himanish Kushary", "himanish@databricks.com",
+  url("https://github.com/himanishk")))
+licenses += ("Databricks", url(gitUrl +"/blob/dev/LICENSE"))
+publishMavenStyle := true
 
+publishTo := Some(
+  if (version.value.endsWith("SNAPSHOT")) {
+    Opts.resolver.sonatypeSnapshots
+  } else {
+    Opts.resolver.sonatypeStaging
+  }
+)
