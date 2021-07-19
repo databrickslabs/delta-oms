@@ -11,7 +11,7 @@ log4j.appender.oms=com.databricks.logging.RedactionRollingFileAppender
 log4j.appender.oms.layout=org.apache.log4j.PatternLayout
 log4j.appender.oms.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
 log4j.appender.oms.rollingPolicy=org.apache.log4j.rolling.TimeBasedRollingPolicy
-log4j.appender.oms.rollingPolicy.FileNamePattern=logs/log4j-oms-%d{yyyy-MM-dd-HH}.log.gz
-log4j.appender.oms.rollingPolicy.ActiveFileName=logs/oms-active.log
+log4j.appender.oms.rollingPolicy.FileNamePattern=logs/log4j.oms-%d{yyyy-MM-dd-HH}.log.gz
+log4j.appender.oms.rollingPolicy.ActiveFileName=logs/stdout.oms-active.log
 
 EOF
