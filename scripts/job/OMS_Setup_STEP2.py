@@ -108,6 +108,7 @@ def create_job(job_settings):
 
 import math
 import copy
+DRY_RUN=True
 # Find number of unique wildcard paths
 num_wildcard_paths = spark.sql(f"select count(distinct wuid) as cwuid from {omsDBName}.pathconfig").head().cwuid
 # Set number of streams per job (default is 50.0)
@@ -124,4 +125,9 @@ for i in range(1,num_of_jobs+1):
   job_name_dict['spark_jar_task']['parameters'].append(f"--startingStream={ss}")
   job_name_dict['spark_jar_task']['parameters'].append(f"--endingStream={es}")
   print(f"Creating Job {i} with json {job_name_dict}")
-  create_job(job_name_dict)
+  if not DRY_RUN:
+    create_job(job_name_dict)
+
+# COMMAND ----------
+
+
