@@ -22,6 +22,7 @@ object StreamPopulateOMS extends StreamOMSRunner {
 
   def main(args: Array[String]): Unit = {
 
+    spark.conf.set("spark.databricks.labs.deltaoms.class", value = getClass.getCanonicalName)
     val consolidatedOMSConfig = consolidateAndValidateOMSConfig(args, omsConfig)
     // Create the OMS Database and Table Structures , if needed
     if(!consolidatedOMSConfig.skipInitializeOMS) {

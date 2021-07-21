@@ -16,6 +16,8 @@
 
 package com.databricks.labs.deltaoms.configuration
 
+import com.databricks.labs.deltaoms.common.Schemas
+
 import org.apache.spark.sql.SparkSession
 
 trait SparkSettings extends Serializable with ConfigurationSettings {
@@ -39,6 +41,9 @@ trait SparkSettings extends Serializable with ConfigurationSettings {
       spark.conf.set("spark.databricks.delta.optimizeWrite.enabled", value = true)
       spark.conf.set("spark.databricks.delta.autoCompact.enabled", value = true)
       spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", value = true)
+      spark.conf.set("spark.databricks.labs.deltaoms.version", value = Schemas.OMS_VERSION)
+      spark.conf.set("spark.databricks.labs.deltaoms.implementation.version", value =
+        getClass.getPackage.getImplementationVersion)
       spark
   }
 

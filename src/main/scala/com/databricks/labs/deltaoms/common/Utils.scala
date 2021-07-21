@@ -44,9 +44,8 @@ trait Utils extends Serializable with Logging with Schemas {
     s"${config.dbName.get}.${config.actionSnapshotTable}"
 
   val puidCommitDatePartitions = Seq(PUID, COMMIT_DATE)
-  private val omsVersion = "0.1"
-  private val entityName = "oms"
-  private val omsProperties = Map("entity" -> s"$entityName", "oms.version" -> s"$omsVersion")
+
+  private val omsProperties = Map("entity" -> s"$ENTITY_NAME", "oms.version" -> s"$OMS_VERSION")
 
   def pathConfigTableDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(omsConfig.pathConfigTable,
