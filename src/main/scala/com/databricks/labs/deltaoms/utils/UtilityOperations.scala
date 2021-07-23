@@ -92,7 +92,7 @@ trait UtilityOperations extends Serializable with Logging {
                 sourceConfig.parameters))
             case Failure(ex) =>
               logError(s"Error while accessing Delta location $sourceConfig." +
-                s"It should be a valid database, path or fully qualified table name.\n " +
+                s"It should be a valid database, table path or fully qualified table name.\n " +
                 s"Exception thrown: $ex")
               throw ex
           }

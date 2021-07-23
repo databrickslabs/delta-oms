@@ -36,6 +36,15 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
     val wcPaths2 = Array(
       ("file:/home/user/oms/test_db_jun16/*/_delta_log/*.json", "efgh"),
       ("file:/home/user/oms/*/*/_delta_log/*.json", "abcd"))
-    assert(UtilityOperations.consolidateWildCardPaths(wcPaths1).size == 1)
+    assert(UtilityOperations.consolidateWildCardPaths(wcPaths2).size == 1)
+
+    val wcPaths3 = Array(
+      ("dbfs:/databricks-datasets/*/*/*/*/_delta_log/*.json", "006d76f"),
+      ("dbfs:/databricks-datasets/*/*/*/_delta_log/*.json", "006d76f"),
+      ("dbfs:/databricks-datasets/*/*/_delta_log/*.json", "3a6538e"),
+      ("dbfs:/databricks-datasets/*/_delta_log/*.json", "32cb366"))
+    assert(UtilityOperations.consolidateWildCardPaths(wcPaths3).size == 1)
+
+
   }
 }
