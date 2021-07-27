@@ -37,6 +37,14 @@ We have found that the additional insights gained from DeltaOMS helps reduce the
 ownership through better management and optimization of your data pipelines while providing much 
 improved observability of the Delta Lakehouse.
 
+## More questions
+
+Refer to the [FAQ](./docs/FAQ.md) and [Developer Guide](./docs/DEVELOPER.md)
+
+## Getting Started
+
+Refer to the  [Getting Started](./docs/GETTING%20STARTED.md) guide
+
 ## Building the Project
 DeltaOMS uses `sbt` as the build tool. Following are the high level building steps:
 
