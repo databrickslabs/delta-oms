@@ -22,7 +22,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 import com.databricks.labs.deltaoms.model.{DatabaseDefinition, SourceConfig, TableDefinition}
 import io.delta.tables.DeltaTable
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.{FileSystem, Path, RemoteIterator}
 
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
@@ -68,7 +68,8 @@ trait UtilityOperations extends Serializable with Logging {
     val spark = SparkSession.active
     val sessionCatalog = spark.sessionState.catalog
 
-    if (sessionCatalog.databaseExists(sourceConfig.path)) {
+    if (!sourceConfig.path.contains("/") && !sourceConfig.path.contains(".")
+      && sessionCatalog.databaseExists(sourceConfig.path)) {
       val dbTables = sessionCatalog.listTables(sourceConfig.path, "*",
         includeLocalTempViews = false)
       val dbDeltaTableIds = dbTables.flatMap(tableIdentifierToDeltaTableIdentifier)
@@ -238,6 +239,41 @@ trait UtilityOperations extends Serializable with Logging {
         l += a
       }
     }.toList
+  }
+
+  def listSubDirectories(sourceConfig: SourceConfig, conf: SerializableConfiguration):
+  Array[SourceConfig] = {
+    val skipProcessing = sourceConfig.skipProcessing
+    val parameters = sourceConfig.parameters
+    val subDirectories = listSubDirectories(sourceConfig.path, conf)
+    subDirectories.map(d => SourceConfig(d, skipProcessing, parameters))
+  }
+
+  def listSubDirectories(path: String, conf: SerializableConfiguration): Array[String] = {
+    val fs = new Path(path).getFileSystem(conf.value)
+    fs.listStatus(new Path(path)).filter(_.isDirectory).map(_.getPath.toString)
+  }
+
+  def recursiveListDeltaTablePaths(sourceConfig: SourceConfig, conf: SerializableConfiguration):
+  Set[SourceConfig] = {
+    val skipProcessing = sourceConfig.skipProcessing
+    val parameters = sourceConfig.parameters
+    recursiveListDeltaTablePaths(sourceConfig.path, conf)
+      .map(d => SourceConfig(d, skipProcessing, parameters))
+  }
+
+  def recursiveListDeltaTablePaths(path: String, conf: SerializableConfiguration): Set[String] = {
+    implicit def  remoteIteratorToIterator[A](ri: RemoteIterator[A]): Iterator[A] =
+      new Iterator[A] {
+        override def hasNext: Boolean = ri.hasNext
+        override def next(): A = ri.next()
+    }
+    val fs = new Path(path).getFileSystem(conf.value)
+    fs.listFiles(new Path(path), true)
+      .map(_.getPath.toString)
+      .filter(x => x.contains("_delta_log") && x.endsWith(".json"))
+      .map(_.split("/").dropRight(2).mkString("/"))
+      .toSet
   }
 }
 

@@ -18,9 +18,27 @@ Table used for adding databases/paths/individual table to be tracked by DeltaOMS
 
 | Column | Type | Description | 
 | :-----------: | :----------- | ----------- | 
-| path     | String | Path to the Delta object to be tracked by DeltaOMS. <br> Could be a database (all tables will be included), individual table or specific path |
+| path     | String | Path to the Delta object to be tracked by DeltaOMS. <br> Could be a database (all tables will be included), directory, individual table or specific path |
 | skipProcessing | Boolean | Flag to exclude processing a row |
 | parameters | Map<String,String> | Placeholder for dynamic parameters to be passed to DeltaOMS (supports easy future expansion). <br><br> Currently , the only required parameter is `wildCardLevel` |
+
+Typical usage for adding input source configuration :
+```$sql
+-- Adding a Database. OMS will discover all Delta tables in the database. 
+-- ConfigurePaths process could take longer depending on number of tables in the database.
+INSERT INTO <OMSDBNAME>.sourceconfig values('<databaseName>', false, Map('wildCardLevel','0'))
+
+-- Adding an entire directory. OMS will discover all Delta tables underneath the directory recursively. 
+-- The `**` is required after the directory name. 
+-- ConfigurePaths process could take longer depending on number of nested delta paths under the directory.
+INSERT INTO <OMSDBNAME>.sourceconfig values('<dirName/**>', false, Map('wildCardLevel','0'))
+
+-- Adding a table
+INSERT INTO <OMSDBNAME>.sourceconfig values('<fully qualified table name>', false, Map('wildCardLevel','0'))
+
+-- Adding an individual table path
+INSERT INTO <OMSDBNAME>.sourceconfig values('<Full table path on storage>', false, Map('wildCardLevel','0'))
+```
 
 #### WildCard Level Configuration
 
@@ -37,7 +55,8 @@ internally and used by DeltaOMS during ingestion.
 
 Default Name :  `pathconfig`
 
-Internal table that maintains the configuration for each individual Delta table path.
+Internal table that maintains the configuration for each individual Delta table path. 
+This is populated by executing the `com.databricks.labs.deltaoms.init.ConfigurePaths.main` process
 
 | Column | Type | Description | 
 | :-----------: | :----------- | ----------- | 
@@ -52,7 +71,7 @@ Internal table that maintains the configuration for each individual Delta table 
 
 Default Name : `processedhistory`
 
-Internal tracking table for last version of Delta `action`s processed by DeltaOMS
+Internal tracking table for last version of Delta `action`s processed by DeltaOMS. Populated during OMS data processing
 
 | Column | Type | Description | 
 | :-----------: | :----------- | ----------- | 
@@ -119,7 +138,43 @@ point in time / commit version and get the data file details.
 | commit_date     | Date | Transaction Commit Date (Partition column) | 
 | add_file | Struct | [AddFile](https://github.com/delta-io/delta/blob/master/PROTOCOL.md#add-file-and-remove-file) |
 
-## Key Components
+## Data Model
+
+![Delta OMS ERD](./images/DeltaOMS_ERD.png)
+
+# Key Components
+
+### Initialization
+
+DeltaOMS provides the component `com.databricks.labs.deltaoms.init.InitializeOMS` for initializing  
+the centralized OMS database. The component creates the OMS DB at the location specified by the configuration settings.
+Note: This process will delete all existing data in the specified location.
+
+| Configuration Key | Command Line Argument | Description | Required | Example | Default Value |
+| :-----------: | :----------- | ----------- | ----------- | ----------- | ----------- |
+| base-location   |  --baseLocation= | Base location/path of the OMS Database on the Delta Lake  | Y | dbfs:/spark-warehouse/oms.db | None |
+| db-name   | --dbName= | OMS Database Name. This is the database where all the Delta log details will be collected | Y | oms.db | None |
+| raw-action-table  | None | OMS table name for storing the raw delta logs collected from the configured tables | N | oms_raw_actions | rawactions |
+| source-config-table  | None | Configuration table name for setting the list of Delta Path, databases and/or tables for which the delta logs should be collected by OMS | N | oms_source_config | sourceconfig |
+| path-config-table   | None | Configuration table name for storing Delta path details and few related metadata for internal processing purposes by OMS | N | oms_path_config | pathconfig |
+| processed-history-table  | None | Configuration table name for storing processing details for OMS ETL Pipelines. Used internally by OMS | N | oms_processed_history | processedhistory |
+| commit-info-snapshot-table  | None | Table name for storing the Delta Commit Information generated from the processed raw Delta logs for configured tables/paths | N | oms_commitinfo_snapshots | commitinfosnapshots |
+| action-snapshot-table  | None | Table name for storing the Delta Actions information snapshots. Generated from processing the Raw Delta logs | N | oms_action_snapshots | actionsnapshots |
+
+### Configuration
+
+Once DeltaOMS has been initialized, and the input sources configured [Source Config](#source-config), 
+the component provided by `com.databricks.labs.deltaoms.init.ConfigurePaths` is executed to 
+populate the internal [path config](#path-config) tables. This component is also responsible for 
+discovering delta tables under a database or under a directory (based on how the source is configured).
+
+| Configuration Key | Command Line Argument | Description | Required | Example | Default Value |
+| :-----------: | :----------- | ----------- | ----------- | ----------- | ----------- |
+| base-location   |  --baseLocation= | Base location/path of the OMS Database on the Delta Lake  | Y | dbfs:/spark-warehouse/oms.db | None |
+| db-name   | --dbName= | OMS Database Name. This is the database where all the Delta log details will be collected | Y | oms.db | None |
+| skip-initialize-oms | --skipInitializeOMS | Skip initializing DeltaOMS DB  | N | true | false |
+
+This component should be executed whenever there are updates to the source config table.
 
 ### Ingestion
 
@@ -153,6 +208,19 @@ creating separate Databricks jobs. The `com.databricks.labs.deltaoms.ingest.Stre
 supports command line parameters `--startingStream` and `--endingStream` for setting the 
 number of streams in each job.By default, these are set to 1 and 50 respectively.
 
+| Configuration Key | Command Line Argument | Description | Required | Example | Default Value |
+| :-----------: | :----------- | ----------- | ----------- | ----------- | ----------- |
+| base-location   |  --baseLocation= | Base location/path of the OMS Database on the Delta Lake  | Y | dbfs:/spark-warehouse/oms.db | None |
+| db-name   | --dbName= | OMS Database Name. This is the database where all the Delta log details will be collected | Y | oms.db | None |
+| checkpoint-base   | --checkpointBase= | Base path for the checkpoints for OMS streaming pipeline for collecting the Delta logs for the configured tables | Y | dbfs:/_oms_checkpoints/ | None |
+| checkpoint-suffix  | --checkpointSuffix= | Suffix to be added to the checkpoint path. Useful during testing for starting off a fresh process | Y | _1234 | None |
+| trigger-interval  | None | Trigger interval for processing the Delta logs from the configured tables/paths  | N | 30s | Once |
+| starting-stream | --startingStream= | Starting stream number for the Ingestion Job | N | 10 | 1 |
+| ending-stream | --endingStream= | Ending stream number for the Ingestion Job | N | 30 | 50 |
+| skip-path-config | --skipPathConfig | Skip updating the Path Config table from the latest Source config  | N | true | false |
+| skip-initialize-oms | --skipInitializeOMS | Skip initializing DeltaOMS DB  | N | true | false |
+
+
 ### Processing
 
 DeltaOMS processes the ingested data from `rawactions` and creates enriched / reconciled tables 
@@ -163,11 +231,16 @@ raw actions by utilizing the
 [Change Data Feed feature](https://docs.databricks.com/delta/delta-change-data-feed.html). 
 The new actions are reconciled to get a list of data files conforming to 
  [AddFile](https://github.com/delta-io/delta/blob/master/PROTOCOL.md#add-file-and-remove-file)
-and [CommitInfo](https://github.com/delta-io/delta/blob/master/PROTOCOL.md#commit-provenance-information). These are then persisted into Action Snapshots and Commit Ino Snapshots respectively. 
+and [CommitInfo](https://github.com/delta-io/delta/blob/master/PROTOCOL.md#commit-provenance-information). 
+These are then persisted into Action Snapshots and Commit Info Snapshots respectively. 
 
-## Data Model
+| Configuration Key | Command Line Argument | Description | Required | Example | Default Value |
+| :-----------: | :----------- | ----------- | ----------- | ----------- | ----------- |
+| base-location   |  --baseLocation= | Base location/path of the OMS Database on the Delta Lake  | Y | dbfs:/spark-warehouse/oms.db | None |
+| db-name   | --dbName= | OMS Database Name. This is the database where all the Delta log details will be collected | Y | oms.db | None |
 
-![Delta OMS ERD](./images/DeltaOMS_ERD.png)
+
+
 
 
 

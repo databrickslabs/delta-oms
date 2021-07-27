@@ -33,6 +33,7 @@ import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.streaming.{StreamingQuery, Trigger}
 import org.apache.spark.sql.types.{LongType, StructType}
+import org.apache.spark.util.SerializableConfiguration
 
 trait OMSOperations extends Serializable with SparkSettings with Logging with Schemas {
   val implicits = spark.implicits
@@ -48,15 +49,30 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       config.truncatePathConfig)
   }
 
+  def processWildcardDirectories(sourceConfigs: DataFrame): Dataset[SourceConfig] = {
+    val spark = SparkSession.active
+    val hadoopConf = new SerializableConfiguration(spark.sessionState.newHadoopConf())
+
+    val nonWildCardSourcePaths = sourceConfigs
+      .filter(substring(col(PATH), -2, 2) =!= "**").as[SourceConfig]
+    val wildCardSourcePaths = sourceConfigs
+      .filter(substring(col(PATH), -2, 2) === "**")
+      .selectExpr(s"substring($PATH,1,length($PATH)-2) as $PATH",
+        s"$SKIP_PROCESSING", s"$PARAMETERS").as[SourceConfig]
+    val wildCardSubDirectories = wildCardSourcePaths.flatMap(listSubDirectories(_, hadoopConf))
+    val wildCardTablePaths = wildCardSubDirectories.repartition(32)
+      .flatMap(recursiveListDeltaTablePaths(_, hadoopConf))
+    wildCardTablePaths.unionByName(nonWildCardSourcePaths)
+  }
+
   def fetchSourceConfigForProcessing(config: OMSConfig): Array[SourceConfig] = {
     val spark = SparkSession.active
     val sourceConfigs = spark.read.format("delta").load(getSourceConfigTablePath(config))
       .where(s"$SKIP_PROCESSING <> true").select(PATH, SKIP_PROCESSING, PARAMETERS)
-      .as[SourceConfig]
-      .collect()
-    sourceConfigs.foreach(sc => assert(sc.parameters.contains(WILDCARD_LEVEL),
+    val expandedSourceConfigs = processWildcardDirectories(sourceConfigs).collect()
+    expandedSourceConfigs.foreach(sc => assert(sc.parameters.contains(WILDCARD_LEVEL),
       s"Source Config $sc missing Wild Card Level Parameter"))
-    sourceConfigs
+    expandedSourceConfigs
   }
 
   def updateOMSPathConfigFromList(sourceConfigs: Seq[SourceConfig],
