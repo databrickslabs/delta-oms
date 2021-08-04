@@ -118,3 +118,10 @@ spark-warehouse/
 pep8*.py
 pycodestyle*.py
 
+# Hugo
+public
+/public/
+/resources/_gen
+debug.log
+hugo_stats.json
+
