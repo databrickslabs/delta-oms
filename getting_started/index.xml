@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Getting Started on Delta Operational Metrics Store (DeltaOMS)</title>
+    <link>https://databrickslabs.github.io/delta-oms/getting_started/</link>
+    <description>Recent content in Getting Started on Delta Operational Metrics Store (DeltaOMS)</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 04 Aug 2021 14:50:11 -0400</lastBuildDate><atom:link href="https://databrickslabs.github.io/delta-oms/getting_started/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pre-Requisites</title>
+      <link>https://databrickslabs.github.io/delta-oms/getting_started/prerequisites/</link>
+      <pubDate>Wed, 04 Aug 2021 14:25:26 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/getting_started/prerequisites/</guid>
+      <description>Prerequisites Make sure you have the following available before proceeding :
+ Access to Databricks environment with access to Delta tables/databases Ability to create Databricks job and run them on new cluster Proper access permissions to create database, tables and write data to the desired OMS location Procured the Delta OMS solution package from your Databricks team (includes DeltaOMS jar , sample notebooks and documentations) Databricks Runtime 8.3+  </description>
+    </item>
+    
+    <item>
+      <title>Setup</title>
+      <link>https://databrickslabs.github.io/delta-oms/getting_started/setup/</link>
+      <pubDate>Wed, 04 Aug 2021 14:25:26 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/getting_started/setup/</guid>
+      <description>Setup Initialize the DeltaOMS Database DeltaOMS can be configured through two methods :
+ Command line parameters - Limited to few basic mandatory configurations Configuration file - Access to all the configuration options. Refer to Additional Configurations section below for full details  For this tutorial we will use the first option.Follow the below steps to initialize the DeltaOMS centralized Database and tables.
+  Import and Open the DeltaOMS Setup notebook STEP 1 into your Databricks environment</description>
+    </item>
+    
+    <item>
+      <title>Execute</title>
+      <link>https://databrickslabs.github.io/delta-oms/getting_started/execute/</link>
+      <pubDate>Wed, 04 Aug 2021 14:25:26 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/getting_started/execute/</guid>
+      <description>Execute Execute the DeltaOMS Jobs You can run the jobs created in the above step to ingest and process the delta transaction information for the configured tables into the centralized DeltaOMS database.
+By default, the OMS_Streaming_Ingestion_* jobs bring in the raw delta logs from the configured databases/tables. The OMS_ProcessRawActions* job formats and enrich the raw delta log data.
+For more details refer to the Developer Guide</description>
+    </item>
+    
+    <item>
+      <title>Analyze</title>
+      <link>https://databrickslabs.github.io/delta-oms/getting_started/analyze/</link>
+      <pubDate>Wed, 04 Aug 2021 14:25:26 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/getting_started/analyze/</guid>
+      <description>Analyze Run analytics using sample notebooks You can run some sample analytics on the data from the OMS database using the provided notebook
+Modify the queries to reflect your configuration for OMS DB Name and other table names.
+Executing this notebook will give you an idea on the type of analysis and data structure that can be utilized as part of the DeltaOMS.
+You can build on top of this notebook , customize this notebook to your liking and create your own Analytics insights and dashboards through Databricks notebooks and/or SQL Analytics.</description>
+    </item>
+    
+    <item>
+      <title>Additional Configuration</title>
+      <link>https://databrickslabs.github.io/delta-oms/getting_started/additionalconfigurations/</link>
+      <pubDate>Wed, 04 Aug 2021 14:25:26 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/getting_started/additionalconfigurations/</guid>
+      <description>Additional Configurations and Execution Options Configuration DeltaOMS can also be configured using a HOCON format file. The different configuration parameters available are described below :
+   Configuration Key Description Required Example Default Value     base-location Base location/path of the OMS Database on the Delta Lake Y dbfs:/spark-warehouse/oms.db None   db-name OMS Database Name. This is the database where all the Delta log details will be collected Y oms.</description>
+    </item>
+    
+  </channel>
+</rss>
