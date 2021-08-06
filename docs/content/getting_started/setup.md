@@ -48,9 +48,16 @@ This is done using the same notebook.
   information for all delta tables under the database
   
 ### Create Databricks Jobs
-Next, we will create couple of databricks jobs to stream the delta logs from the tracked tables 
-and also to process the data for further analytics.
+Next, we will create couple of databricks jobs for executing the solution. The first Databricks job
+will stream the delta logs from the configured delta tables and persist in the `rawactions` DeltaOMS table.
 
+Main class : `com.databricks.labs.deltaoms.ingest.StreamPopulateOMS` 
+
+Example:
+
+![Delta OMS Streaming Ingestion Job](images/DeltaOMS_Ingestion_Job_1.png)
+
+The first job can also be created through a sample script provided as part of the solution. The steps to run the sample script are:
 - Import and Open the DeltaOMS Setup notebook [STEP 2](/assets/OMS_Setup_STEP2.py) into 
   your Databricks environment
 - Define the values for the `omsBaseLocation`, `omsDBName`, `omsCheckpointSuffix`, `omsCheckpointBase` 
@@ -60,9 +67,15 @@ and also to process the data for further analytics.
 - DeltaOMS creates individual streams for each tracked path and runs multiple such streams in a
   single Databricks job. By default, it groups 50 streams into a single databricks jobs. 
   You could change the variable `num_streams_per_job` to change number of streams per job.
-- Once all the parameters are updated, run the command on the notebok to create the jobs. 
+- Once all the parameters are updated, run the command on the notebook to create the jobs. 
   Depending on the total number of objects tracked multiple Databricks jobs could be created
 - You can navigate to the `Jobs` UI to look at the created jobs
 
+The second job will process the raw actions and organize them into Commit Info and Action snapshots for querying and further analytics.
+
+Main class : `com.databricks.labs.deltaoms.process.OMSProcessRawActions` 
+
+![Delta OMS Processing Job](images/DeltaOMS_Process_Job_1.png)
+
 Refer to the [Developer Guide]({{%relref "developer_guide/_index.md" %}}) for more details on multiple stream approach 
-for DeltaOMS ingestion.
+for DeltaOMS ingestion and the processing job.

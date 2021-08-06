@@ -75,7 +75,7 @@ modifying the cluster for the job and setting the advanced Spark configuration
 
 Refer to screenshots below for an example:
 
-![Delta OMS Streaming Ingestion Job Task Config](/images/DeltaOMS_Ingestion_Job_1.png)
+![Delta OMS Streaming Ingestion Job Task Config](/images/DeltaOMS_Ingestion_Job_Config_1.png)
 
-![Delta OMS Streaming Ingestion Job Spark Config](images/DeltaOMS_Ingestion_Job_2.png)
+![Delta OMS Streaming Ingestion Job Spark Config](images/DeltaOMS_Ingestion_Job_Config_2.png)
 
