@@ -5,7 +5,7 @@ weight: 20
 draft: false 
 ---
 
-CONTRIBUTING TO DELTAOMS 
+##  Contributing to DeltaOMS 
 
 At present, external contributions are not accepted
 

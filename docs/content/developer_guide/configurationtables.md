@@ -5,8 +5,6 @@ weight: 5
 draft: false
 ---
 
-## Configuration Tables
-
 ### Source Config
 
 Default Name :  `sourceconfig`

@@ -5,8 +5,8 @@ draft: false
 ---
 
 # Delta Operational Metrics Store (DeltaOMS)
-DeltaOMS is a solution providing "Automated Observability" on
-[Delta Lake](https://github.com/delta-io/delta)
+Delta Operational Metrics Store (DeltaOMS) is a solution providing "Automated Observability" of 
+operational metrics on [Delta Lake](https://github.com/delta-io/delta) 
 
 ## Project Overview
 DeltaOMS provides a solution for automatically collecting operational metrics from Delta 

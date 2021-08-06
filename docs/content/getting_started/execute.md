@@ -5,8 +5,6 @@ weight: 20
 draft: false
 ---
 
-## Execute
-
 ### Execute the DeltaOMS Jobs
 You can run the jobs created in the above step to ingest and process the delta transaction 
 information for the configured tables into the centralized DeltaOMS database.

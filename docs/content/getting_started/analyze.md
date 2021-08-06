@@ -5,8 +5,6 @@ weight: 25
 draft: false
 ---
 
-## Analyze
-
 ### Run analytics using sample notebooks
 
 You can run some sample analytics on the data from the OMS database 

@@ -5,8 +5,6 @@ weight: 15
 draft: false
 ---
 
-## Setup
-
 ### Initialize the DeltaOMS Database
 
 DeltaOMS can be configured through two methods :

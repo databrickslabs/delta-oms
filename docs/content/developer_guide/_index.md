@@ -5,8 +5,6 @@ weight: 10
 draft: false 
 ---
 
-# DeltaOMS - Developer Guide
-
 DeltaOMS provides "Automated Observability" for Delta Lakehouse objects. This developer guide 
 assumes you have already completed the tutorial from the 
 [Getting Started Guide]({{%relref "getting_started/_index.md" %}}).

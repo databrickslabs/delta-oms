@@ -5,8 +5,6 @@ weight: 30
 draft: false
 ---
 
-## Additional Configurations and Execution Options
-
 ### Configuration
 
 DeltaOMS can also be configured using a 

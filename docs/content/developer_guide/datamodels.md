@@ -5,7 +5,5 @@ weight: 15
 draft: false
 ---
 
-## Data Model
-
 ![Delta OMS ERD](/images/DeltaOMS_ERD.png)
 

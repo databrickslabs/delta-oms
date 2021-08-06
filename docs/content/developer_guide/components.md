@@ -5,8 +5,6 @@ weight: 20
 draft: false
 ---
 
-## Key Components
-
 ### Initialization
 
 DeltaOMS provides the component `com.databricks.labs.deltaoms.init.InitializeOMS` for initializing  

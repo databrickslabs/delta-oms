@@ -5,8 +5,6 @@ weight: 10
 draft: false
 ---
 
-### Execution
-
 **Q. How do I get started ?**
 
 Please refer to the [Getting Started]({{%relref "getting_started/_index.md" %}}) guide

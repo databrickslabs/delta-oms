@@ -5,8 +5,6 @@ weight: 10
 draft: false
 ---
 
-## Prerequisites
-
 Make sure you have the following available before proceeding :
 
 - Access to Databricks environment with access to Delta tables/databases

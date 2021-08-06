@@ -5,8 +5,6 @@ weight: 5
 draft: false
 ---
 
-### General
-
 **Q. What is Delta Operational Metrics Store ?**
 
 Delta Operational metrics store (DeltaOMS) is a solution/framework for automated collection 
