@@ -55,7 +55,7 @@ Main class : `com.databricks.labs.deltaoms.ingest.StreamPopulateOMS`
 
 Example:
 
-![Delta OMS Streaming Ingestion Job](images/DeltaOMS_Ingestion_Job_1.png)
+![Delta OMS Streaming Ingestion Job](/images/DeltaOMS_Ingestion_Job_1.png)
 
 The first job can also be created through a sample script provided as part of the solution. The steps to run the sample script are:
 - Import and Open the DeltaOMS Setup notebook [STEP 2](/assets/OMS_Setup_STEP2.py) into 
@@ -75,7 +75,7 @@ The second job will process the raw actions and organize them into Commit Info a
 
 Main class : `com.databricks.labs.deltaoms.process.OMSProcessRawActions` 
 
-![Delta OMS Processing Job](images/DeltaOMS_Process_Job_1.png)
+![Delta OMS Processing Job](/images/DeltaOMS_Process_Job_1.png)
 
 Refer to the [Developer Guide]({{%relref "developer_guide/_index.md" %}}) for more details on multiple stream approach 
 for DeltaOMS ingestion and the processing job.

@@ -27,7 +27,7 @@ for more details on Actions and CommitInfo.
 
 ## High-Level Process Flow:
 
-![DeltaOMS High-Level Process Flow](images/DeltaOMS_High_Level_Flow.png)
+![DeltaOMS High-Level Process Flow](/images/DeltaOMS_High_Level_Flow.png)
 
 ## How is the DeltaOMS executed
 DeltaOMS provides a jar and sample notebooks to help you setup , configure and 
