@@ -21,7 +21,7 @@ for more details on Actions and CommitInfo.
 
 ## High-Level Process Flow:
 
-![DeltaOMS High-Level Process Flow](./docs/images/Delta_OMS_High_Level_Flow.png)
+![DeltaOMS High-Level Process Flow](./docs/static/images/DeltaOMS_High_Level_Flow.png)
 
 ## How is the DeltaOMS executed
 DeltaOMS provides a jar and sample notebooks to help you setup , configure and 
@@ -39,11 +39,13 @@ improved observability of the Delta Lakehouse.
 
 ## More questions
 
-Refer to the [FAQ](./docs/FAQ.md) and [Developer Guide](./docs/DEVELOPER.md)
+Refer to the [FAQ](https://databrickslabs.github.io/delta-oms/faq/) 
+and [Developer Guide](https://databrickslabs.github.io/delta-oms/developer_guide/) for the 
+DeltaOMS [documentation](https://databrickslabs.github.io/delta-oms/)
 
 ## Getting Started
 
-Refer to the  [Getting Started](./docs/GETTING%20STARTED.md) guide
+Refer to the  [Getting Started](https://databrickslabs.github.io/delta-oms/getting_started/) guide
 
 ## Building the Project
 DeltaOMS uses `sbt` as the build tool. Following are the high level building steps:
@@ -57,13 +59,13 @@ DeltaOMS uses `sbt` as the build tool. Following are the high level building ste
 The DeltaOMS solution is available through Maven. You can get the jar using the following maven
 co-ordinates : `"com.databricks.labs" % "delta-oms_2.12" % "0.1.0"`
 
-Please follow the [Getting Started](./docs/GETTING%20STARTED.md) guide for instructions on 
+Please follow the [Getting Started](https://databrickslabs.github.io/delta-oms/getting_started/) guide for instructions on 
 using DeltaOMS on Databricks environment.
 
 ## Releasing the Project
 DeltaOMS is released as a `jar` and `notebooks` for setting up Databricks jobs. 
 It also provides few sample notebooks for typical analysis.
-Refer to the [Getting Started](./docs/GETTING%20STARTED.md) guide for more details.
+Refer to the [Getting Started](https://databrickslabs.github.io/delta-oms/getting_started/) guide for more details.
 
 ## Project Support
 Please note that all projects in the /databrickslabs github account are provided for your 

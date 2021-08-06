@@ -1,7 +1,7 @@
 # DeltaOMS Documentation Generation
 
-DeltaOMS uses [Hugo](https://gohugo.io)  to generate public documents and 
-published on [GitHub pages](https://gohugo.io/hosting-and-deployment/hosting-on-github/#deployment-of-project-pages-from-docs-folder-on-master-branch)
+DeltaOMS uses [Hugo](https://gohugo.io) to generate public documentation. These generated site 
+is published [here](https://databrickslabs.github.io/delta-oms/) using [GitHub pages](https://gohugo.io/hosting-and-deployment/hosting-on-github/#deployment-of-project-pages-from-docs-folder-on-master-branch)
 
 ## Process to generate and publish the documentation
 
