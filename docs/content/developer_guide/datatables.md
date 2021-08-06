@@ -2,7 +2,7 @@
 title: "Data Tables"
 date: 2021-08-04T14:27:39-04:00
 weight: 10
-draft: true
+draft: false
 ---
 ## Data Tables
 

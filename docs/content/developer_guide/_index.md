@@ -2,8 +2,9 @@
 title: "Developer Guide"
 date: 2021-08-04T14:50:11-04:00
 weight: 10
-draft: true
+draft: false 
 ---
+
 # DeltaOMS - Developer Guide
 
 DeltaOMS provides "Automated Observability" for Delta Lakehouse objects. This developer guide 

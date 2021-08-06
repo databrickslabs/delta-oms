@@ -1,8 +1,9 @@
 ---
 title: "Delta Operational Metrics Store (DeltaOMS)"
 date: 2021-08-04T14:50:11-04:00
-draft: true
+draft: false
 ---
+
 # Delta Operational Metrics Store (DeltaOMS)
 DeltaOMS is a solution providing "Automated Observability" on
 [Delta Lake](https://github.com/delta-io/delta)

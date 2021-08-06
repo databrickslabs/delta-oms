@@ -2,9 +2,8 @@
 title: "Pre-Requisites"
 date: 2021-08-04T14:25:26-04:00
 weight: 10
-draft: true
+draft: false
 ---
-
 
 ## Prerequisites
 

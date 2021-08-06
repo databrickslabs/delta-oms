@@ -1,12 +1,12 @@
-baseURL = 'https://databrickslabs.github.io/delta-oms/'
-languageCode = 'en-us'
-title = 'Delta Operational Metrics Store (DeltaOMS)'
-theme= 'hugo-theme-learn'
+baseURL = "https://databrickslabs.github.io/delta-oms/"
+title = "Delta Operational Metrics Store (DeltaOMS)"
+theme= "hugo-theme-learn"
 
-[outputs]
-home = [ "HTML", "RSS", "JSON"]
+pluralizeListTitles = false
+canonifyURLs = true
 
 [params]
-    description = 'DeltaOMS Documentation'
-    author = 'Himanish Kushary (Databricks)'
-    disableLandingPageButton = true
+    description = "DeltaOMS Documentation"
+    author = "Himanish Kushary (Databricks)"
+    disableShortcutsTitle = true
+    disableLandingPageButton = false

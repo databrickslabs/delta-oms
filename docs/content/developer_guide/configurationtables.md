@@ -2,7 +2,7 @@
 title: "Configuration Tables"
 date: 2021-08-04T14:27:39-04:00
 weight: 5
-draft: true
+draft: false
 ---
 
 ## Configuration Tables

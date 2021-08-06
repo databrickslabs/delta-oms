@@ -2,7 +2,7 @@
 title: "Analyze"
 date: 2021-08-04T14:25:26-04:00
 weight: 25
-draft: true
+draft: false
 ---
 
 ## Analyze
