@@ -77,5 +77,5 @@ Refer to screenshots below for an example:
 
 ![Delta OMS Streaming Ingestion Job Task Config](/images/DeltaOMS_Ingestion_Job_Config_1.png)
 
-![Delta OMS Streaming Ingestion Job Spark Config](images/DeltaOMS_Ingestion_Job_Config_2.png)
+![Delta OMS Streaming Ingestion Job Spark Config](/images/DeltaOMS_Ingestion_Job_Config_2.png)
 
