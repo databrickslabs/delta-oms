@@ -6,11 +6,12 @@ on:
       - dev  # Set a branch to deploy
   pull_request:
 
+defaults:
+  run:
+    working-directory: ./docs
 jobs:
   deploy:
     runs-on: ubuntu-20.04
-    defaults:
-      working-directory: docs
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
     steps:
