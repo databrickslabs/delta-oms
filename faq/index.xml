@@ -7,4 +7,6 @@ You can add a database name to the DeltaOMS configuration table (by default call
 Example:
 INSERT INTO &amp;lt;omsDBName&amp;gt;.sourceconfig VALUES('&amp;lt;Database Name&amp;gt;',false, Map('wildCardLevel','0'))
 For more details on the configurations and parameters, refer to Getting Started and Developer Guide
-Q. What components will to be deployed for DeltaOMS ?</description></item></channel></rss>
+Q. What components will to be deployed for DeltaOMS ?</description></item><item><title>Security</title><link>https://databrickslabs.github.io/delta-oms/faq/security/</link><pubDate>Wed, 04 Aug 2021 14:26:55 -0400</pubDate><guid>https://databrickslabs.github.io/delta-oms/faq/security/</guid><description>Q. Would I need to give permissions to all my data for this solution to work ?
+DeltaOMS processes the Delta transaction logs implementing the Delta protocol to capture the different operational metrics. These logs are stored under the folder _delta_log alongside your data files. DeltaOMS only requires access to this _delta_log folder for the data you want to track operational metrics.
+For more details on how DeltaOMS works please refer to the Developer Guide</description></item></channel></rss>

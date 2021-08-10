@@ -6,7 +6,7 @@
 <meta name=description content="DeltaOMS Documentation">
 <meta name=author content="Himanish Kushary (Databricks)">
 <link rel=icon href=https://databrickslabs.github.io/delta-oms/images/favicon.png type=image/png>
-<title>Execution :: Delta Operational Metrics Store (DeltaOMS)</title>
+<title>Security :: Delta Operational Metrics Store (DeltaOMS)</title>
 <link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1628600895 rel=stylesheet>
 <link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1628600895 rel=stylesheet>
 <link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1628600895 rel=stylesheet>
@@ -21,7 +21,7 @@
 <style>:root #header+#content>#left>#rlblock_left{display:none!important}</style>
 <script async defer src=https://buttons.github.io/buttons.js></script>
 </head>
-<body data-url=https://databrickslabs.github.io/delta-oms/faq/execution/>
+<body data-url=https://databrickslabs.github.io/delta-oms/faq/security/>
 <nav id=sidebar>
 <div id=header-wrapper>
 <div id=header>
@@ -118,12 +118,12 @@ Frequently Asked Questions (FAQs)
 General
 </a>
 </li>
-<li data-nav-id=/faq/execution/ title=Execution class="dd-item active">
+<li data-nav-id=/faq/execution/ title=Execution class=dd-item>
 <a href=https://databrickslabs.github.io/delta-oms/faq/execution/>
 Execution
 </a>
 </li>
-<li data-nav-id=/faq/security/ title=Security class=dd-item>
+<li data-nav-id=/faq/security/ title=Security class="dd-item active">
 <a href=https://databrickslabs.github.io/delta-oms/faq/security/>
 Security
 </a>
@@ -160,7 +160,7 @@ Contributing
 </span>
 <span id=toc-menu><i class="fas fa-list-alt"></i></span>
 <span class=links>
-<a href=https://databrickslabs.github.io/delta-oms/>Delta Operational Metrics Store (DeltaOMS)</a> > <a href=https://databrickslabs.github.io/delta-oms/faq/>Frequently Asked Questions (FAQs)</a> > Execution
+<a href=https://databrickslabs.github.io/delta-oms/>Delta Operational Metrics Store (DeltaOMS)</a> > <a href=https://databrickslabs.github.io/delta-oms/faq/>Frequently Asked Questions (FAQs)</a> > Security
 </span>
 </div>
 <div class=progress>
@@ -174,64 +174,28 @@ Contributing
 </div>
 <div id=body-inner>
 <h1>
-Execution
+Security
 </h1>
-<p><strong>Q. How do I get started ?</strong></p>
-<p>Please refer to the <a href=https://databrickslabs.github.io/delta-oms/getting_started/>Getting Started</a> guide</p>
-<p><strong>Q. How do I add databases to be monitored by DeltaOMS ?</strong></p>
-<p>You can add a database name to the DeltaOMS configuration table (by default called <code>sourceconfig</code>)
-using simple SQL <code>INSERT</code> statement.</p>
-<p>Example:</p>
-<p><code>INSERT INTO &lt;omsDBName>.sourceconfig VALUES('&lt;Database Name>',false, Map('wildCardLevel','0'))</code></p>
-<p>For more details on the configurations and parameters, refer to <a href=https://databrickslabs.github.io/delta-oms/getting_started/>Getting Started</a>
-and <a href=https://databrickslabs.github.io/delta-oms/developer_guide/>Developer Guide</a></p>
-<p><strong>Q. What components will to be deployed for DeltaOMS ?</strong></p>
-<p>DeltaOMS deploys two primary components. One for ingestion of the delta logs from the configured
-table. This is a streaming component and can be run either on a schedule or as an always running
-streaming job depending on your SLA requirements for retrieving operational metrics.</p>
-<p>The other component is a batch component for processing and enriching of the delta actions
-into different OMS specific tables.</p>
-<p><strong>Q. How many ingestion jobs we need to run ?</strong></p>
-<p>DeltaOMS supports 50 streams by default for each Databricks jobs. These values are configurable
-through command line parameters <code>--startingStream</code> and <code>--endingStream</code>, default 1 and 50 respectively.</p>
-<p>We recommend setting up your jobs to support groups of 40-50 stream / wildcard paths. For example,
-you have 75 unique wildcard paths to process, we recommend creating 2 Databricks jobs for DeltaOMS ingestion.
-The sample <a href=https://databrickslabs.github.io/delta-oms/assets/OMS_Setup_STEP2.py>notebook</a> provides examples of how to automatically
-create jobs based on your input sources.</p>
-<p><strong>Q. What is the process flow for adding new input sources for DeltaOMS tracking ?</strong>
-Assuming you already have DeltaOMS running on your environment,new input sources can be added by:</p>
-<ul>
-<li>Adding the new sources to the <code>sourceconfig</code> table. Example usage in <a href=https://databrickslabs.github.io/delta-oms/developer_guide/>Developer Guide</a></li>
-<li>Running the path configuration component, <code>com.databricks.labs.deltaoms.init.ConfigurePaths</code></li>
-<li>If running as an always running streaming job, restart the DeltaOMS streaming job(s)</li>
-<li>If running as a scheduled job, new sources will be automatically picked up during subsequent runs</li>
-</ul>
-<p><strong>Q. (Advanced) How do I add arbitrary wildcard paths to be tracked by DeltaOMS ?</strong></p>
-<p>We recommend using the <code>sourceconfig</code> configuration table to set up input source tracking for DeltaOMS
-(Refer to <a href=https://databrickslabs.github.io/delta-oms/developer_guide/>Developer Guide</a></p>
-<p>There could be instances where some special wildcard path (which does not fall under the <code>wildCardLevel</code>
-provided by DeltaOMS) needs to be tracked by DeltaOMS. These random wildcards can be configured directly
-on the <code>pathconfig</code> configuration table.</p>
-<p>Example: Say, you need to configure paths like
-<code>dbfs:/databricks-datasets/*/*/*/*/*/_delta_log/*.json</code>,<code>dbfs:/databricks-datasets/*/*/*/*/_delta_log/*.json</code>
-and <code>dbfs:/databricks-datasets/*/*/_delta_log/*.json</code>. You could directly add them to the pathconfig table
-using the SQL statements</p>
-<pre><code>spark.sql(s&quot;&quot;&quot;INSERT INTO &lt;omsDBName&gt;.pathconfig VALUES (
-  'dbfs:/databricks-datasets/4/',
-  substring(sha1('dbfs:/databricks-datasets/4/'), 0, 7), 
- 'dbfs:/databricks-datasets/*/*/*/*/*/_delta_log/*.json', 
- substring(sha1('dbfs:/databricks-datasets/*/*/*/*/*/_delta_log/*.json'), 0, 7), 
- Map('wildCardLevel','1'),false,'databricks-datasets-4',0,false,'2021-07-23T19:06:04.933+0000')
- &quot;&quot;&quot;)
-</code></pre><p>Once these are added , the operational metrics from tables under these wildcard location
-can be captured and processed using the regular OMS jobs.</p>
+<p><strong>Q. Would I need to give permissions to all my data for this solution to work ?</strong></p>
+<p>DeltaOMS processes the <a href=https://databricks.com/blog/2019/08/21/diving-into-delta-lake-unpacking-the-transaction-log.html>Delta transaction logs</a>
+implementing the <a href=https://github.com/delta-io/delta/blob/master/PROTOCOL.md>Delta protocol</a> to capture the different operational metrics.
+These logs are stored under the folder <code>_delta_log</code> alongside your data files.
+DeltaOMS only requires access to this <code>_delta_log</code> folder for the data you want to track operational metrics.</p>
+<p>For more details on how DeltaOMS works please refer to the <a href=https://databrickslabs.github.io/delta-oms/developer_guide/>Developer Guide</a></p>
+<p><strong>Q. I still feel uncomfortable sharing the <code>_delta_log</code> folder outside of my team ?</strong></p>
+<p>DeltaOMS is flexible in terms of deployment and can be easily deployed as a centralized solution
+or de-centralized amongst teams depending on your organizational requirements.</p>
+<p>For example, each team could run their own configured DeltaOMS and write the operational metrics into
+different metrics store database like <code>delta-oms-team1</code>, <code>delta-oms-team2</code> etc.</p>
+<p>For more details on how to configured DeltaOMS, refer to the <a href=https://databrickslabs.github.io/delta-oms/getting_started/>Getting Started</a>
+and <a href=https://databrickslabs.github.io/delta-oms/developer_guide/>Developer</a> guide.</p>
 <footer class=footline>
 </footer>
 </div>
 </div>
 <div id=navigation>
-<a class="nav nav-prev" href=https://databrickslabs.github.io/delta-oms/faq/general/ title=General> <i class="fa fa-chevron-left"></i></a>
-<a class="nav nav-next" href=https://databrickslabs.github.io/delta-oms/faq/security/ title=Security style=margin-right:0><i class="fa fa-chevron-right"></i></a>
+<a class="nav nav-prev" href=https://databrickslabs.github.io/delta-oms/faq/execution/ title=Execution> <i class="fa fa-chevron-left"></i></a>
+<a class="nav nav-next" href=https://databrickslabs.github.io/delta-oms/contributing/ title=Contributing style=margin-right:0><i class="fa fa-chevron-right"></i></a>
 </div>
 </section>
 <div style=left:-1000px;overflow:scroll;position:absolute;top:-1000px;border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px>
