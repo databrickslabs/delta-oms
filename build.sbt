@@ -14,6 +14,8 @@ import sbt.Level
 
 import ReleaseTransformations._
 
+Global / lintUnusedKeysOnLoad := false
+
 ThisBuild / parallelExecution  := false
 ThisBuild / scalastyleConfig   := baseDirectory.value / "scalastyle-config.xml"
 // crossScalaVersions in ThisBuild := Seq("2.12.10", "2.11.12")
@@ -29,6 +31,15 @@ scalaVersion := "2.12.10"
 
 val sparkVersion = "3.1.1"
 val deltaVersion = "1.0.0"
+
+coverageExcludedPackages :=
+  """<empty>;com.databricks.labs.deltaoms.process.*;com.databricks.labs.deltaoms.init.*;
+    |com.databricks.labs.deltaoms.ingest.*;
+    |com.databricks.labs.deltaoms.model.*;
+    |com.databricks.labs.deltaoms.common.*Runner;
+    |com.databricks.labs.deltaoms.common.OMSStreamingQueryListener;
+    |com.databricks.labs.deltaoms.common.Schemas;
+    |com.databricks.labs.deltaoms.configuration.SparkSettings""".stripMargin
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
