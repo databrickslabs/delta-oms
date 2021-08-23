@@ -14,8 +14,8 @@ import sbt.Level
 
 import ReleaseTransformations._
 
-parallelExecution in ThisBuild := false
-scalastyleConfig in ThisBuild := baseDirectory.value / "scalastyle-config.xml"
+ThisBuild / parallelExecution  := false
+ThisBuild / scalastyleConfig   := baseDirectory.value / "scalastyle-config.xml"
 // crossScalaVersions in ThisBuild := Seq("2.12.10", "2.11.12")
 
 lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
@@ -56,11 +56,11 @@ scalacOptions ++= Seq(
 
 javaOptions += "-Xmx1024m"
 
-parallelExecution in Test := false
+Test / parallelExecution := false
 
-fork in Test := true
+Test / fork := true
 
-javaOptions in Test ++= Seq(
+Test / javaOptions ++= Seq(
   "-Dspark.ui.enabled=false",
   "-Dspark.ui.showConsoleProgress=false",
   "-Dspark.databricks.delta.snapshotPartitions=2",
@@ -71,33 +71,34 @@ javaOptions in Test ++= Seq(
   "-Xmx1024m"
 )
 
-testOptions in Test += Tests.Argument("-oDF")
+Test / testOptions += Tests.Argument("-oDF")
 
-testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
+Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
 
 scalastyleConfig := baseDirectory.value / "scalastyle-config.xml"
 
-compileScalastyle := scalastyle.in(Compile).toTask("").value
+compileScalastyle := (Compile / scalastyle).toTask("").value
 
-(compile in Compile) := ((compile in Compile) dependsOn compileScalastyle).value
+Compile / compile := ((Compile / compile) dependsOn compileScalastyle).value
 
-testScalastyle := scalastyle.in(Test).toTask("").value
+testScalastyle := (Test / scalastyle).toTask("").value
 
-(test in Test) := ((test in Test) dependsOn testScalastyle).value
+Test / test := ((Test / test) dependsOn testScalastyle).value
 
-test in assembly := {}
+assembly / test  := {}
 
-run in Compile := Defaults.runTask(fullClasspath in Compile,
-  mainClass in(Compile, run), runner in(Compile, run)).evaluated
+Compile / run := Defaults.runTask(Compile / fullClasspath,
+  Compile / run / mainClass,
+  Compile / run / runner).evaluated
 
-assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false)
+assembly / assemblyOption := (assembly / assemblyOption).value.copy(includeScala = false)
 
-assemblyShadeRules in assembly := Seq(
+assembly / assemblyShadeRules := Seq(
   ShadeRule.rename("org.apache.spark.sql.delta.**" ->
     "com.databricks.sql.transaction.tahoe.@1").inAll
 )
 
-logLevel in assembly := Level.Error
+assembly / logLevel := Level.Error
 
 /*
  ********************
