@@ -1,3 +1,5 @@
+[![Scala CI](https://github.com/databrickslabs/delta-oms/actions/workflows/scala.yml/badge.svg?branch=dev)](https://github.com/databrickslabs/delta-oms/actions/workflows/scala.yml)
+
 # Delta Operational Metrics Store (DeltaOMS)
 Delta Operational Metrics Store (DeltaOMS) is a solution that helps to build a 
 centralized repository of operational metrics/statistics for your [Lakehouse](http://cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf) 
