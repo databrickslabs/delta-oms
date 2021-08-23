@@ -5,16 +5,27 @@ draft: false
 ---
 
 # Delta Operational Metrics Store (DeltaOMS)
-Delta Operational Metrics Store (DeltaOMS) is a solution providing "Automated Observability" of 
-operational metrics on [Delta Lake](https://github.com/delta-io/delta) 
+Delta Operational Metrics Store (DeltaOMS) is a solution that helps to build a 
+centralized repository of operational metrics/statistics for your [Lakehouse](http://cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf) 
+built on [Delta Lake](https://github.com/delta-io/delta) 
 
 ## Project Overview
-DeltaOMS provides a solution for automatically collecting operational metrics from Delta 
-Lakehouse tables into a separate centralized database. This will enable you to gain access to 
-the operational metadata of your data in near real-time and help with operational insights,
-allow setting up monitoring and alerting for your Delta Lakehouse ETL Pipelines, 
-identify trends based on data characteristics, improve ETL pipeline performance etc. 
-It also provides you the capabilities for auditing and traceability of your Delta Lake data.
+DeltaOMS provides a solution for automatically collecting operational metrics/statistics from Delta 
+Lakehouse tables into a separate centralized database. This will enable you to gain centralized access 
+to the operational metrics for your data in near real-time. This centralized data can be utilized
+to gain helpful operational insights, setting up monitoring/alerting and observability for your 
+Delta Lakehouse ETL Pipelines. It could also help you to identify trends based on data characteristics, 
+improve ETL pipeline performance, provide capabilities for auditing and traceability of your Delta Lake data etc.
+
+Few examples of how you could use the centralized operational metrics/statistics collated by DeltaOMS :
+
+- What are the most frequent WRITE operations across my data lakehouse ?
+- How many WRITE operations were run on my Data Lakehouse in the last hour ?
+- Which are the top WRITE heavy databases in my data lakehouse ?
+- Track File I/O ( bytes written, number of writes etc.) across my entire data lakehouse
+- Tracking growth of data size, commit frequency etc. over time for tables/databases
+- Did the delete operations for GDPR compliance go through and what changes it made to the filesystem ?
+
 
 ## How does DeltaOMS work
 DeltaOMS subscribes to the delta logs of the configured databases/tables and pulls all the 
@@ -41,7 +52,7 @@ on your environment.The overall cost will be determined primarily by the number 
 objects tracked and frequency of the OMS data refresh. 
 We have found that the additional insights gained from DeltaOMS helps reduce the total cost of 
 ownership through better management and optimization of your data pipelines while providing much 
-improved observability of the Delta Lakehouse.
+improved view on the operational metrics and statistics for the Delta Lakehouse.
 
 ## More questions
 
