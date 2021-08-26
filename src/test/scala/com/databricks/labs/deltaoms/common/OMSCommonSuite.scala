@@ -57,12 +57,23 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
         checkpointBase = Some("/checkBase"), checkpointSuffix = Some("_checkSuffix_123")))
   }
 
+  test("Unknown Command Line Argument") {
+    val argsAll = Array("dbName=abc")
+    val errorThrown = intercept[java.lang.RuntimeException](OMSCommandLineParser.
+      consolidateAndValidateOMSConfig(argsAll, OMSConfig()))
+    assert(errorThrown.getMessage.contains("Unknown OMS Command Line Options"))
+  }
+
   test("Consolidate and Validate Command Line Parsing Valid Parameters") {
     val argsAll = Array("--dbName=abc", "--baseLocation=/sampleBase",
-      "--checkpointBase=/checkBase", "--checkpointSuffix=_checkSuffix_123")
+      "--checkpointBase=/checkBase", "--checkpointSuffix=_checkSuffix_123",
+      "--skipPathConfig", "--skipInitializeOMS",
+      "--skipWildcardPathsConsolidation", "--startingStream=1", "--endingStream=20")
     assert(OMSCommandLineParser.consolidateAndValidateOMSConfig(argsAll, OMSConfig()) ==
       OMSConfig(dbName = Some("abc"), baseLocation = Some("/sampleBase"),
-        checkpointBase = Some("/checkBase"), checkpointSuffix = Some("_checkSuffix_123")))
+        checkpointBase = Some("/checkBase"), checkpointSuffix = Some("_checkSuffix_123"),
+        skipPathConfig = true, skipInitializeOMS = true, consolidateWildcardPaths = false,
+        endingStream = 20))
 
     val argsOptional = Array("--baseLocation=/sampleBase",
       "--checkpointBase=/checkBase", "--checkpointSuffix=_checkSuffix_123")

@@ -15,7 +15,7 @@
  */
 package com.databricks.labs.deltaoms.common
 
-import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, EnvironmentResolver}
+import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, EnvironmentResolver, Local, Remote}
 import org.scalatest.BeforeAndAfter
 
 import org.apache.spark.sql.QueryTest
@@ -27,7 +27,35 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
   import testImplicits._
   // scalastyle:on funsuite
 
+  test("Validate empty Configuration Settings") {
+    System.setProperty("OMS_CONFIG_FILE", "empty")
+    assert(environmentConfigFile == "empty")
+    assert(environment == EnvironmentResolver.fetchEnvironment("empty"))
+    assert(omsConfig.dbName.isEmpty)
+    System.clearProperty("OMS_CONFIG_FILE")
+  }
+
+  test("Initialize from Local File") {
+    val testConfigFile = getClass().getResource("/test_reference.conf").getPath
+    System.setProperty("OMS_CONFIG_FILE", "file://" + testConfigFile)
+    assert(environment == Local)
+    assert(omsConfig.dbName.get.contains("FORTESTING"))
+  }
+
+  test("Initialize from Remote File") {
+    val testConfigFile = getClass().getResource("/test_reference.conf").getPath
+    System.setProperty("OMS_CONFIG_FILE", testConfigFile)
+    assert(environment == Remote)
+    assert(omsConfig.dbName.get.contains("FORTESTING"))
+  }
+
+  test("Initialization using wrong config file") {
+    val testConfigFile = getClass().getResource("/test_reference.conf").getPath + "a"
+    assertThrows[java.lang.RuntimeException](fetchConfigFileContent(testConfigFile))
+  }
+
   test("Inbuilt Configuration Settings") {
+    System.setProperty("OMS_CONFIG_FILE", "inbuilt")
     assert(environmentConfigFile == "inbuilt")
     assert(environment == EnvironmentResolver.fetchEnvironment("inbuilt"))
     assert(omsConfig.dbName.get == "oms_default_inbuilt")

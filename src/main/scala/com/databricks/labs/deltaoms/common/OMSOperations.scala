@@ -516,3 +516,5 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     }
   }
 }
+
+object OMSOperations extends OMSOperations
