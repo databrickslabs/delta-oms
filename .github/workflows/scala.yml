@@ -17,4 +17,10 @@ jobs:
         java-version: '8'
         distribution: 'adopt'
     - name: Run tests
-      run: sbt test
+      run: sbt coverage test
+    - name: Run coverage report
+      run: sbt coverageReport
+    - name: "Upload coverage to Codecov"
+      uses: "codecov/codecov-action@v1"
+      with:
+        fail_ci_if_error: true
