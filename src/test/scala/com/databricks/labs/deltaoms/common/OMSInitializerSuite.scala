@@ -15,7 +15,7 @@
  */
 package com.databricks.labs.deltaoms.common
 
-import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, EnvironmentResolver, Local, Remote}
+import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, EnvironmentResolver, Local, OMSConfig, Remote}
 import org.scalatest.BeforeAndAfter
 
 import org.apache.spark.sql.QueryTest
@@ -70,5 +70,11 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
     assert(spark.catalog.tableExists(dbName, omsConfig.pathConfigTable))
     assert(spark.catalog.tableExists(dbName, omsConfig.rawActionTable))
     assert(spark.catalog.tableExists(dbName, omsConfig.processedHistoryTable))
+  }
+
+  test("cleanupOMS DB Path Exception") {
+    val dbInvalidPathOMSConfig =
+      OMSConfig(dbName = Some("abc"), baseLocation = Some("s3://sampleBase"))
+    assertThrows[java.io.IOException](cleanupOMS(dbInvalidPathOMSConfig))
   }
 }

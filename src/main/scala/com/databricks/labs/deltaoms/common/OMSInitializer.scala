@@ -22,16 +22,9 @@ import Utils._
 import com.databricks.labs.deltaoms.utils.UtilityOperations._
 
 import org.apache.spark.internal.Logging
+import org.apache.spark.sql.DataFrame
 
 trait OMSInitializer extends Serializable with Logging {
-
-  def initializeOMSPathConfig(config: OMSConfig, dropAndRecreate: Boolean = false): Unit = {
-    if (dropAndRecreate) {
-      cleanupOMS(config)
-    }
-    createOMSDB(config)
-    createPathConfigTables(config)
-  }
 
   def initializeOMS(config: OMSConfig, dropAndRecreate: Boolean = false): Unit = {
     if (dropAndRecreate) {

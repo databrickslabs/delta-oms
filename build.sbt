@@ -47,6 +47,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-catalyst" % sparkVersion % "provided",
   "org.apache.spark" %% "spark-hive" % sparkVersion % "provided",
   "com.github.pureconfig" %% "pureconfig" % "0.14.0",
+  "com.databricks" % "dbutils-api_2.12" % "0.0.5" % "provided",
   "io.delta" %% "delta-core" % deltaVersion % "provided",
 
   // Test Dependencies

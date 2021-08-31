@@ -18,7 +18,11 @@ package com.databricks.labs.deltaoms.common
 import com.databricks.labs.deltaoms.configuration.{OMSConfig, SparkSettings}
 
 import org.apache.spark.internal.Logging
-
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.client.methods.{CloseableHttpResponse, HttpGet}
+import org.apache.http.util.EntityUtils
+import org.apache.http.client.config.RequestConfig
+import com.databricks.dbutils_v1.DBUtilsHolder.dbutils
 
 trait OMSRunner extends Serializable
   with SparkSettings
@@ -29,6 +33,37 @@ trait OMSRunner extends Serializable
   logInfo(s"Loading configuration from : ${environmentConfigFile}")
   logInfo(s"Environment set to : ${environment}")
   logInfo(s"OMS Config from configuration file : ${omsConfig}")
+
+  // Add Usage tracking calls
+
+  def setTrackingHeader(): Unit = {
+    val ntbCtx = dbutils.notebook.getContext()
+    val apiUrl = ntbCtx.apiUrl.get
+    val apiToken = ntbCtx.apiToken.get
+    val clusterId = ntbCtx.clusterId.get
+
+    val trackingHeaders = Seq[(String, String)](
+      ("Content-Type", "application/json"),
+      ("Charset", "UTF-8"),
+      ("User-Agent", s"databricks-labs-deltaoms-${OMS_VERSION}"),
+      ("Authorization", s"Bearer ${apiToken}"))
+
+    val timeout = 30 * 1000
+
+    val httpClient = HttpClients.createDefault()
+    val getClusterByIdGet = new HttpGet(s"${apiUrl}/api/2.0/clusters/get?cluster_id=${clusterId}")
+    val requestConfig: RequestConfig = RequestConfig.custom
+      .setConnectionRequestTimeout(timeout)
+      .setConnectTimeout(timeout)
+      .setSocketTimeout(timeout)
+      .build
+
+    trackingHeaders.foreach(hdr => getClusterByIdGet.addHeader(hdr._1, hdr._2))
+    getClusterByIdGet.setConfig(requestConfig)
+    val response = httpClient.execute(getClusterByIdGet)
+    logInfo(EntityUtils.toString(response.getEntity, "UTF-8"))
+  }
+  setTrackingHeader()
 
   def consolidateAndValidateOMSConfig(args: Array[String], config: OMSConfig): OMSConfig
 }

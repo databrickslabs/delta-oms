@@ -115,11 +115,6 @@ trait UtilityOperations extends Serializable with Logging {
     }
   }
 
-  def getDeltaPathFromDelTableIdentifiers(deltaTableIds: Seq[DeltaTableIdentifier]): Seq[Path] = {
-    val spark = SparkSession.active
-    deltaTableIds.map(_.getPath(spark))
-  }
-
   def createDatabaseIfAbsent(dbDefn: DatabaseDefinition): Unit = {
     val spark = SparkSession.active
     val dBCreateSQL = new StringBuilder(s"CREATE DATABASE IF NOT EXISTS ${dbDefn.databaseName} ")
@@ -142,13 +137,6 @@ trait UtilityOperations extends Serializable with Logging {
       case Failure(exception) =>
         throw new RuntimeException(s"Unable to create the Database: $exception")
     }
-  }
-
-  def populateOMSSourceConfigTableWithSelf(dbName: String, tableName: String): DataFrame = {
-    val spark = SparkSession.active
-    // Populate OMS SourceConfig with Self Database Name
-    spark.sql(s"INSERT INTO ${dbName}.${tableName} " +
-      s"VALUES ('${dbName}', false, Map('wildCardLevel','0'))")
   }
 
   def createTableIfAbsent(tableDefn: TableDefinition): Unit = {

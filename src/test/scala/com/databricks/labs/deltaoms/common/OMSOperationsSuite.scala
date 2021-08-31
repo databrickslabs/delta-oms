@@ -29,8 +29,11 @@ import com.databricks.labs.deltaoms.common.OMSOperations._
 import com.databricks.labs.deltaoms.common.Utils.getPathConfigTablePath
 import com.databricks.labs.deltaoms.model.SourceConfig
 import com.databricks.labs.deltaoms.utils.UtilityOperations
+import com.databricks.labs.deltaoms.utils.UtilityOperations.listSubDirectories
 
+import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.streaming.StreamTest
+import org.apache.spark.util.SerializableConfiguration
 
 class OMSOperationsSuite extends QueryTest
   with SharedSparkSession
@@ -105,6 +108,19 @@ class OMSOperationsSuite extends QueryTest
       s"${db2Name}.${table2Name}")
   }
 
+  test("updateOMSPathConfigFromList") {
+    val configuredSources: Array[SourceConfig] = fetchSourceConfigForProcessing(omsConfig)
+    updateOMSPathConfigFromList(configuredSources.toSeq,
+      getPathConfigTablePath(omsConfig), truncate = true)
+    val pathConfigTable = s"${omsConfig.dbName.get}.${omsConfig.pathConfigTable}"
+    checkAnswer(spark.sql(s"SELECT count(*) FROM $pathConfigTable"), Row(3))
+    checkAnswer(spark.sql(s"SELECT count(distinct ${Utils.WUID}) FROM $pathConfigTable"), Row(2))
+    checkAnswer(spark.sql(s"SELECT count(distinct ${Utils.PUID}) FROM $pathConfigTable"), Row(3))
+    checkDatasetUnorderly(spark.sql(s"SELECT qualifiedName FROM $pathConfigTable").as[String],
+      s"${db1Name}.${table1Name}", s"${db1Name}.${table3Name}",
+      s"${db2Name}.${table2Name}")
+  }
+
   test("Wildcardpath fetchPathForStreamProcessing") {
     val streamPaths = fetchPathForStreamProcessing(getPathConfigTablePath(omsConfig))
     assert(streamPaths.nonEmpty)
@@ -149,7 +165,7 @@ class OMSOperationsSuite extends QueryTest
       Row(15))
   }
 
-  test("processActionSnapshotsFromRawActions") {
+ test("processActionSnapshotsFromRawActions") {
     val rawActions = spark.read.format("delta")
       .load(s"${getRawActionsTablePath(omsConfig)}")
     processActionSnapshotsFromRawActions(rawActions,
@@ -181,6 +197,9 @@ class OMSOperationsSuite extends QueryTest
       UtilityOperations.validateDeltaLocation(SourceConfig(getProcessedHistoryTablePath(omsConfig)))
     assert(pathValidatedTable.head._1.isEmpty)
     assert(pathValidatedTable.head._2 == getProcessedHistoryTablePath(omsConfig))
+
+    assertThrows[org.apache.spark.sql.AnalysisException](UtilityOperations
+      .validateDeltaLocation(SourceConfig("Invalid")))
   }
 
   test("updateOMSPathConfigFromMetaStore") {
@@ -188,6 +207,32 @@ class OMSOperationsSuite extends QueryTest
     checkAnswer(spark.sql(s"SELECT count(*) FROM $pathConfigTable"), Row(3))
     updateOMSPathConfigFromMetaStore(omsConfig)
     checkAnswer(spark.sql(s"SELECT count(*) FROM $pathConfigTable"), Row(12))
+  }
+
+  test("fetchMetaStoreDeltaTables") {
+    val tableId = UtilityOperations.fetchMetaStoreDeltaTables(Some(db1Name), Some("*table_1"))
+    assert(tableId.length == 1)
+    assert(tableId.head.identifier == s"${table1Name}")
+    val tableIds = UtilityOperations.fetchMetaStoreDeltaTables(Some(db1Name), Some("*"))
+    assert(tableIds.length == 2)
+  }
+
+  test("tableIdentifierToDeltaTableIdentifier") {
+    assert(UtilityOperations.
+      tableIdentifierToDeltaTableIdentifier(TableIdentifier("NonExistingTable")).isEmpty)
+  }
+
+  test("recursiveListDeltaTablePaths") {
+    val wildCardSourceConfig = SourceConfig("/tmp/spark-warehouse/")
+    val hadoopConf = new SerializableConfiguration(spark.sessionState.newHadoopConf())
+
+    val wildCardSubDirectories = listSubDirectories(wildCardSourceConfig, hadoopConf)
+    assert(wildCardSubDirectories.length == 3)
+    val wildCardTablePaths = wildCardSubDirectories
+      .flatMap(UtilityOperations.recursiveListDeltaTablePaths(_, hadoopConf))
+    assert(wildCardTablePaths.length == 9)
+    assert(wildCardTablePaths.
+      contains(SourceConfig("file:/tmp/spark-warehouse/oms.db/oms_default_inbuilt/raw_actions")))
   }
 
 }

@@ -27,6 +27,8 @@ DeltaOMS centralized Database and tables.
   | omsCheckpointBase | DeltaOMS ingestion is a streaming process.This defines the Base path for the checkpoints |
   | omsCheckpointSuffix | Suffix to be added to the checkpoint path (Helps in making the path unique) |
 
+- Attach the DeltaOMS jar (procured from your Databricks representative or Maven) to a running cluster
+- Attach the notebook to the cluster and start executing the cells
 - Execute `com.databricks.labs.deltaoms.init.InitializeOMS.main` method to create the OMS DB and tables.
 - Validate the DeltaOMS database and tables were created
 
@@ -52,6 +54,9 @@ Next, we will create couple of databricks jobs for executing the solution. The f
 will stream the delta logs from the configured delta tables and persist in the `rawactions` DeltaOMS table.
 
 Main class : `com.databricks.labs.deltaoms.ingest.StreamPopulateOMS` 
+Example Parameters : `
+["--dbName=oms_test_aug31","--baseLocation=dbfs:/user/hive/warehouse/oms","--checkpointBase=dbfs:/user/hive/warehouse/oms/_checkpoints","--checkpointSuffix=_aug31_171000","--skipPathConfig","--skipInitializeOMS","--startingStream=1","--endingStream=50"]
+`
 
 Example:
 
@@ -74,7 +79,10 @@ The first job can also be created through a sample script provided as part of th
 The second job will process the raw actions and organize them into Commit Info and Action snapshots for querying and further analytics.
 
 Main class : `com.databricks.labs.deltaoms.process.OMSProcessRawActions` 
+Example Parameters : `
+["--dbName=oms_test_aug31","--baseLocation=dbfs:/user/hive/warehouse/oms"]`
 
+Example : 
 ![Delta OMS Processing Job](/images/DeltaOMS_Process_Job_1.png)
 
 Refer to the [Developer Guide]({{%relref "developer_guide/_index.md" %}}) for more details on multiple stream approach 

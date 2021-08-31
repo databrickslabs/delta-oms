@@ -17,6 +17,7 @@ package com.databricks.labs.deltaoms.utils
 
 import com.databricks.labs.deltaoms.common.OMSInitializer
 import com.databricks.labs.deltaoms.configuration.ConfigurationSettings
+import com.databricks.labs.deltaoms.model.DatabaseDefinition
 import org.scalatest.BeforeAndAfter
 
 import org.apache.spark.sql.QueryTest
@@ -44,8 +45,12 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
       ("dbfs:/databricks-datasets/*/*/_delta_log/*.json", "3a6538e"),
       ("dbfs:/databricks-datasets/*/_delta_log/*.json", "32cb366"))
     assert(UtilityOperations.consolidateWildCardPaths(wcPaths3).size == 1)
+  }
 
-
+  test("Error creating Database") {
+    val exception = intercept[java.lang.RuntimeException](UtilityOperations.createDatabaseIfAbsent(
+      DatabaseDefinition("NonWorkingDB", Some("//testdb/nonworking"))))
+    assert(exception.getMessage.contains("Unable to create the Database"))
   }
 
 
