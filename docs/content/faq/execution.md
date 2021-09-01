@@ -74,4 +74,12 @@ spark.sql(s"""INSERT INTO <omsDBName>.pathconfig VALUES (
 Once these are added , the operational metrics from tables under these wildcard location 
 can be captured and processed using the regular OMS jobs.
 
+**Q. (Advanced) Is there an option to add all Delta tables under a path using wildcard expressions to be tracked by DeltaOMS ?**
 
+You could use a special wildcard expression [`PATH/**`] to the `sourceconfig` table and add all Delta tables under a path for DeltaOMS tracking.
+
+An example syntax to add such a path is :
+
+`INSERT INTO <omsDBName>.sourceconfig VALUES('dbfs:/user/warehouse/**',false, Map('wildCardLevel','0'))`
+
+DeltaOMS will discover all delta tables under the path `'dbfs:/user/warehouse/` and add it to the internal `pathconfig` table for tracking.
