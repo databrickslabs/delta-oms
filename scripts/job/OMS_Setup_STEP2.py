@@ -3,9 +3,16 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC #### The values for `omsBaseLocation` and `omsDBName` should match with the parameters used during DeltaOMS initialization. 
+# MAGIC 
+# MAGIC #### You can choose any valid value for `omsCheckpointSuffix` and `omsCheckpointBase` as appropriate for your environment
+
+# COMMAND ----------
+
 omsBaseLocation = "dbfs:/user/hive/warehouse/oms"
-omsDBName = "oms_test_jul07"
-omsCheckpointSuffix = "_jul07_111100"
+omsDBName = "oms_test_aug31"
+omsCheckpointSuffix = "_aug31_171000"
 omsCheckpointBase = f"{omsBaseLocation}/_checkpoints"
 print(omsBaseLocation,omsDBName,omsCheckpointBase,omsCheckpointSuffix)
 
@@ -17,12 +24,16 @@ print(omsBaseLocation,omsDBName,omsCheckpointBase,omsCheckpointSuffix)
 # COMMAND ----------
 
 import json
+# Must use DBR version 8.3+
 dbr_version = '8.3.x-scala2.12'
+# Put appropriate Instance Profile ARN
 instance_profile_arn = 'INSTANCE_PROFILE_ARN'
+# Put appropriate ZoneId
 zone_id = 'us-west-2a'
+# Put appropriate Node Type
 node_type_id = 'i3.xlarge'
-policy_id = 'POLICY_ID'
-oms_jar_location = 'dbfs:/FileStore/jars/397e03ea_3499_4de0_ba4c_00a7e7c6f524-delta_oms_assembly_0_0_1_SNAPSHOT-a03d9.jar'
+policy_id = 'POLICY_ID_FOR_YOUR_ENVIRONMENT/CLUSTER'
+oms_jar_location = 'VALID LOCATION FOR THE DELTA OMS JAR'
 oms_ingest_main_class_name = 'com.databricks.labs.deltaoms.ingest.StreamPopulateOMS'
 
 job_create_template = {
@@ -108,11 +119,12 @@ def create_job(job_settings):
 
 import math
 import copy
+# Change DRY RUN to False for creating the job
 DRY_RUN=True
 # Find number of unique wildcard paths
 num_wildcard_paths = spark.sql(f"select count(distinct wuid) as cwuid from {omsDBName}.pathconfig").head().cwuid
 # Set number of streams per job (default is 50.0)
-num_streams_per_job = 2.0
+num_streams_per_job = 50.0
 job_name_prefix = "OMS_Streaming_Ingestion"
 num_of_jobs = int(math.ceil(num_wildcard_paths/num_streams_per_job))
 print(f"Creating {num_of_jobs} Databricks Jobs for OMS using the Job Template")
@@ -124,9 +136,15 @@ for i in range(1,num_of_jobs+1):
   job_name_dict['name'] = f"{job_name_prefix}_{ss}_{es}"
   job_name_dict['spark_jar_task']['parameters'].append(f"--startingStream={ss}")
   job_name_dict['spark_jar_task']['parameters'].append(f"--endingStream={es}")
+  print("##############################################################")
   print(f"Creating Job {i} with json {job_name_dict}")
   if not DRY_RUN:
     create_job(job_name_dict)
+  else:
+    print("##############################################################")
+    print("**************************************************************")
+    print("THIS WAS A DRY RUN !! No actual Databricks Jobs were created")
+    print("**************************************************************")
 
 # COMMAND ----------
 
