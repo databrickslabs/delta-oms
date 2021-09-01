@@ -55,6 +55,7 @@ will stream ingest the delta logs from the configured delta tables and persist i
 For example, you could name the job `OMSIngestion_Job`. The main configurations for the job are:
 
 Main class : `com.databricks.labs.deltaoms.ingest.StreamPopulateOMS` 
+
 Example Parameters : `
 ["--dbName=oms_test_aug31","--baseLocation=dbfs:/user/hive/warehouse/oms","--checkpointBase=dbfs:/user/hive/warehouse/oms/_checkpoints","--checkpointSuffix=_aug31_171000","--skipPathConfig","--skipInitializeOMS","--startingStream=1","--endingStream=50"]
 `
@@ -81,6 +82,7 @@ The second job will process the raw actions and organize them into Commit Info a
 You could name the job `OMSProcessing_Job`. The main configurations for the job are: 
 
 Main class : `com.databricks.labs.deltaoms.process.OMSProcessRawActions` 
+
 Example Parameters : `
 ["--dbName=oms_test_aug31","--baseLocation=dbfs:/user/hive/warehouse/oms"]`
 

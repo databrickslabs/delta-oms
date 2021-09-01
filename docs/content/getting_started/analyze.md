@@ -11,11 +11,14 @@ You can run some sample analytics on the data from the OMS database
 using the provided [notebook](/assets/DeltaOMS_SQL_Analytics.sql)
 
 Modify the queries to reflect your configuration for 
-`OMS DB Name` and other table names.
+`OMS DB Name` and other table names (if applicable).
 
 Executing this notebook will give you an idea on the type of analysis and data structure that can 
 be utilized as part of the DeltaOMS.
 
 You can build on top of this notebook , customize this notebook to your liking and 
 create your own Analytics insights and dashboards through Databricks notebooks and/or SQL Analytics.
+
+Refer to [Data Model]({{%relref "developer_guide/datamodels.md" %}}) 
+and [Data Tables]({{%relref "developer_guide/datatables.md" %}})
 
