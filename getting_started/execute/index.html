@@ -7,17 +7,17 @@
 <meta name=author content="Himanish Kushary (Databricks)">
 <link rel=icon href=https://databrickslabs.github.io/delta-oms/images/favicon.png type=image/png>
 <title>Execute :: Delta Operational Metrics Store (DeltaOMS)</title>
-<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1630518753 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1630518753 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1630518753 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1630518753 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1630518753 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1630518753 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1630518753 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1630518753 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1630518753 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1630518753 rel=stylesheet>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1630518753></script>
+<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1630519793 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1630519793 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1630519793 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1630519793 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1630519793 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1630519793 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1630519793 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1630519793 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1630519793 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1630519793 rel=stylesheet>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1630519793></script>
 <style>:root #header+#content>#left>#rlblock_left{display:none!important}</style>
 <script async defer src=https://buttons.github.io/buttons.js></script>
 </head>
@@ -34,10 +34,10 @@
 <input data-search-input id=search-by type=search placeholder=Search...>
 <span data-search-clear><i class="fas fa-times"></i></span>
 </div>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1630518753></script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1630518753></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1630519793></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1630519793></script>
 <script type=text/javascript>var baseurl="https://databrickslabs.github.io/delta-oms/"</script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1630518753></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1630519793></script>
 </div>
 <section id=homelinks>
 <ul>
@@ -187,9 +187,11 @@ Execute
 <h3 id=execute-the-deltaoms-jobs>Execute the DeltaOMS Jobs</h3>
 <p>You can run the jobs created in the above step to ingest and process the delta transaction
 information for the configured tables into the centralized DeltaOMS database.</p>
-<p>By default, the <code>OMS_Streaming_Ingestion_*</code> jobs bring in the raw delta logs from the configured
-databases/tables. The <code>OMS_ProcessRawActions*</code> job formats and enrich the raw delta log data.</p>
-<p>For more details refer to the <a href=https://databrickslabs.github.io/delta-oms/developer_guide/>Developer Guide</a></p>
+<p>For example, the <code>OMSIngestion_*</code> job(s) bring in the raw delta logs from the configured
+databases/tables and the <code>OMSProcessing_*</code> job processes the raw delta logs to format and
+enrich them for analytics.</p>
+<p>For more advanced details on the working of these jobs please
+refer to the <a href=https://databrickslabs.github.io/delta-oms/developer_guide/>Developer Guide</a></p>
 <footer class=footline>
 </footer>
 </div>
@@ -202,17 +204,17 @@ databases/tables. The <code>OMS_ProcessRawActions*</code> job formats and enrich
 <div style=left:-1000px;overflow:scroll;position:absolute;top:-1000px;border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px>
 <div style=border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px></div>
 </div>
-<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1630518753></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1630518753></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1630518753></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1630518753></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1630518753></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1630518753></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1630519793></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1630519793></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1630519793></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1630519793></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1630519793></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1630519793></script>
 <script>hljs.initHighlightingOnLoad()</script>
-<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1630518753></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1630518753></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1630518753></script>
-<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1630518753></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1630519793></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1630519793></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1630519793></script>
+<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1630519793></script>
 <script>mermaid.initialize({startOnLoad:!0})</script>
 </body>
 </html>
