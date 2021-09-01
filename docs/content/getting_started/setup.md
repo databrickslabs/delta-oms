@@ -51,7 +51,8 @@ This is done using the same notebook.
   
 ### Create Databricks Jobs
 Next, we will create couple of databricks jobs for executing the solution. The first Databricks job
-will stream the delta logs from the configured delta tables and persist in the `rawactions` DeltaOMS table.
+will stream ingest the delta logs from the configured delta tables and persist in the `rawactions` DeltaOMS table. 
+For example, you could name the job `OMSIngestion_Job`. The main configurations for the job are:
 
 Main class : `com.databricks.labs.deltaoms.ingest.StreamPopulateOMS` 
 Example Parameters : `
@@ -77,6 +78,7 @@ The first job can also be created through a sample script provided as part of th
 - You can navigate to the `Jobs` UI to look at the created jobs
 
 The second job will process the raw actions and organize them into Commit Info and Action snapshots for querying and further analytics.
+You could name the job `OMSProcessing_Job`. The main configurations for the job are: 
 
 Main class : `com.databricks.labs.deltaoms.process.OMSProcessRawActions` 
 Example Parameters : `
@@ -84,6 +86,9 @@ Example Parameters : `
 
 Example : 
 ![Delta OMS Processing Job](/images/DeltaOMS_Process_Job_1.png)
+
+Note: Instead of setting up two different Databricks jobs , you could also setup a single job 
+with multiple tasks using the [Multi-task Job](https://docs.databricks.com/data-engineering/jobs/index.html) feature.
 
 Refer to the [Developer Guide]({{%relref "developer_guide/_index.md" %}}) for more details on multiple stream approach 
 for DeltaOMS ingestion and the processing job.
