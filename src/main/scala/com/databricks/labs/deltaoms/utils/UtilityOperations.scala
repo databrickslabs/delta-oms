@@ -104,15 +104,7 @@ trait UtilityOperations extends Serializable with Logging {
   def tableIdentifierToDeltaTableIdentifier(identifier: TableIdentifier)
   : Option[DeltaTableIdentifier] = {
     val spark = SparkSession.active
-    val dTableIdTry = Try {
-      DeltaTableIdentifier(spark, identifier)
-    }
-    dTableIdTry match {
-      case Success(deltaID) => deltaID
-      case Failure(exception) =>
-        logError(s"Error while accessing table $identifier : $exception")
-        None
-    }
+    DeltaTableIdentifier(spark, identifier)
   }
 
   def createDatabaseIfAbsent(dbDefn: DatabaseDefinition): Unit = {

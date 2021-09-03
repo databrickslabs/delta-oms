@@ -36,21 +36,21 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
   }
 
   test("Initialize from Local File") {
-    val testConfigFile = getClass().getResource("/test_reference.conf").getPath
+    val testConfigFile = getClass.getResource("/test_reference.conf").getPath
     System.setProperty("OMS_CONFIG_FILE", "file://" + testConfigFile)
     assert(environment == Local)
     assert(omsConfig.dbName.get.contains("FORTESTING"))
   }
 
   test("Initialize from Remote File") {
-    val testConfigFile = getClass().getResource("/test_reference.conf").getPath
+    val testConfigFile = getClass.getResource("/test_reference.conf").getPath
     System.setProperty("OMS_CONFIG_FILE", testConfigFile)
     assert(environment == Remote)
     assert(omsConfig.dbName.get.contains("FORTESTING"))
   }
 
   test("Initialization using wrong config file") {
-    val testConfigFile = getClass().getResource("/test_reference.conf").getPath + "a"
+    val testConfigFile = getClass.getResource("/test_reference.conf").getPath + "a"
     assertThrows[java.lang.RuntimeException](fetchConfigFileContent(testConfigFile))
   }
 
@@ -64,6 +64,8 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
   test("Initialize OMS Database and tables") {
     val dbName = omsConfig.dbName.get
     assert(!spark.catalog.databaseExists(dbName))
+    initializeOMS(omsConfig)
+    assert(spark.catalog.databaseExists(dbName))
     initializeOMS(omsConfig, dropAndRecreate = true)
     assert(spark.catalog.databaseExists(dbName))
     assert(spark.catalog.tableExists(dbName, omsConfig.sourceConfigTable))

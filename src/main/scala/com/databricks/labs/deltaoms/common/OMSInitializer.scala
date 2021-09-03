@@ -67,12 +67,6 @@ trait OMSInitializer extends Serializable with Logging {
       case Success(value) => logInfo(s"Successfully deleted the directory ${getOMSDBPath(config)}")
       case Failure(exception) => throw exception
     }
-    val dbDrop = Try {
-      dropDatabase(config.dbName.get)
-    }
-    dbDrop match {
-      case Success(value) => logInfo(s"Successfully dropped OMS database ${config.dbName}")
-      case Failure(exception) => throw exception
-    }
+    dropDatabase(config.dbName.get)
   }
 }

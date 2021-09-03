@@ -20,7 +20,7 @@ import com.databricks.labs.deltaoms.configuration.ConfigurationSettings
 import com.databricks.labs.deltaoms.model.DatabaseDefinition
 import org.scalatest.BeforeAndAfter
 
-import org.apache.spark.sql.QueryTest
+import org.apache.spark.sql.{QueryTest, Row}
 import org.apache.spark.sql.delta.test.DeltaTestSharedSession
 import org.apache.spark.sql.test.SharedSparkSession
 
@@ -52,6 +52,4 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
       DatabaseDefinition("NonWorkingDB", Some("//testdb/nonworking"))))
     assert(exception.getMessage.contains("Unable to create the Database"))
   }
-
-
 }
