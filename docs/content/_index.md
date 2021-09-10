@@ -69,6 +69,8 @@ co-ordinates : `"com.databricks.labs" % "delta-oms_2.12" % "0.1.0"`
 Please follow the [Getting Started]({{%relref "getting_started/_index.md" %}}) guide for instructions on 
 using DeltaOMS on Databricks environment.
 
+## DEMO
+
 The following Databricks notebooks also provides an end to end demonstration of DeltaOMS execution and analysis:
  - [Common](/assets/demo/00.Common.scala)
  - [Setup and Process Flow](/assets/demo/01.OMS_ProcessFlow.scala)
