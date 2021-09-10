@@ -70,9 +70,11 @@ Please follow the [Getting Started]({{%relref "getting_started/_index.md" %}}) g
 using DeltaOMS on Databricks environment.
 
 The following Databricks notebooks also provides an end to end demonstration of DeltaOMS execution and analysis:
- - [common](/assets/demo/00.Common.scala)
+ - [Common](/assets/demo/00.Common.scala)
  - [Setup and Process Flow](/assets/demo/01.OMS_ProcessFlow.scala)
  - [Analytics](/assets/demo/02.OMS_Analytics.sql)
+ 
+ These three notebooks can be put in the same folder and executed on a Databricks cluster.
 
 ## Releasing the Project
 DeltaOMS is released as a `jar` and `notebooks` for setting up Databricks jobs. 
