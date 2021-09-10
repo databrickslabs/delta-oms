@@ -69,6 +69,9 @@ co-ordinates : `"com.databricks.labs" % "delta-oms_2.12" % "0.1.0"`
 Please follow the [Getting Started]({{%relref "getting_started/_index.md" %}}) guide for instructions on 
 using DeltaOMS on Databricks environment.
 
+You can also follow the [notebooks](/assets/demo) for an 
+end to end demonstration of DeltaOMS execution and analysis.
+
 ## Releasing the Project
 DeltaOMS is released as a `jar` and `notebooks` for setting up Databricks jobs. 
 It also provides few sample notebooks for typical analysis.
