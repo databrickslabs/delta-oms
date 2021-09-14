@@ -7,17 +7,17 @@
 <meta name=author content="Himanish Kushary (Databricks)">
 <link rel=icon href=https://databrickslabs.github.io/delta-oms/images/favicon.png type=image/png>
 <title>Additional Configuration :: Delta Operational Metrics Store (DeltaOMS)</title>
-<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1631296159 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1631296159 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1631296159 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1631296159 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1631296159 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1631296159 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1631296159 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1631296159 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1631296159 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1631296159 rel=stylesheet>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1631296159></script>
+<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1631642733 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1631642733 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1631642733 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1631642733 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1631642733 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1631642733 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1631642733 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1631642733 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1631642733 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1631642733 rel=stylesheet>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1631642733></script>
 <style>:root #header+#content>#left>#rlblock_left{display:none!important}</style>
 <script async defer src=https://buttons.github.io/buttons.js></script>
 </head>
@@ -34,10 +34,10 @@
 <input data-search-input id=search-by type=search placeholder=Search...>
 <span data-search-clear><i class="fas fa-times"></i></span>
 </div>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1631296159></script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1631296159></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1631642733></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1631642733></script>
 <script type=text/javascript>var baseurl="https://databrickslabs.github.io/delta-oms/"</script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1631296159></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1631642733></script>
 </div>
 <section id=homelinks>
 <ul>
@@ -169,6 +169,7 @@ Contributing
 <ul>
 <li>
 <ul>
+<li><a href=#spark-configuration>Spark Configuration</a></li>
 <li><a href=#configuration>Configuration</a></li>
 <li><a href=#execution>Execution</a></li>
 </ul>
@@ -185,6 +186,34 @@ Contributing
 <h1>
 Additional Configuration
 </h1>
+<h3 id=spark-configuration>Spark Configuration</h3>
+<p>The following Spark configuration (spark.conf) can be used (on the cluster or job) to configure DeltaOMS :</p>
+<table>
+<thead>
+<tr>
+<th style=text-align:left>Configuration Key</th>
+<th style=text-align:left>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style=text-align:left>databricks.labs.deltaoms.base.location</td>
+<td style=text-align:left>Base location/path of the OMS Database on the Delta Lake</td>
+</tr>
+<tr>
+<td style=text-align:left>databricks.labs.deltaoms.db.name</td>
+<td style=text-align:left>OMS Database Name. This is the database where all the Delta log details will be collected</td>
+</tr>
+<tr>
+<td style=text-align:left>databricks.labs.deltaoms.checkpoint.base</td>
+<td style=text-align:left>Base path for the checkpoints for OMS streaming pipeline for collecting the Delta logs for the configured tables</td>
+</tr>
+<tr>
+<td style=text-align:left>databricks.labs.deltaoms.checkpoint.suffix</td>
+<td style=text-align:left>Suffix to be added to the checkpoint path. Useful during testing for starting off a fresh process</td>
+</tr>
+</tbody>
+</table>
 <h3 id=configuration>Configuration</h3>
 <p>DeltaOMS can also be configured using a
 <a href=https://github.com/lightbend/config/blob/master/HOCON.md#hocon-human-optimized-config-object-notation>HOCON</a> format file.
@@ -360,17 +389,17 @@ modifying the cluster for the job and setting the advanced Spark configuration</
 <div style=left:-1000px;overflow:scroll;position:absolute;top:-1000px;border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px>
 <div style=border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px></div>
 </div>
-<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1631296159></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1631296159></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1631296159></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1631296159></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1631296159></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1631296159></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1631642733></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1631642733></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1631642733></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1631642733></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1631642733></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1631642733></script>
 <script>hljs.initHighlightingOnLoad()</script>
-<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1631296159></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1631296159></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1631296159></script>
-<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1631296159></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1631642733></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1631642733></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1631642733></script>
+<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1631642733></script>
 <script>mermaid.initialize({startOnLoad:!0})</script>
 </body>
 </html>
