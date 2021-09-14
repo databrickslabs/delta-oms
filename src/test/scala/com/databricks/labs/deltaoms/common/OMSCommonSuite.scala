@@ -127,4 +127,61 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
     assert(OMSCommandLineParser.consolidateAndValidateOMSConfig(argsEmpty, omsConfig) == omsConfig)
   }
 
+  test("Spark Config Configuration provided") {
+    spark.conf.set("databricks.labs.deltaoms.base.location", "/sampleBase")
+    spark.conf.set("databricks.labs.deltaoms.db.name", "abc")
+    spark.conf.set("databricks.labs.deltaoms.checkpoint.base", "/checkBase")
+    spark.conf.set("databricks.labs.deltaoms.checkpoint.suffix", "_checkSuffix_123")
+
+    val sparkOMSConfig = OMSSparkConf.consolidateOMSConfigFromSparkConf(OMSConfig())
+    assert(sparkOMSConfig == OMSConfig(dbName = Some("abc"),
+      baseLocation = Some("/sampleBase"),
+      checkpointBase = Some("/checkBase"),
+      checkpointSuffix = Some("_checkSuffix_123")))
+
+    spark.conf.unset("databricks.labs.deltaoms.base.location")
+    spark.conf.unset("databricks.labs.deltaoms.db.name")
+    spark.conf.unset("databricks.labs.deltaoms.checkpoint.base")
+    spark.conf.unset("databricks.labs.deltaoms.checkpoint.suffix")
+  }
+
+  test("Spark Command Line Consolidate Parameters") {
+    spark.conf.set("databricks.labs.deltaoms.db.name", "def")
+    val sparkOMSConfig = OMSSparkConf.consolidateOMSConfigFromSparkConf(OMSConfig())
+
+    val argsAll = Array("--baseLocation=/sampleBase",
+      "--checkpointBase=/checkBase", "--checkpointSuffix=_checkSuffix_123",
+      "--skipPathConfig", "--skipInitializeOMS",
+      "--skipWildcardPathsConsolidation", "--startingStream=1", "--endingStream=20")
+
+    val cmdConsolidatedConfig =
+      OMSCommandLineParser.consolidateAndValidateOMSConfig(argsAll, sparkOMSConfig)
+    // Assert merging value from Spark Conf with Command Line
+    assert(cmdConsolidatedConfig ==
+      OMSConfig(dbName = Some("def"), baseLocation = Some("/sampleBase"),
+        checkpointBase = Some("/checkBase"), checkpointSuffix = Some("_checkSuffix_123"),
+        skipPathConfig = true, skipInitializeOMS = true, consolidateWildcardPaths = false,
+        endingStream = 20))
+
+    // Assert over-riding value from Spark Conf with command line
+    assert(sparkOMSConfig == OMSConfig(dbName = Some("def")))
+    val argsAlt = Array("--baseLocation=/sampleBase", "--dbName=xyz")
+    assert(OMSCommandLineParser.consolidateAndValidateOMSConfig(argsAlt, sparkOMSConfig) ==
+      OMSConfig(dbName = Some("xyz"), baseLocation = Some("/sampleBase")))
+    spark.conf.unset("databricks.labs.deltaoms.db.name")
+
+    // Assert over-riding value from config file with Spark Conf
+    // From config file
+    assert(omsConfig.dbName.get == "oms_default_inbuilt")
+    spark.conf.set("databricks.labs.deltaoms.db.name", "olt")
+    val sparkAltOMSConfig = OMSSparkConf.consolidateOMSConfigFromSparkConf(omsConfig)
+    // changed by Spark config consolidation
+    assert(sparkAltOMSConfig == omsConfig.copy(dbName = Some("olt")))
+    // then over-ridden by command line
+    assert(OMSCommandLineParser.consolidateAndValidateOMSConfig(argsAlt, sparkAltOMSConfig) ==
+      omsConfig.copy(dbName = Some("xyz"), baseLocation = Some("/sampleBase")))
+    spark.conf.unset("databricks.labs.deltaoms.db.name")
+
+  }
+
 }

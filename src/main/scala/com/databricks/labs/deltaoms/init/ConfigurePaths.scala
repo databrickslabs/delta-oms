@@ -26,7 +26,7 @@ object ConfigurePaths extends BatchOMSRunner {
 
   def main(args: Array[String]): Unit = {
     spark.conf.set("spark.databricks.labs.deltaoms.class", value = getClass.getCanonicalName)
-    val consolidatedOMSConfig = consolidateAndValidateOMSConfig(args, omsConfig)
+    val consolidatedOMSConfig = fetchConsolidatedOMSConfig(args)
     logInfo(s"Starting Delta table path configuration update for OMS with Configuration : " +
       s"$consolidatedOMSConfig")
     // Create the OMS Database and Path Config Table Structures , if needed

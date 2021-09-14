@@ -5,6 +5,18 @@ weight: 30
 draft: false
 ---
 
+### Spark Configuration
+
+The following Spark configuration (spark.conf) can be used (on the cluster or job) to configure DeltaOMS :
+
+| Configuration Key | Description | 
+| :----------- | :----------- | 
+| databricks.labs.deltaoms.base.location      | Base location/path of the OMS Database on the Delta Lake  |
+| databricks.labs.deltaoms.db.name   | OMS Database Name. This is the database where all the Delta log details will be collected | 
+| databricks.labs.deltaoms.checkpoint.base   | Base path for the checkpoints for OMS streaming pipeline for collecting the Delta logs for the configured tables | 
+| databricks.labs.deltaoms.checkpoint.suffix   | Suffix to be added to the checkpoint path. Useful during testing for starting off a fresh process |
+
+
 ### Configuration
 
 DeltaOMS can also be configured using a 

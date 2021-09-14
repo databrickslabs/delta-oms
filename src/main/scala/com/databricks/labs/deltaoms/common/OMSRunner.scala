@@ -70,6 +70,15 @@ trait OMSRunner extends Serializable
   setTrackingHeader()
 
   def consolidateAndValidateOMSConfig(args: Array[String], config: OMSConfig): OMSConfig
+
+  def fetchConsolidatedOMSConfig(args: Array[String]) : OMSConfig = {
+    val sparkOMSConfig = consolidateOMSConfigFromSparkConf(omsConfig)
+    consolidateAndValidateOMSConfig(args, sparkOMSConfig)
+  }
+
+  def consolidateOMSConfigFromSparkConf(config: OMSConfig): OMSConfig = {
+    OMSSparkConf.consolidateOMSConfigFromSparkConf(config)
+  }
 }
 
 trait BatchOMSRunner extends OMSRunner {

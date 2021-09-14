@@ -7,13 +7,18 @@ draft: false
 
 ### Initialize the DeltaOMS Database
 
-DeltaOMS can be configured through two methods :
+DeltaOMS can be configured through multiple methods :
 - Command line parameters - Limited to few basic mandatory configurations
+- Spark configurations - Limited to few basic mandatory configurations
 - Configuration file - Access to all the configuration options. Refer to 
    [Additional Configurations]({{%relref "getting_started/additionalconfigurations.md" %}}/) section below for full details
 
-For this tutorial we will use the first option.Follow the below steps to initialize the 
-DeltaOMS centralized Database and tables.
+Command Line Parameters over-rides Spark Configurations which in turn over-rides the configurations in a config file.
+
+For this tutorial we will use the first option.More details about the other configurations can be found 
+under [Additional Configurations]({{%relref "getting_started/additionalconfigurations.md" %}}/) section.
+
+Follow the below steps to initialize the DeltaOMS centralized Database and tables.
 
 - Import and Open the DeltaOMS Setup notebook [STEP 1](/assets/OMS_Setup_STEP1.scala) into 
   your Databricks environment

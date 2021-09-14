@@ -24,7 +24,8 @@ import com.databricks.labs.deltaoms.common.BatchOMSRunner
 object InitializeOMS extends BatchOMSRunner {
 
   def main(args: Array[String]): Unit = {
-    val consolidatedOMSConfig = consolidateAndValidateOMSConfig(args, omsConfig)
+    spark.conf.set("spark.databricks.labs.deltaoms.class", value = getClass.getCanonicalName)
+    val consolidatedOMSConfig = fetchConsolidatedOMSConfig(args)
     logInfo(s"Initializing Delta OMS Database and tables with Configuration " +
       s": $consolidatedOMSConfig")
     // Create the OMS Database and Table Structures , if needed
