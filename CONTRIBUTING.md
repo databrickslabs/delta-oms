@@ -1,4 +1,4 @@
-CONTRIBUTING TO DELTAOMS 
+CONTRIBUTING TO DeltaOMS 
 
 At present, external contributions are not accepted
 

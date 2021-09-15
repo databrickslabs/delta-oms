@@ -3,7 +3,7 @@ name: Publish Github Pages
 on:
   push:
     branches:
-      - dev  # Set a branch to deploy
+      - master  # Set a branch to deploy
   pull_request:
 
 defaults:
