@@ -49,7 +49,7 @@ trait OMSRunner extends Serializable
     val trackingHeaders = Seq[(String, String)](
       ("Content-Type", "application/json"),
       ("Charset", "UTF-8"),
-      ("User-Agent", s"databricks-labs-deltaoms-${OMS_VERSION}"),
+      ("User-Agent", s"databricks-labs-deltaoms/${OMS_VERSION}"),
       ("Authorization", s"Bearer ${apiToken}"))
 
     val timeout = 30 * 1000
