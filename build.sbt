@@ -132,7 +132,7 @@ homepage := Some(url(gitUrl))
 scmInfo := Some(ScmInfo(url(gitUrl), "git@github.com:databrickslabs/delta-oms.git"))
 developers := List(Developer("himanishk", "Himanish Kushary", "himanish@databricks.com",
   url("https://github.com/himanishk")))
-licenses += ("Databricks", url(gitUrl +"/blob/dev/LICENSE"))
+licenses += ("Databricks", url(gitUrl +"/blob/master/LICENSE"))
 
 pomExtra :=
   <url>https://github.com/databrickslabs/delta-oms</url>
@@ -166,8 +166,8 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,
   commitReleaseVersion,
   tagRelease,
-  releaseStepCommand("publishLocal"),
-  // publishArtifacts,
+  // releaseStepCommand("publishLocal"),
+  publishArtifacts,
   setNextVersion,
   commitNextVersion
 )
