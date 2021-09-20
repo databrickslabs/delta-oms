@@ -32,6 +32,13 @@ scalaVersion := "2.12.10"
 val sparkVersion = "3.1.1"
 val deltaVersion = "1.0.0"
 
+lazy val root = (project in file(".")).
+  enablePlugins(BuildInfoPlugin).
+  settings(
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+    buildInfoPackage := "com.databricks.labs.deltaoms.common"
+  )
+
 coverageExcludedPackages :=
   """<empty>;com.databricks.labs.deltaoms.process.*;com.databricks.labs.deltaoms.init.*;
     |com.databricks.labs.deltaoms.ingest.*;

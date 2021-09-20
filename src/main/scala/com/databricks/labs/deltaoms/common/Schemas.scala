@@ -40,7 +40,7 @@ trait Schemas {
   final val WILDCARD_PATH = "wildCardPath"
   final val PARAMETERS = "parameters"
   final val SKIP_PROCESSING = "skipProcessing"
-  final val OMS_VERSION = "0.1"
+  final val OMS_VERSION = BuildInfo.version
   final val ENTITY_NAME = "oms"
 
   final val rawAction = ScalaReflection.schemaFor[SingleAction].dataType.asInstanceOf[StructType]
