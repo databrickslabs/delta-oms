@@ -3,7 +3,7 @@ name: Release Drafter
 on:
   push:
     branches:
-      - dev
+      - master
 jobs:
   update_release_draft:
     runs-on: ubuntu-latest
