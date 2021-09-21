@@ -136,7 +136,7 @@ assembly / logLevel := Level.Error
 
 assembly / artifact := {
   val art = (assembly / artifact).value
-  art.withClassifier(Some("assembly"))
+  art.withClassifier(None)
 }
 
 addArtifact(assembly / artifact, assembly)
