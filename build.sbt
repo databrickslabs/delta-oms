@@ -14,6 +14,21 @@ import sbt.Level
 
 import ReleaseTransformations._
 
+val gitUrl = "https://github.com/databrickslabs/delta-oms"
+inThisBuild(List(
+  organization := "com.databricks.labs",
+  homepage := Some(url(gitUrl)),
+  licenses := List("Databricks" -> url(gitUrl +"/blob/master/LICENSE")),
+  developers := List(
+    Developer(
+      "himanishk",
+      "Himanish Kushary",
+      "himanish@databricks.com",
+      url("https://databricks.com")
+    )
+  )
+))
+
 Global / lintUnusedKeysOnLoad := false
 
 ThisBuild / parallelExecution  := false
@@ -125,49 +140,5 @@ assembly / logLevel := Level.Error
  ********************
  */
 
-val gitUrl = "https://github.com/databrickslabs/delta-oms"
-publishMavenStyle := true
 releaseCrossBuild := false
-homepage := Some(url(gitUrl))
-scmInfo := Some(ScmInfo(url(gitUrl), "git@github.com:databrickslabs/delta-oms.git"))
-developers := List(Developer("himanishk", "Himanish Kushary", "himanish@databricks.com",
-  url("https://github.com/himanishk")))
-licenses += ("Databricks", url(gitUrl +"/blob/master/LICENSE"))
 
-pomExtra :=
-  <url>https://github.com/databrickslabs/delta-oms</url>
-    <scm>
-      <url>git@github.com:databrickslabs/delta-oms.git</url>
-      <connection>scm:git:git@github.com:databrickslabs/delta-oms.git</connection>
-    </scm>
-    <developers>
-      <developer>
-        <id>himanishk</id>
-        <name>Himanish Kushary</name>
-        <url>https://github.com/himanishk</url>
-      </developer>
-    </developers>
-
-publishTo := Some(
-  if (version.value.endsWith("SNAPSHOT")) {
-    Opts.resolver.sonatypeSnapshots
-  } else {
-    Opts.resolver.sonatypeStaging
-  }
-)
-
-releasePublishArtifactsAction := PgpKeys.publishSigned.value
-
-releaseProcess := Seq[ReleaseStep](
-  checkSnapshotDependencies,
-  inquireVersions,
-  runClean,
-  runTest,
-  setReleaseVersion,
-  commitReleaseVersion,
-  tagRelease,
-  // releaseStepCommand("publishLocal"),
-  publishArtifacts,
-  setNextVersion,
-  commitNextVersion
-)
