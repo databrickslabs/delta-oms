@@ -134,6 +134,13 @@ assembly / assemblyShadeRules := Seq(
 
 assembly / logLevel := Level.Error
 
+assembly / artifact := {
+  val art = (assembly / artifact).value
+  art.withClassifier(Some("assembly"))
+}
+
+addArtifact(assembly / artifact, assembly)
+
 /*
  ********************
  * Release settings *
