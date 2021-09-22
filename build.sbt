@@ -110,12 +110,12 @@ lazy val root = (project in file(".")).
       val art = (assembly / artifact).value
       art.withClassifier(None)
     },
+    addArtifact(assembly / artifact, assembly),
     publish / skip := true
   )
 
 lazy val distribution = project
   .settings(commonSettings,
-    addArtifact(assembly / artifact, assembly),
-    Compile / packageBin := ((root / Compile) / assembly).value,
+    Compile / packageBin := (root / assembly).value,
   )
 
