@@ -143,6 +143,8 @@ addArtifact(assembly / compile / artifact, assembly)
 
 ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
 
+Compile / packageBin := assembly.value
+
 /*
  ********************
  * Release settings *
