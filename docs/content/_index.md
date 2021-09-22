@@ -65,8 +65,12 @@ Refer to the  [Getting Started]({{%relref "getting_started/_index.md" %}}) guide
 ## Deploying / Installing / Using the Project
 The DeltaOMS solution is available through Maven. You can get the jar using the following maven
 co-ordinates : 
-- Snapshot release :`"com.databricks.labs" % "delta-oms_2.12" % "0.1.0-SNAPSHOT"`
-- Regular release :`"com.databricks.labs" % "delta-oms_2.12" % "0.1.0"`
+- Snapshot release :`"com.databricks.labs" % "delta-oms_2.12" % "0.2.0-SNAPSHOT"`
+- Regular release :`"com.databricks.labs" % "delta-oms_2.12" % "0.2.0"`
+
+The solution uses the following external library : 
+
+- [PureConfig](https://github.com/pureconfig/pureconfig) : `com.github.pureconfig:pureconfig_2.12:0.14.0`
 
 Please follow the [Getting Started]({{%relref "getting_started/_index.md" %}}) guide for instructions on 
 using DeltaOMS on Databricks environment.
@@ -81,7 +85,7 @@ The following Databricks notebooks also provides an end to end demonstration of 
  These three notebooks can be put in the same folder and executed on a Databricks cluster.
 
 ## Releasing the Project
-DeltaOMS is released as a `jar` and `notebooks` for setting up Databricks jobs. 
+DeltaOMS is released as a `jar` (through Maven) and `notebooks` (through Github [Repo](https://github.com/databrickslabs/delta-oms)) for setting up Databricks jobs. 
 It also provides few sample notebooks for typical analysis.
 Refer to the [Getting Started]({{%relref "getting_started/_index.md" %}}) guide for more details.
 
