@@ -70,7 +70,7 @@ DeltaOMS uses `sbt` as the build tool. Following are the high level building ste
 - Refer to the [build.sbt](./build.sbt) for library dependencies
 
 ## Deploying / Installing / Using the Project
-The DeltaOMS solution is available through Maven. You can get the jar using the following maven
+The DeltaOMS solution is available through Maven. You can get the release jar using the following maven
 co-ordinates : `"com.databricks.labs" % "delta-oms_2.12" % "0.1.0"`
 
 Please follow the [Getting Started](https://databrickslabs.github.io/delta-oms/getting_started/) guide for instructions on 

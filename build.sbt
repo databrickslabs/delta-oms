@@ -1,5 +1,3 @@
-import sbt.Level
-
 /*
  * Copyright (2021) Databricks, Inc.
  *
@@ -12,7 +10,21 @@ import sbt.Level
  * limitations under the License.
  */
 
-import ReleaseTransformations._
+val gitUrl = "https://github.com/databrickslabs/delta-oms"
+
+inThisBuild(List(
+  organization := "com.databricks.labs",
+  homepage := Some(url(gitUrl)),
+  licenses := List("Databricks" -> url(gitUrl +"/blob/master/LICENSE")),
+  developers := List(
+    Developer(
+      "himanishk",
+      "Himanish Kushary",
+      "himanish@databricks.com",
+      url("https://databricks.com")
+    )
+  )
+))
 
 Global / lintUnusedKeysOnLoad := false
 
@@ -23,63 +35,19 @@ ThisBuild / scalastyleConfig   := baseDirectory.value / "scalastyle-config.xml"
 lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 
-name := "delta-oms"
-
-organization := "com.databricks.labs"
-
-scalaVersion := "2.12.10"
-
 val sparkVersion = "3.1.1"
 val deltaVersion = "1.0.0"
 
-lazy val root = (project in file(".")).
-  enablePlugins(BuildInfoPlugin).
-  settings(
-    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-    buildInfoPackage := "com.databricks.labs.deltaoms.common"
-  )
-
-coverageExcludedPackages :=
-  """<empty>;com.databricks.labs.deltaoms.process.*;com.databricks.labs.deltaoms.init.*;
-    |com.databricks.labs.deltaoms.ingest.*;
-    |com.databricks.labs.deltaoms.model.*;
-    |com.databricks.labs.deltaoms.common.*Runner;
-    |com.databricks.labs.deltaoms.common.OMSStreamingQueryListener;
-    |com.databricks.labs.deltaoms.common.Schemas;
-    |com.databricks.labs.deltaoms.configuration.SparkSettings""".stripMargin
-
-libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
-  "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
-  "org.apache.spark" %% "spark-catalyst" % sparkVersion % "provided",
-  "org.apache.spark" %% "spark-hive" % sparkVersion % "provided",
-  "com.github.pureconfig" %% "pureconfig" % "0.14.0",
-  "com.databricks" % "dbutils-api_2.12" % "0.0.5" % "provided",
-  "io.delta" %% "delta-core" % deltaVersion % "provided",
-
-  // Test Dependencies
-  "org.scalatest" %% "scalatest" % "3.1.0" % Test,
-  "junit" % "junit" % "4.12" % Test,
-  "com.novocode" % "junit-interface" % "0.11" % Test,
-  "org.apache.spark" %% "spark-catalyst" % sparkVersion % Test classifier "tests",
-  "org.apache.spark" %% "spark-core" % sparkVersion % Test classifier "tests",
-  "org.apache.spark" %% "spark-sql" % sparkVersion % Test classifier "tests",
-  "org.apache.spark" %% "spark-hive" % sparkVersion % Test classifier "tests"
-)
-
-javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
-
-scalacOptions ++= Seq(
-  "-target:jvm-1.8"
-)
-
-javaOptions += "-Xmx1024m"
-
-Test / parallelExecution := false
-
-Test / fork := true
-
-Test / javaOptions ++= Seq(
+lazy val commonSettings = Seq(
+  name := "delta-oms",
+  organization := "com.databricks.labs",
+  scalaVersion := "2.12.10",
+  javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
+  scalacOptions ++= Seq("-target:jvm-1.8"),
+  javaOptions += "-Xmx1024m",
+  Test / parallelExecution := false,
+  Test / fork := true,
+  Test / javaOptions ++= Seq(
   "-Dspark.ui.enabled=false",
   "-Dspark.ui.showConsoleProgress=false",
   "-Dspark.databricks.delta.snapshotPartitions=2",
@@ -87,87 +55,67 @@ Test / javaOptions ++= Seq(
   "-Ddelta.log.cacheSize=3",
   "-Dspark.sql.sources.parallelPartitionDiscovery.parallelism=5",
   "-DOMS_CONFIG_FILE=inbuilt",
-  "-Xmx1024m"
+  "-Xmx1024m"),
+  Test / testOptions += Tests.Argument("-oDF"),
+  Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),
+  compileScalastyle := (Compile / scalastyle).toTask("").value,
+  Compile / compile := ((Compile / compile) dependsOn compileScalastyle).value,
+  testScalastyle := (Test / scalastyle).toTask("").value,
+  Test / test := ((Test / test) dependsOn testScalastyle).value,
+  Compile / run := Defaults.runTask(Compile / fullClasspath,
+    Compile / run / mainClass,
+    Compile / run / runner).evaluated,
+
+  coverageExcludedPackages :=
+    """<empty>;com.databricks.labs.deltaoms.process.*;com.databricks.labs.deltaoms.init.*;
+      |com.databricks.labs.deltaoms.ingest.*;
+      |com.databricks.labs.deltaoms.model.*;
+      |com.databricks.labs.deltaoms.common.*Runner;
+      |com.databricks.labs.deltaoms.common.OMSStreamingQueryListener;
+      |com.databricks.labs.deltaoms.common.Schemas;
+      |com.databricks.labs.deltaoms.configuration.SparkSettings""".stripMargin
 )
 
-Test / testOptions += Tests.Argument("-oDF")
+lazy val root = (project in file(".")).
+  enablePlugins(AssemblyPlugin, BuildInfoPlugin).
+  settings(commonSettings,
+    libraryDependencies ++= Seq(
+      "org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
+      "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
+      "org.apache.spark" %% "spark-catalyst" % sparkVersion % "provided",
+      "org.apache.spark" %% "spark-hive" % sparkVersion % "provided",
+      "com.github.pureconfig" %% "pureconfig" % "0.14.0" % "provided",
+      "com.databricks" % "dbutils-api_2.12" % "0.0.5" % "provided",
+      "io.delta" %% "delta-core" % deltaVersion % "provided",
 
-Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
+      // Test Dependencies
+      "org.scalatest" %% "scalatest" % "3.1.0" % Test,
+      "junit" % "junit" % "4.12" % Test,
+      "com.novocode" % "junit-interface" % "0.11" % Test,
+      "org.apache.spark" %% "spark-catalyst" % sparkVersion % Test classifier "tests",
+      "org.apache.spark" %% "spark-core" % sparkVersion % Test classifier "tests",
+      "org.apache.spark" %% "spark-sql" % sparkVersion % Test classifier "tests",
+      "org.apache.spark" %% "spark-hive" % sparkVersion % Test classifier "tests"
+    ),
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+    buildInfoPackage := "com.databricks.labs.deltaoms.common",
+    assembly / test  := {},
+    assembly / assemblyOption := (assembly / assemblyOption).value.copy(includeScala = false),
+    assembly / assemblyShadeRules := Seq(
+      ShadeRule.rename("org.apache.spark.sql.delta.**" ->
+        "com.databricks.sql.transaction.tahoe.@1").inAll
+    ),
+    assembly / logLevel := Level.Error,
+    assembly / artifact := {
+      val art = (assembly / artifact).value
+      art.withClassifier(None)
+    },
+    addArtifact(assembly / artifact, assembly),
+    publish / skip := true
+  )
 
-scalastyleConfig := baseDirectory.value / "scalastyle-config.xml"
+lazy val distribution = project
+  .settings(commonSettings,
+    Compile / packageBin := (root / assembly).value,
+  )
 
-compileScalastyle := (Compile / scalastyle).toTask("").value
-
-Compile / compile := ((Compile / compile) dependsOn compileScalastyle).value
-
-testScalastyle := (Test / scalastyle).toTask("").value
-
-Test / test := ((Test / test) dependsOn testScalastyle).value
-
-assembly / test  := {}
-
-Compile / run := Defaults.runTask(Compile / fullClasspath,
-  Compile / run / mainClass,
-  Compile / run / runner).evaluated
-
-assembly / assemblyOption := (assembly / assemblyOption).value.copy(includeScala = false)
-
-assembly / assemblyShadeRules := Seq(
-  ShadeRule.rename("org.apache.spark.sql.delta.**" ->
-    "com.databricks.sql.transaction.tahoe.@1").inAll
-)
-
-assembly / logLevel := Level.Error
-
-/*
- ********************
- * Release settings *
- ********************
- */
-
-val gitUrl = "https://github.com/databrickslabs/delta-oms"
-publishMavenStyle := true
-releaseCrossBuild := false
-homepage := Some(url(gitUrl))
-scmInfo := Some(ScmInfo(url(gitUrl), "git@github.com:databrickslabs/delta-oms.git"))
-developers := List(Developer("himanishk", "Himanish Kushary", "himanish@databricks.com",
-  url("https://github.com/himanishk")))
-licenses += ("Databricks", url(gitUrl +"/blob/master/LICENSE"))
-
-pomExtra :=
-  <url>https://github.com/databrickslabs/delta-oms</url>
-    <scm>
-      <url>git@github.com:databrickslabs/delta-oms.git</url>
-      <connection>scm:git:git@github.com:databrickslabs/delta-oms.git</connection>
-    </scm>
-    <developers>
-      <developer>
-        <id>himanishk</id>
-        <name>Himanish Kushary</name>
-        <url>https://github.com/himanishk</url>
-      </developer>
-    </developers>
-
-publishTo := Some(
-  if (version.value.endsWith("SNAPSHOT")) {
-    Opts.resolver.sonatypeSnapshots
-  } else {
-    Opts.resolver.sonatypeStaging
-  }
-)
-
-releasePublishArtifactsAction := PgpKeys.publishSigned.value
-
-releaseProcess := Seq[ReleaseStep](
-  checkSnapshotDependencies,
-  inquireVersions,
-  runClean,
-  runTest,
-  setReleaseVersion,
-  commitReleaseVersion,
-  tagRelease,
-  // releaseStepCommand("publishLocal"),
-  publishArtifacts,
-  setNextVersion,
-  commitNextVersion
-)
