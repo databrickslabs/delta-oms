@@ -1,5 +1,3 @@
-import sbt.Level
-
 /*
  * Copyright (2021) Databricks, Inc.
  *
@@ -12,9 +10,8 @@ import sbt.Level
  * limitations under the License.
  */
 
-import ReleaseTransformations._
-
 val gitUrl = "https://github.com/databrickslabs/delta-oms"
+
 inThisBuild(List(
   organization := "com.databricks.labs",
   homepage := Some(url(gitUrl)),
@@ -38,59 +35,19 @@ ThisBuild / scalastyleConfig   := baseDirectory.value / "scalastyle-config.xml"
 lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 
-name := "delta-oms"
-
-organization := "com.databricks.labs"
-
-scalaVersion := "2.12.10"
-
 val sparkVersion = "3.1.1"
 val deltaVersion = "1.0.0"
 
-buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
-buildInfoPackage := "com.databricks.labs.deltaoms.common"
-
-coverageExcludedPackages :=
-  """<empty>;com.databricks.labs.deltaoms.process.*;com.databricks.labs.deltaoms.init.*;
-    |com.databricks.labs.deltaoms.ingest.*;
-    |com.databricks.labs.deltaoms.model.*;
-    |com.databricks.labs.deltaoms.common.*Runner;
-    |com.databricks.labs.deltaoms.common.OMSStreamingQueryListener;
-    |com.databricks.labs.deltaoms.common.Schemas;
-    |com.databricks.labs.deltaoms.configuration.SparkSettings""".stripMargin
-
-libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
-  "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
-  "org.apache.spark" %% "spark-catalyst" % sparkVersion % "provided",
-  "org.apache.spark" %% "spark-hive" % sparkVersion % "provided",
-  "com.github.pureconfig" %% "pureconfig" % "0.14.0" % "provided",
-  "com.databricks" % "dbutils-api_2.12" % "0.0.5" % "provided",
-  "io.delta" %% "delta-core" % deltaVersion % "provided",
-
-  // Test Dependencies
-  "org.scalatest" %% "scalatest" % "3.1.0" % Test,
-  "junit" % "junit" % "4.12" % Test,
-  "com.novocode" % "junit-interface" % "0.11" % Test,
-  "org.apache.spark" %% "spark-catalyst" % sparkVersion % Test classifier "tests",
-  "org.apache.spark" %% "spark-core" % sparkVersion % Test classifier "tests",
-  "org.apache.spark" %% "spark-sql" % sparkVersion % Test classifier "tests",
-  "org.apache.spark" %% "spark-hive" % sparkVersion % Test classifier "tests"
-)
-
-javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
-
-scalacOptions ++= Seq(
-  "-target:jvm-1.8"
-)
-
-javaOptions += "-Xmx1024m"
-
-Test / parallelExecution := false
-
-Test / fork := true
-
-Test / javaOptions ++= Seq(
+lazy val commonSettings = Seq(
+  name := "delta-oms",
+  organization := "com.databricks.labs",
+  scalaVersion := "2.12.10",
+  javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
+  scalacOptions ++= Seq("-target:jvm-1.8"),
+  javaOptions += "-Xmx1024m",
+  Test / parallelExecution := false,
+  Test / fork := true,
+  Test / javaOptions ++= Seq(
   "-Dspark.ui.enabled=false",
   "-Dspark.ui.showConsoleProgress=false",
   "-Dspark.databricks.delta.snapshotPartitions=2",
@@ -98,53 +55,68 @@ Test / javaOptions ++= Seq(
   "-Ddelta.log.cacheSize=3",
   "-Dspark.sql.sources.parallelPartitionDiscovery.parallelism=5",
   "-DOMS_CONFIG_FILE=inbuilt",
-  "-Xmx1024m"
+  "-Xmx1024m"),
+  Test / testOptions += Tests.Argument("-oDF"),
+  Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),
+  scalastyleConfig := baseDirectory.value / "scalastyle-config.xml",
+  compileScalastyle := (Compile / scalastyle).toTask("").value,
+  Compile / compile := ((Compile / compile) dependsOn compileScalastyle).value,
+  testScalastyle := (Test / scalastyle).toTask("").value,
+  Test / test := ((Test / test) dependsOn testScalastyle).value,
+  Compile / run := Defaults.runTask(Compile / fullClasspath,
+    Compile / run / mainClass,
+    Compile / run / runner).evaluated,
+
+  coverageExcludedPackages :=
+    """<empty>;com.databricks.labs.deltaoms.process.*;com.databricks.labs.deltaoms.init.*;
+      |com.databricks.labs.deltaoms.ingest.*;
+      |com.databricks.labs.deltaoms.model.*;
+      |com.databricks.labs.deltaoms.common.*Runner;
+      |com.databricks.labs.deltaoms.common.OMSStreamingQueryListener;
+      |com.databricks.labs.deltaoms.common.Schemas;
+      |com.databricks.labs.deltaoms.configuration.SparkSettings""".stripMargin
 )
 
-Test / testOptions += Tests.Argument("-oDF")
+lazy val root = (project in file(".")).
+  enablePlugins(AssemblyPlugin, BuildInfoPlugin).
+  settings(commonSettings,
+    libraryDependencies ++= Seq(
+      "org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
+      "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
+      "org.apache.spark" %% "spark-catalyst" % sparkVersion % "provided",
+      "org.apache.spark" %% "spark-hive" % sparkVersion % "provided",
+      "com.github.pureconfig" %% "pureconfig" % "0.14.0" % "provided",
+      "com.databricks" % "dbutils-api_2.12" % "0.0.5" % "provided",
+      "io.delta" %% "delta-core" % deltaVersion % "provided",
 
-Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
+      // Test Dependencies
+      "org.scalatest" %% "scalatest" % "3.1.0" % Test,
+      "junit" % "junit" % "4.12" % Test,
+      "com.novocode" % "junit-interface" % "0.11" % Test,
+      "org.apache.spark" %% "spark-catalyst" % sparkVersion % Test classifier "tests",
+      "org.apache.spark" %% "spark-core" % sparkVersion % Test classifier "tests",
+      "org.apache.spark" %% "spark-sql" % sparkVersion % Test classifier "tests",
+      "org.apache.spark" %% "spark-hive" % sparkVersion % Test classifier "tests"
+    ),
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+    buildInfoPackage := "com.databricks.labs.deltaoms.common",
+    assembly / test  := {},
+    assembly / assemblyOption := (assembly / assemblyOption).value.copy(includeScala = false),
+    assembly / assemblyShadeRules := Seq(
+      ShadeRule.rename("org.apache.spark.sql.delta.**" ->
+        "com.databricks.sql.transaction.tahoe.@1").inAll
+    ),
+    assembly / logLevel := Level.Error,
+    assembly / artifact := {
+      val art = (assembly / artifact).value
+      art.withClassifier(None)
+    },
+    publish / skip := true
+  )
 
-scalastyleConfig := baseDirectory.value / "scalastyle-config.xml"
+lazy val distribution = project
+  .settings(commonSettings,
+    Compile / packageBin := (root / assembly).value,
+  )
 
-compileScalastyle := (Compile / scalastyle).toTask("").value
-
-Compile / compile := ((Compile / compile) dependsOn compileScalastyle).value
-
-testScalastyle := (Test / scalastyle).toTask("").value
-
-Test / test := ((Test / test) dependsOn testScalastyle).value
-
-assembly / test  := {}
-
-Compile / run := Defaults.runTask(Compile / fullClasspath,
-  Compile / run / mainClass,
-  Compile / run / runner).evaluated
-
-assembly / assemblyOption := (assembly / assemblyOption).value.copy(includeScala = false)
-
-assembly / assemblyShadeRules := Seq(
-  ShadeRule.rename("org.apache.spark.sql.delta.**" ->
-    "com.databricks.sql.transaction.tahoe.@1").inAll
-)
-
-assembly / logLevel := Level.Error
-
-assembly / artifact := {
-  val art = (assembly / artifact).value
-  art.withClassifier(None)
-}
-
-addArtifact(assembly / compile / artifact, assembly)
-
-ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
-
-Compile / packageBin := (Compile / assembly).value
-
-/*
- ********************
- * Release settings *
- ********************
- */
-
-releaseCrossBuild := false
+addCommandAlias("publish", "distribution/publish")
