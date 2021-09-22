@@ -65,8 +65,8 @@ Refer to the  [Getting Started]({{%relref "getting_started/_index.md" %}}) guide
 ## Deploying / Installing / Using the Project
 The DeltaOMS solution is available through Maven. You can get the jar using the following maven
 co-ordinates : 
-- Snapshot release :`"com.databricks.labs" % "delta-oms_2.12" % "0.2.0-SNAPSHOT"`
-- Regular release :`"com.databricks.labs" % "delta-oms_2.12" % "0.2.0"`
+- Snapshot release :`"com.databricks.labs" % "delta-oms_2.12" % "0.x.0-SNAPSHOT"`
+- Regular release :`"com.databricks.labs" % "delta-oms_2.12" % "0.x.0"`
 
 The solution uses the following external library : 
 
