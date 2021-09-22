@@ -116,7 +116,7 @@ lazy val root = (project in file(".")).
 
 lazy val distribution = project
   .settings(commonSettings,
-    Compile / packageBin := (root / assembly).value,
+    addArtifact(assembly / artifact, assembly),
+    Compile / packageBin := ((root / Compile) / assembly).value,
   )
 
-addCommandAlias("publish", "distribution/publish")
