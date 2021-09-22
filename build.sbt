@@ -139,7 +139,9 @@ assembly / artifact := {
   art.withClassifier(None)
 }
 
-addArtifact(assembly / artifact, assembly)
+addArtifact(assembly / compile / artifact, assembly)
+
+ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
 
 /*
  ********************
