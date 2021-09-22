@@ -68,7 +68,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
   "org.apache.spark" %% "spark-catalyst" % sparkVersion % "provided",
   "org.apache.spark" %% "spark-hive" % sparkVersion % "provided",
-  "com.github.pureconfig" %% "pureconfig" % "0.14.0",
+  "com.github.pureconfig" %% "pureconfig" % "0.14.0" % "provided",
   "com.databricks" % "dbutils-api_2.12" % "0.0.5" % "provided",
   "io.delta" %% "delta-core" % deltaVersion % "provided",
 
@@ -143,7 +143,7 @@ addArtifact(assembly / compile / artifact, assembly)
 
 ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
 
-Compile / packageBin := assembly.value
+Compile / packageBin := (Compile / assembly).value
 
 /*
  ********************
