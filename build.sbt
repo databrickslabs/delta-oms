@@ -58,7 +58,6 @@ lazy val commonSettings = Seq(
   "-Xmx1024m"),
   Test / testOptions += Tests.Argument("-oDF"),
   Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),
-  scalastyleConfig := baseDirectory.value / "scalastyle-config.xml",
   compileScalastyle := (Compile / scalastyle).toTask("").value,
   Compile / compile := ((Compile / compile) dependsOn compileScalastyle).value,
   testScalastyle := (Test / scalastyle).toTask("").value,
