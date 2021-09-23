@@ -32,6 +32,8 @@ ThisBuild / parallelExecution  := false
 ThisBuild / scalastyleConfig   := baseDirectory.value / "scalastyle-config.xml"
 // crossScalaVersions in ThisBuild := Seq("2.12.10", "2.11.12")
 
+ThisBuild / dynverSonatypeSnapshots := true
+
 lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 
@@ -116,6 +118,7 @@ lazy val root = (project in file(".")).
 
 lazy val distribution = project
   .settings(commonSettings,
+    sonatypeProfileName := "com.databricks",
     Compile / packageBin := (root / assembly).value,
   )
 

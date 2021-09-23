@@ -32,7 +32,8 @@ Follow the below steps to initialize the DeltaOMS centralized Database and table
   | omsCheckpointBase | DeltaOMS ingestion is a streaming process.This defines the Base path for the checkpoints |
   | omsCheckpointSuffix | Suffix to be added to the checkpoint path (Helps in making the path unique) |
 
-- Attach the DeltaOMS jar (procured from your Databricks representative or Maven) to a running cluster
+- Attach the DeltaOMS jar (as a library through Maven) to a running cluster
+- Attach the PureConfig jar (as a library through Maven `com.github.pureconfig:pureconfig_2.12:0.14.0`) to a running cluster
 - Attach the notebook to the cluster and start executing the cells
 - Execute `com.databricks.labs.deltaoms.init.InitializeOMS.main` method to create the OMS DB and tables.
 - Validate the DeltaOMS database and tables were created
@@ -55,8 +56,8 @@ This is done using the same notebook.
   information for all delta tables under the database
   
 ### Create Databricks Jobs
-Next, we will create couple of databricks jobs for executing the solution. The first Databricks job
-will stream ingest the delta logs from the configured delta tables and persist in the `rawactions` DeltaOMS table. 
+Next, we will create couple of databricks jobs for executing the solution. These jobs can be created manually by following the configuration options mentioned below.
+The first Databricks job will stream ingest the delta logs from the configured delta tables and persist in the `rawactions` DeltaOMS table. 
 For example, you could name the job `OMSIngestion_Job`. The main configurations for the job are:
 
 Main class : `com.databricks.labs.deltaoms.ingest.StreamPopulateOMS` 
@@ -65,7 +66,7 @@ Example Parameters : `
 ["--dbName=oms_test_aug31","--baseLocation=dbfs:/user/hive/warehouse/oms","--checkpointBase=dbfs:/user/hive/warehouse/oms/_checkpoints","--checkpointSuffix=_aug31_171000","--skipPathConfig","--skipInitializeOMS","--startingStream=1","--endingStream=50"]
 `
 
-Example:
+Job Creation Script Example:
 
 ![Delta OMS Streaming Ingestion Job](/images/DeltaOMS_Ingestion_Job_1.png)
 
@@ -76,6 +77,7 @@ The first job can also be created through a sample script provided as part of th
 - Upload the DeltaOMS jar to a cloud path of your choice and copy the full path
 - Modify the provided Job Creation Json template and variables as appropriate to your environment. 
   Make sure, the correct path of the jar is reflected in the `oms_jar_location` variable
+- Make sure the job also references the PureConfig jar through a [Databricks Library](https://docs.databricks.com/libraries/index.html)
 - DeltaOMS creates individual streams for each tracked path and runs multiple such streams in a
   single Databricks job. By default, it groups 50 streams into a single databricks jobs. 
   You could change the variable `num_streams_per_job` to change number of streams per job.
