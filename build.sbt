@@ -116,6 +116,22 @@ lazy val root = (project in file(".")).
     publish / skip := true
   )
 
+def versionFmt(out: sbtdynver.GitDescribeOutput): String = {
+  if(out.isCleanAfterTag || out.isSnapshot()) out.ref.dropPrefix + "-SNAPSHOT"
+  else out.ref.dropPrefix + out.commitSuffix.mkString("-", "-", "") +
+    out.dirtySuffix.withSeparator("-")
+}
+
+def fallbackVersion(d: java.util.Date): String = s"HEAD-${sbtdynver.DynVer timestamp d}"
+
+inThisBuild(List(
+  version := dynverGitDescribeOutput.value.mkVersion(versionFmt, fallbackVersion(dynverCurrentDate.value)),
+  dynver := {
+    val d = new java.util.Date
+    sbtdynver.DynVer.getGitDescribeOutput(d).mkVersion(versionFmt, fallbackVersion(d))
+  }
+))
+
 lazy val distribution = project
   .settings(commonSettings,
     sonatypeProfileName := "com.databricks",

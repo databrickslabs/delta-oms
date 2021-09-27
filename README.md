@@ -1,6 +1,7 @@
 [![Scala CI](https://github.com/databrickslabs/delta-oms/actions/workflows/scala.yml/badge.svg?branch=dev)](https://github.com/databrickslabs/delta-oms/actions/workflows/scala.yml)
 [![Publish Github Pages](https://github.com/databrickslabs/delta-oms/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/databrickslabs/delta-oms/actions/workflows/gh-pages.yml)
 [![codecov](https://codecov.io/gh/databrickslabs/delta-oms/branch/master/graph/badge.svg?token=JJG3HZP5G9)](https://codecov.io/gh/databrickslabs/delta-oms)
+[![Maven Central](https://img.shields.io/maven-central/v/com.databricks.labs/delta-oms_2.12.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.databricks.labs%22%20AND%20a:%22delta-oms_2.12%22)
 
 # Delta Operational Metrics Store (DeltaOMS)
 Delta Operational Metrics Store (DeltaOMS) is a solution that helps to build a 
