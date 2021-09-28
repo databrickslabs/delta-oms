@@ -22,15 +22,9 @@ case object InBuilt extends Environment
 
 case object Empty extends Environment
 
-case object Local extends Environment
-
-case object Remote extends Environment
-
 object EnvironmentResolver {
   def fetchEnvironment(envStr: String): Environment = {
     if (envStr.contains("empty")) Empty
-    else if (envStr.contains("inbuilt")) InBuilt
-    else if (envStr.startsWith("file:/")) Local
-    else Remote
+    else InBuilt
   }
 }

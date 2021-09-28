@@ -1,8 +1,8 @@
 name: Release
 on:
   push:
-    branches: [master]
-    tags: ["*"]
+    tags:
+      - '*'
 jobs:
   publish:
     runs-on: ubuntu-latest

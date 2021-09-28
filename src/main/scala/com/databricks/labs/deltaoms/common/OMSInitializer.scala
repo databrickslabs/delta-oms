@@ -22,7 +22,6 @@ import Utils._
 import com.databricks.labs.deltaoms.utils.UtilityOperations._
 
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.DataFrame
 
 trait OMSInitializer extends Serializable with Logging {
 

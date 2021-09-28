@@ -39,17 +39,6 @@ val omsCheckpointBase = s"$omsBaseLocation/_checkpoints"
 
 // COMMAND ----------
 
-// DBTITLE 1,Alternate approach to set Configuration using Config file
-val oms_config = s"""base-location="$omsBaseLocation"
-db-name="$omsDBName"
-checkpoint-base="$omsBaseLocation/_checkpoints"
-checkpoint-suffix="$omsCheckpointSuffix"
-"""
-dbutils.fs.put(s"$omsBaseLocation/config/$omsDBName.conf",oms_config,overwrite=true)
-System.setProperty("OMS_CONFIG_FILE", s"$omsBaseLocation/config/$omsDBName.conf")
-
-// COMMAND ----------
-
 // MAGIC %md
 // MAGIC #### Initialize OMS DB and Tables
 

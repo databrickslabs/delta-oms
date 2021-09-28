@@ -124,6 +124,63 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
     assert(OMSCommandLineParser.consolidateAndValidateOMSConfig(argsEmpty, omsConfig) == omsConfig)
   }
 
+  test("Spark Optional Configurations checks") {
+    spark.conf.set(OMSSparkConf.RAW_ACTION_TABLE, "test.rawactions")
+    spark.conf.set(OMSSparkConf.SOURCE_CONFIG_TABLE, "test.sourceconfig")
+    spark.conf.set(OMSSparkConf.PATH_CONFIG_TABLE, "test.pathconfig")
+    spark.conf.set(OMSSparkConf.PROCESSED_HISTORY_TABLE, "test.processhistory")
+    spark.conf.set(OMSSparkConf.COMMITINFO_SNAPSHOT_TABLE, "test.commitinfosnapshot")
+    spark.conf.set(OMSSparkConf.ACTION_SNAPSHOT_TABLE, "test.actionsnapshot")
+    spark.conf.set(OMSSparkConf.CONSOLIDATE_WILDCARD_PATHS, false)
+    spark.conf.set(OMSSparkConf.TRUNCATE_PATH_CONFIG, true)
+    spark.conf.set(OMSSparkConf.SKIP_PATH_CONFIG, false)
+    spark.conf.set(OMSSparkConf.SKIP_INITIALIZE, true)
+    spark.conf.set(OMSSparkConf.SRC_DATABASES, "sampleBases")
+    spark.conf.set(OMSSparkConf.TABLE_PATTERN, "*test*")
+    spark.conf.set(OMSSparkConf.TRIGGER_INTERVAL, "30 sec")
+    spark.conf.set(OMSSparkConf.STARTING_STREAM, "4")
+    spark.conf.set(OMSSparkConf.ENDING_STREAM, "10")
+
+
+    val sparkOMSConfig = OMSSparkConf.consolidateOMSConfigFromSparkConf(OMSConfig())
+    assert(sparkOMSConfig == OMSConfig(dbName = None,
+      baseLocation = None,
+      checkpointBase = None,
+      checkpointSuffix = None,
+      rawActionTable = "test.rawactions",
+      sourceConfigTable = "test.sourceconfig",
+      pathConfigTable = "test.pathconfig",
+      processedHistoryTable = "test.processhistory",
+      commitInfoSnapshotTable = "test.commitinfosnapshot",
+      actionSnapshotTable = "test.actionsnapshot",
+      consolidateWildcardPaths = false,
+      truncatePathConfig = true,
+      skipPathConfig = false,
+      skipInitializeOMS = true,
+      srcDatabases = Some("sampleBases"),
+      tablePattern = Some("*test*"),
+      triggerInterval = Some("30 sec"),
+      startingStream = 4,
+      endingStream = 10
+    ))
+
+    spark.conf.unset(OMSSparkConf.RAW_ACTION_TABLE)
+    spark.conf.unset(OMSSparkConf.SOURCE_CONFIG_TABLE)
+    spark.conf.unset(OMSSparkConf.PATH_CONFIG_TABLE)
+    spark.conf.unset(OMSSparkConf.PROCESSED_HISTORY_TABLE)
+    spark.conf.unset(OMSSparkConf.COMMITINFO_SNAPSHOT_TABLE)
+    spark.conf.unset(OMSSparkConf.ACTION_SNAPSHOT_TABLE)
+    spark.conf.unset(OMSSparkConf.CONSOLIDATE_WILDCARD_PATHS)
+    spark.conf.unset(OMSSparkConf.TRUNCATE_PATH_CONFIG)
+    spark.conf.unset(OMSSparkConf.SKIP_PATH_CONFIG)
+    spark.conf.unset(OMSSparkConf.SKIP_INITIALIZE)
+    spark.conf.unset(OMSSparkConf.SRC_DATABASES)
+    spark.conf.unset(OMSSparkConf.TABLE_PATTERN)
+    spark.conf.unset(OMSSparkConf.TRIGGER_INTERVAL)
+    spark.conf.unset(OMSSparkConf.STARTING_STREAM)
+    spark.conf.unset(OMSSparkConf.ENDING_STREAM)
+  }
+
   test("Spark Config Configuration provided") {
     spark.conf.set("databricks.labs.deltaoms.base.location", "/sampleBase")
     spark.conf.set("databricks.labs.deltaoms.db.name", "abc")
