@@ -116,9 +116,8 @@ lazy val root = (project in file(".")).
   )
 
 def versionFmt(out: sbtdynver.GitDescribeOutput): String = {
-  if(out.isCleanAfterTag || out.isSnapshot()) out.ref.dropPrefix + "-SNAPSHOT"
-  else out.ref.dropPrefix + out.commitSuffix.mkString("-", "-", "") +
-    out.dirtySuffix.withSeparator("-")
+  if(out.isCleanAfterTag) out.ref.dropPrefix
+  else out.ref.dropPrefix + "-SNAPSHOT"
 }
 
 def fallbackVersion(d: java.util.Date): String = s"HEAD-${sbtdynver.DynVer timestamp d}"
