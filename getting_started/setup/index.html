@@ -7,17 +7,17 @@
 <meta name=author content="Himanish Kushary (Databricks)">
 <link rel=icon href=https://databrickslabs.github.io/delta-oms/images/favicon.png type=image/png>
 <title>Setup :: Delta Operational Metrics Store (DeltaOMS)</title>
-<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1631642733 rel=stylesheet>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1631642733></script>
+<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1633389827 rel=stylesheet>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1633389827></script>
 <style>:root #header+#content>#left>#rlblock_left{display:none!important}</style>
 <script async defer src=https://buttons.github.io/buttons.js></script>
 </head>
@@ -34,10 +34,10 @@
 <input data-search-input id=search-by type=search placeholder=Search...>
 <span data-search-clear><i class="fas fa-times"></i></span>
 </div>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1631642733></script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1631642733></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1633389827></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1633389827></script>
 <script type=text/javascript>var baseurl="https://databrickslabs.github.io/delta-oms/"</script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1631642733></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1633389827></script>
 </div>
 <section id=homelinks>
 <ul>
@@ -189,13 +189,11 @@ Setup
 <h3 id=initialize-the-deltaoms-database>Initialize the DeltaOMS Database</h3>
 <p>DeltaOMS can be configured through multiple methods :</p>
 <ul>
-<li>Command line parameters - Limited to few basic mandatory configurations</li>
-<li>Spark configurations - Limited to few basic mandatory configurations</li>
-<li>Configuration file - Access to all the configuration options. Refer to
-<a href=https://databrickslabs.github.io/delta-oms/getting_started/additionalconfigurations//>Additional Configurations</a> section below for full details</li>
+<li>Command line parameters - Limited to few configurations</li>
+<li>Spark configurations - All configurations.Refer to <a href=https://databrickslabs.github.io/delta-oms/getting_started/additionalconfigurations//>Additional Configurations</a> section below for full details</li>
 </ul>
-<p>Command Line Parameters over-rides Spark Configurations which in turn over-rides the configurations in a config file.</p>
-<p>For this tutorial we will use the first option.More details about the other configurations can be found
+<p>Command Line Parameters over-rides Spark Configurations.</p>
+<p>For this tutorial we will use the command line parameters.More details about the other configurations can be found
 under <a href=https://databrickslabs.github.io/delta-oms/getting_started/additionalconfigurations//>Additional Configurations</a> section.</p>
 <p>Follow the below steps to initialize the DeltaOMS centralized Database and tables.</p>
 <ul>
@@ -234,16 +232,27 @@ your Databricks environment</p>
 </table>
 </li>
 <li>
-<p>Attach the DeltaOMS jar (procured from your Databricks representative or Maven) to a running cluster</p>
+<p>Attach the DeltaOMS jar (as a library through Maven) to a running cluster</p>
+<ul>
+<li>Select <code>Install New</code> from the clusters <code>Libraries</code> tab
+<img src=https://databrickslabs.github.io/delta-oms/images/Library_Install_New.png alt="Install New"></li>
+<li>In the <code>Install Library</code> window, select <code>Maven</code> and click on <code>Search packages</code>
+<img src=https://databrickslabs.github.io/delta-oms/images/Library_Install_Maven.png alt=Maven></li>
+<li>Select <code>Maven Central</code> from the drop-down
+<img src=https://databrickslabs.github.io/delta-oms/images/Library_Install_Maven_Central.png alt=Maven></li>
+<li>Search for <code>delta-oms</code> and select the latest release version
+<img src=https://databrickslabs.github.io/delta-oms/images/Library_Install_Maven_DeltaOMS.png alt=Maven></li>
+<li>Finally, click <code>Install</code> to install the DeltaOMS library into the cluster</li>
+</ul>
 </li>
 <li>
-<p>Attach the notebook to the cluster and start executing the cells</p>
+<p>Attach the imported notebook to the cluster and start executing the cells</p>
 </li>
 <li>
 <p>Execute <code>com.databricks.labs.deltaoms.init.InitializeOMS.main</code> method to create the OMS DB and tables.</p>
 </li>
 <li>
-<p>Validate the DeltaOMS database and tables were created</p>
+<p>Validate the DeltaOMS database and tables were created (<code>Cmd 5</code> and <code>Cmd 6</code>)</p>
 </li>
 </ul>
 <h3 id=configure-delta-lakehouse-objects-for-deltaoms-tracking>Configure Delta Lakehouse objects for DeltaOMS tracking</h3>
@@ -260,25 +269,32 @@ This is done by using a simple SQL <code>INSERT</code> statement:</p>
 <p>Configure the internal DeltaOMS configuration tables by executing
 <code>com.databricks.labs.deltaoms.init.ConfigurePaths.main</code>.
 This will populate the internal configuration table <code>pathconfig</code> with the detailed path
-information for all delta tables under the database</p>
+information for all delta tables under the database(s)</p>
 </li>
 </ul>
 <h3 id=create-databricks-jobs>Create Databricks Jobs</h3>
-<p>Next, we will create couple of databricks jobs for executing the solution. The first Databricks job
-will stream ingest the delta logs from the configured delta tables and persist in the <code>rawactions</code> DeltaOMS table.
+<p>Next, we will create couple of databricks jobs for executing the solution. These jobs can be created manually by following the configuration options mentioned below.</p>
+<h4 id=ingestion-job>Ingestion Job</h4>
+<p>The first databricks job will stream ingest the delta logs from the configured delta tables and persist in the <code>rawactions</code> DeltaOMS table.
 For example, you could name the job <code>OMSIngestion_Job</code>. The main configurations for the job are:</p>
 <p>Main class : <code>com.databricks.labs.deltaoms.ingest.StreamPopulateOMS</code></p>
 <p>Example Parameters : <code>["--dbName=oms_test_aug31","--baseLocation=dbfs:/user/hive/warehouse/oms","--checkpointBase=dbfs:/user/hive/warehouse/oms/_checkpoints","--checkpointSuffix=_aug31_171000","--skipPathConfig","--skipInitializeOMS","--startingStream=1","--endingStream=50"]</code></p>
-<p>Example:</p>
-<p><img src=https://databrickslabs.github.io/delta-oms/images/DeltaOMS_Ingestion_Job_1.png alt="Delta OMS Streaming Ingestion Job"></p>
-<p>The first job can also be created through a sample script provided as part of the solution. The steps to run the sample script are:</p>
+<p><img src=https://databrickslabs.github.io/delta-oms/images/DeltaOMS_Ingestion_Job_Full.png alt="Delta OMS Streaming Ingestion Job"></p>
+<h4 id=processing-job>Processing Job</h4>
+<p>The second job will process the raw actions and organize them into Commit Info and Action snapshots for querying and further analytics.
+You could name the job <code>OMSProcessing_Job</code>. The main configurations for the job are:</p>
+<p>Main class : <code>com.databricks.labs.deltaoms.process.OMSProcessRawActions</code></p>
+<p>Example Parameters : <code>["--dbName=oms_test_aug31","--baseLocation=dbfs:/user/hive/warehouse/oms"]</code></p>
+<p>Example :
+<img src=https://databrickslabs.github.io/delta-oms/images/DeltaOMS_Processing_Job_Full.png alt="Delta OMS Processing Job"></p>
+<h4 id=example-job-creation-script>Example Job Creation Script:</h4>
+<p>The ingestion job can also be created through a sample script provided as part of the solution. The steps to run the sample script are:</p>
 <ul>
 <li>Import and Open the DeltaOMS Setup notebook <a href=https://databrickslabs.github.io/delta-oms/assets/OMS_Setup_STEP2.py>STEP 2</a> into
 your Databricks environment</li>
 <li>Define the values for the <code>omsBaseLocation</code>, <code>omsDBName</code>, <code>omsCheckpointSuffix</code>, <code>omsCheckpointBase</code></li>
-<li>Upload the DeltaOMS jar to a cloud path of your choice and copy the full path</li>
 <li>Modify the provided Job Creation Json template and variables as appropriate to your environment.
-Make sure, the correct path of the jar is reflected in the <code>oms_jar_location</code> variable</li>
+Make sure, the correct DeltaOMS jar library (from Maven) is referred in the template</li>
 <li>DeltaOMS creates individual streams for each tracked path and runs multiple such streams in a
 single Databricks job. By default, it groups 50 streams into a single databricks jobs.
 You could change the variable <code>num_streams_per_job</code> to change number of streams per job.</li>
@@ -286,12 +302,6 @@ You could change the variable <code>num_streams_per_job</code> to change number 
 Depending on the total number of objects tracked multiple Databricks jobs could be created</li>
 <li>You can navigate to the <code>Jobs</code> UI to look at the created jobs</li>
 </ul>
-<p>The second job will process the raw actions and organize them into Commit Info and Action snapshots for querying and further analytics.
-You could name the job <code>OMSProcessing_Job</code>. The main configurations for the job are:</p>
-<p>Main class : <code>com.databricks.labs.deltaoms.process.OMSProcessRawActions</code></p>
-<p>Example Parameters : <code>["--dbName=oms_test_aug31","--baseLocation=dbfs:/user/hive/warehouse/oms"]</code></p>
-<p>Example :
-<img src=https://databrickslabs.github.io/delta-oms/images/DeltaOMS_Process_Job_1.png alt="Delta OMS Processing Job"></p>
 <p>Note: Instead of setting up two different Databricks jobs , you could also setup a single job
 with multiple tasks using the <a href=https://docs.databricks.com/data-engineering/jobs/index.html>Multi-task Job</a> feature.</p>
 <p>Refer to the <a href=https://databrickslabs.github.io/delta-oms/developer_guide/>Developer Guide</a> for more details on multiple stream approach
@@ -308,17 +318,17 @@ for DeltaOMS ingestion and the processing job.</p>
 <div style=left:-1000px;overflow:scroll;position:absolute;top:-1000px;border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px>
 <div style=border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px></div>
 </div>
-<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1631642733></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1633389827></script>
 <script>hljs.initHighlightingOnLoad()</script>
-<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1631642733></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1633389827></script>
 <script>mermaid.initialize({startOnLoad:!0})</script>
 </body>
 </html>

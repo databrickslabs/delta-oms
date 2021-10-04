@@ -7,17 +7,17 @@
 <meta name=author content="Himanish Kushary (Databricks)">
 <link rel=icon href=https://databrickslabs.github.io/delta-oms/images/favicon.png type=image/png>
 <title>Additional Configuration :: Delta Operational Metrics Store (DeltaOMS)</title>
-<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1631642733 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1631642733 rel=stylesheet>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1631642733></script>
+<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1633389827 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1633389827 rel=stylesheet>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1633389827></script>
 <style>:root #header+#content>#left>#rlblock_left{display:none!important}</style>
 <script async defer src=https://buttons.github.io/buttons.js></script>
 </head>
@@ -34,10 +34,10 @@
 <input data-search-input id=search-by type=search placeholder=Search...>
 <span data-search-clear><i class="fas fa-times"></i></span>
 </div>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1631642733></script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1631642733></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1633389827></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1633389827></script>
 <script type=text/javascript>var baseurl="https://databrickslabs.github.io/delta-oms/"</script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1631642733></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1633389827></script>
 </div>
 <section id=homelinks>
 <ul>
@@ -170,8 +170,6 @@ Contributing
 <li>
 <ul>
 <li><a href=#spark-configuration>Spark Configuration</a></li>
-<li><a href=#configuration>Configuration</a></li>
-<li><a href=#execution>Execution</a></li>
 </ul>
 </li>
 </ul>
@@ -187,196 +185,158 @@ Contributing
 Additional Configuration
 </h1>
 <h3 id=spark-configuration>Spark Configuration</h3>
-<p>The following Spark configuration (spark.conf) can be used (on the cluster or job) to configure DeltaOMS :</p>
+<p>DeltaOMS uses multiple Spark configurations to control its different <a href=https://databrickslabs.github.io/delta-oms/developer_guide/components//>components</a>.</p>
+<p>DeltaOMS Spark configuration (spark.conf) details :</p>
 <table>
 <thead>
 <tr>
 <th style=text-align:left>Configuration Key</th>
 <th style=text-align:left>Description</th>
+<th>Required</th>
+<th>Example</th>
+<th>Default Value</th>
+<th>Applies to components</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style=text-align:left>databricks.labs.deltaoms.base.location</td>
 <td style=text-align:left>Base location/path of the OMS Database on the Delta Lake</td>
+<td>Y</td>
+<td>dbfs:/spark-warehouse/oms.db, /tmp/spark-warehouse/oms.db</td>
+<td>None</td>
+<td>All</td>
 </tr>
 <tr>
 <td style=text-align:left>databricks.labs.deltaoms.db.name</td>
 <td style=text-align:left>OMS Database Name. This is the database where all the Delta log details will be collected</td>
+<td>Y</td>
+<td>oms.db</td>
+<td>None</td>
+<td>All</td>
 </tr>
 <tr>
 <td style=text-align:left>databricks.labs.deltaoms.checkpoint.base</td>
 <td style=text-align:left>Base path for the checkpoints for OMS streaming pipeline for collecting the Delta logs for the configured tables</td>
+<td>Y</td>
+<td>dbfs:/_oms_checkpoints/</td>
+<td>None</td>
+<td>Ingestion</td>
 </tr>
 <tr>
 <td style=text-align:left>databricks.labs.deltaoms.checkpoint.suffix</td>
 <td style=text-align:left>Suffix to be added to the checkpoint path. Useful during testing for starting off a fresh process</td>
-</tr>
-</tbody>
-</table>
-<h3 id=configuration>Configuration</h3>
-<p>DeltaOMS can also be configured using a
-<a href=https://github.com/lightbend/config/blob/master/HOCON.md#hocon-human-optimized-config-object-notation>HOCON</a> format file.
-The different configuration parameters available are described below :</p>
-<table>
-<thead>
-<tr>
-<th style=text-align:center>Configuration Key</th>
-<th style=text-align:left>Description</th>
-<th>Required</th>
-<th>Example</th>
-<th>Default Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style=text-align:center>base-location</td>
-<td style=text-align:left>Base location/path of the OMS Database on the Delta Lake</td>
-<td>Y</td>
-<td>dbfs:/spark-warehouse/oms.db</td>
-<td>None</td>
-</tr>
-<tr>
-<td style=text-align:center>db-name</td>
-<td style=text-align:left>OMS Database Name. This is the database where all the Delta log details will be collected</td>
-<td>Y</td>
-<td>oms.db</td>
-<td>None</td>
-</tr>
-<tr>
-<td style=text-align:center>checkpoint-base</td>
-<td style=text-align:left>Base path for the checkpoints for OMS streaming pipeline for collecting the Delta logs for the configured tables</td>
-<td>Y</td>
-<td>dbfs:/_oms_checkpoints/</td>
-<td>None</td>
-</tr>
-<tr>
-<td style=text-align:center>checkpoint-suffix</td>
-<td style=text-align:left>Suffix to be added to the checkpoint path. Useful during testing for starting off a fresh process</td>
 <td>Y</td>
 <td>_1234</td>
 <td>None</td>
+<td>Ingestion</td>
 </tr>
 <tr>
-<td style=text-align:center>raw-action-table</td>
+<td style=text-align:left>databricks.labs.deltaoms.raw.action.table</td>
 <td style=text-align:left>OMS table name for storing the raw delta logs collected from the configured tables</td>
 <td>N</td>
 <td>oms_raw_actions</td>
 <td>rawactions</td>
+<td>Initialization</td>
 </tr>
 <tr>
-<td style=text-align:center>source-config-table</td>
+<td style=text-align:left>databricks.labs.deltaoms.source.config.table</td>
 <td style=text-align:left>Configuration table name for setting the list of Delta Path, databases and/or tables for which the delta logs should be collected by OMS</td>
 <td>N</td>
 <td>oms_source_config</td>
 <td>sourceconfig</td>
+<td>Initialization</td>
 </tr>
 <tr>
-<td style=text-align:center>path-config-table</td>
+<td style=text-align:left>databricks.labs.deltaoms.path.config.table</td>
 <td style=text-align:left>Configuration table name for storing Delta path details and few related metadata for internal processing purposes by OMS</td>
 <td>N</td>
 <td>oms_path_config</td>
 <td>pathconfig</td>
+<td>Initialization</td>
 </tr>
 <tr>
-<td style=text-align:center>processed-history-table</td>
+<td style=text-align:left>databricks.labs.deltaoms.processed.history.table</td>
 <td style=text-align:left>Configuration table name for storing processing details for OMS ETL Pipelines. Used internally by OMS</td>
 <td>N</td>
 <td>oms_processed_history</td>
 <td>processedhistory</td>
+<td>Initialization</td>
 </tr>
 <tr>
-<td style=text-align:center>commit-info-snapshot-table</td>
+<td style=text-align:left>databricks.labs.deltaoms.commitinfo.snapshot.table</td>
 <td style=text-align:left>Table name for storing the Delta Commit Information generated from the processed raw Delta logs for configured tables/paths</td>
 <td>N</td>
 <td>oms_commitinfo_snapshots</td>
 <td>commitinfosnapshots</td>
+<td>Initialization</td>
 </tr>
 <tr>
-<td style=text-align:center>action-snapshot-table</td>
+<td style=text-align:left>databricks.labs.deltaoms.action.snapshot.table</td>
 <td style=text-align:left>Table name for storing the Delta Actions information snapshots. Generated from processing the Raw Delta logs</td>
 <td>N</td>
 <td>oms_action_snapshots</td>
 <td>actionsnapshots</td>
+<td>Initialization</td>
 </tr>
 <tr>
-<td style=text-align:center>consolidate-wildcard-path</td>
+<td style=text-align:left>databricks.labs.deltaoms.consolidate.wildcard.paths</td>
 <td style=text-align:left>Flag to enable/disable processing Delta logs using consolidated wildcard patterns extracted from the path configured for OMS</td>
 <td>N</td>
 <td>false</td>
 <td>true</td>
+<td>Ingestion</td>
 </tr>
 <tr>
-<td style=text-align:center>trigger-interval</td>
+<td style=text-align:left>databricks.labs.deltaoms.truncate.path.config</td>
+<td style=text-align:left>Truncate the internal Path Config table</td>
+<td>N</td>
+<td>false</td>
+<td>false</td>
+<td>Configuration</td>
+</tr>
+<tr>
+<td style=text-align:left>databricks.labs.deltaoms.skip.path.config</td>
+<td style=text-align:left>Skip populating the internal Path Config tables during each streaming ingestion run</td>
+<td>N</td>
+<td>true</td>
+<td>false</td>
+<td>Ingestion</td>
+</tr>
+<tr>
+<td style=text-align:left>databricks.labs.deltaoms.skip.initialize</td>
+<td style=text-align:left>Skip running DeltaOMS initialization for each run</td>
+<td>N</td>
+<td>true</td>
+<td>false</td>
+<td>Configuration, Ingestion</td>
+</tr>
+<tr>
+<td style=text-align:left>databricks.labs.deltaoms.trigger.interval</td>
 <td style=text-align:left>Trigger interval for processing the Delta logs from the configured tables/paths</td>
 <td>N</td>
 <td>30s</td>
 <td>Once</td>
+<td>Ingestion</td>
 </tr>
 <tr>
-<td style=text-align:center>src-database</td>
-<td style=text-align:left>Comma separated list of Source database used for filtering when extracting the Delta table path information from metastore</td>
-<td>N</td>
-<td>Sample_db,test_db</td>
-<td></td>
-</tr>
-<tr>
-<td style=text-align:center>table-pattern</td>
-<td style=text-align:left>Wildcard filtering of tables to be extracted from the metastore for configuring the Delta OMS solution</td>
-<td>N</td>
-<td>*oms*</td>
-<td>*</td>
-</tr>
-<tr>
-<td style=text-align:center>starting-stream</td>
+<td style=text-align:left>databricks.labs.deltaoms.starting.stream</td>
 <td style=text-align:left>Starting stream number for the Ingestion Job</td>
 <td>N</td>
 <td>10</td>
 <td>1</td>
+<td>Ingestion</td>
 </tr>
 <tr>
-<td style=text-align:center>ending-stream</td>
+<td style=text-align:left>databricks.labs.deltaoms.ending.stream</td>
 <td style=text-align:left>Ending stream number for the Ingestion Job</td>
 <td>N</td>
 <td>30</td>
 <td>50</td>
+<td>Ingestion</td>
 </tr>
 </tbody>
 </table>
-<p>A sample configuration file :</p>
-<pre><code>base-location=&quot;dbfs:/home/warehouse/oms/&quot;
-db-name=&quot;oms_sample&quot;
-raw-action-table=&quot;raw_actions&quot;
-source-config-table =&quot;source_config&quot;
-path-config-table=&quot;path_config&quot;
-processed-history-table=&quot;processed_history&quot;
-commit-info-snapshot-table=&quot;commitinfo_snapshots&quot;
-action-snapshot-table=&quot;action_snapshots&quot;
-consolidate-wildcard-path = &quot;true&quot;
-checkpoint-base=&quot;dbfs:/home/oms/_checkpoints&quot;
-checkpoint-suffix=&quot;_sample_123900&quot;
-trigger-interval=&quot;once&quot;
-</code></pre><p>You could use the above information to create a configuration file appropriate to your environment.
-The configuration file can be uploaded to DBFS or your cloud storage provider.
-<strong>Tip</strong>: You could directly create the configuration file on DBFS from a notebook using
-<a href=https://docs.databricks.com/dev-tools/databricks-utils.html>dbutils</a> APIs</p>
-<h3 id=execution>Execution</h3>
-<p>The setup and execution of DeltaOMS can also be configured through the above configuration file
-instead of command line parameters. The configuration approach provides you access to more
-parameters within DeltaOMS.</p>
-<p>Once the config file has been created and uploaded to a cloud storage, either the
-earlier provided notebooks or jobs can be utilized for running the setup and execution.</p>
-<p>On a notebook, the configuration can be provided by setting the system property
-<code>OMS_CONFIG_FILE</code>. For example, the initialization of DeltaOMS can be executed as follows :</p>
-<pre><code>System.setProperty(&quot;OMS_CONFIG_FILE&quot;, &quot;&lt;&lt;Full path to the configuration file&gt;&gt;&quot;)
-val args = Array.empty[String]
-com.databricks.labs.deltaoms.init.InitializeOMS.main(args)
-</code></pre><p>For a job, the DeltaOMS configuration file can be added to the system path by
-modifying the cluster for the job and setting the advanced Spark configuration</p>
-<p><code>spark.driver.extraJavaOptions -DOMS_CONFIG_FILE=&lt;&lt;FULL PATH to the OMS Configuration file>></code></p>
-<p>Refer to screenshots below for an example:</p>
-<p><img src=https://databrickslabs.github.io/delta-oms/images/DeltaOMS_Ingestion_Job_Config_1.png alt="Delta OMS Streaming Ingestion Job Task Config"></p>
-<p><img src=https://databrickslabs.github.io/delta-oms/images/DeltaOMS_Ingestion_Job_Config_2.png alt="Delta OMS Streaming Ingestion Job Spark Config"></p>
 <footer class=footline>
 </footer>
 </div>
@@ -389,17 +349,17 @@ modifying the cluster for the job and setting the advanced Spark configuration</
 <div style=left:-1000px;overflow:scroll;position:absolute;top:-1000px;border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px>
 <div style=border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px></div>
 </div>
-<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1631642733></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1633389827></script>
 <script>hljs.initHighlightingOnLoad()</script>
-<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1631642733></script>
-<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1631642733></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1633389827></script>
+<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1633389827></script>
 <script>mermaid.initialize({startOnLoad:!0})</script>
 </body>
 </html>
