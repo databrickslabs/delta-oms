@@ -31,7 +31,7 @@ trait OMSRunner extends Serializable
   with OMSOperations
   with Logging {
 
-  logInfo(s"Loading configuration from : ${environmentConfigFile}")
+  logInfo(s"Loading configuration from : ${environmentType}")
   logInfo(s"Environment set to : ${environment}")
   logInfo(s"OMS Config from configuration file : ${omsConfig}")
 

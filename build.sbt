@@ -56,7 +56,7 @@ lazy val commonSettings = Seq(
   "-Dspark.sql.shuffle.partitions=5",
   "-Ddelta.log.cacheSize=3",
   "-Dspark.sql.sources.parallelPartitionDiscovery.parallelism=5",
-  "-DOMS_CONFIG_FILE=inbuilt",
+  "-DOMS_ENV=inbuilt",
   "-Xmx1024m"),
   Test / testOptions += Tests.Argument("-oDF"),
   Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),
@@ -86,7 +86,6 @@ lazy val root = (project in file(".")).
       "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
       "org.apache.spark" %% "spark-catalyst" % sparkVersion % "provided",
       "org.apache.spark" %% "spark-hive" % sparkVersion % "provided",
-      "com.github.pureconfig" %% "pureconfig" % "0.14.0" % "provided",
       "com.databricks" % "dbutils-api_2.12" % "0.0.5" % "provided",
       "io.delta" %% "delta-core" % deltaVersion % "provided",
 
@@ -117,9 +116,8 @@ lazy val root = (project in file(".")).
   )
 
 def versionFmt(out: sbtdynver.GitDescribeOutput): String = {
-  if(out.isCleanAfterTag || out.isSnapshot()) out.ref.dropPrefix + "-SNAPSHOT"
-  else out.ref.dropPrefix + out.commitSuffix.mkString("-", "-", "") +
-    out.dirtySuffix.withSeparator("-")
+  if(out.isCleanAfterTag) out.ref.dropPrefix
+  else out.ref.dropPrefix + "-SNAPSHOT"
 }
 
 def fallbackVersion(d: java.util.Date): String = s"HEAD-${sbtdynver.DynVer timestamp d}"

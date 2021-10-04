@@ -28,13 +28,6 @@ trait SparkSettings extends Serializable with ConfigurationSettings {
       .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
       .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
       .appName("DELTA_OMS_INBUILT").getOrCreate()
-    case Local => SparkSession.builder()
-      .master("local[*]")
-      .config("spark.driver.host", "localhost")
-      .config("spark.sql.warehouse.dir", omsConfig.baseLocation.get)
-      .appName("DELTA_OMS_LOCAL")
-      .enableHiveSupport()
-      .getOrCreate()
     case _ => val spark = SparkSession.builder().appName("Delta OMS").getOrCreate()
       spark.conf.set("spark.databricks.delta.properties.defaults.enableChangeDataFeed",
         value = true)
@@ -42,8 +35,6 @@ trait SparkSettings extends Serializable with ConfigurationSettings {
       spark.conf.set("spark.databricks.delta.autoCompact.enabled", value = true)
       spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", value = true)
       spark.conf.set("spark.databricks.labs.deltaoms.version", value = Schemas.OMS_VERSION)
-      spark.conf.set("spark.databricks.labs.deltaoms.implementation.version", value =
-        getClass.getPackage.getImplementationVersion)
       spark
   }
 

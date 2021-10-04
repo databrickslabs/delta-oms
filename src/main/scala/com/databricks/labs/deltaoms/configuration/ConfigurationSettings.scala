@@ -16,48 +16,30 @@
 
 package com.databricks.labs.deltaoms.configuration
 
-import java.net.URI
-
-import scala.io.BufferedSource
-import scala.util.{Failure, Success, Try}
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
-import pureconfig.{ConfigObjectSource, ConfigSource}
-import pureconfig.generic.auto._
-
 import org.apache.spark.internal.Logging
 
 trait ConfigurationSettings extends Serializable with Logging {
-  def omsConfig: OMSConfig = configSource.loadOrThrow[OMSConfig]
+  def omsConfig: OMSConfig = omsConfigSource
 
-  def configSource: ConfigObjectSource = environment match {
-    case Empty => ConfigSource.empty
-    case InBuilt => ConfigSource.default
-    case Local => ConfigSource.string(fetchConfigFileContent(environmentConfigFile))
-    case _ => ConfigSource.string(fetchConfigFileContent(environmentConfigFile))
+  def omsConfigSource: OMSConfig = environment match {
+    case Empty => OMSConfig()
+    case InBuilt => OMSConfig(baseLocation = Some("/tmp/spark-warehouse/oms.db"),
+      dbName = Some("oms_default_inbuilt"),
+      checkpointBase = Some("/tmp/_oms_checkpoints/"),
+      checkpointSuffix = Some("_1"),
+      rawActionTable = "raw_actions",
+      sourceConfigTable = "source_config",
+      pathConfigTable = "path_config",
+      processedHistoryTable = "processed_history",
+      commitInfoSnapshotTable = "commitinfo_snapshots",
+      actionSnapshotTable = "action_snapshots")
   }
 
-  def environment: Environment = EnvironmentResolver.fetchEnvironment(environmentConfigFile)
+  def environment: Environment = EnvironmentResolver.fetchEnvironment(environmentType)
 
-  def environmentConfigFile: String =
-    sys.props.getOrElse("OMS_CONFIG_FILE",
-      sys.env.getOrElse("OMS_CONFIG_FILE", "empty")).toLowerCase
-
-  def fetchConfigFileContent(fullFilePath: String): String = {
-    val fileSystem = FileSystem.get(new URI(fullFilePath), new Configuration())
-    val environmentConfigFilePath = new Path(fullFilePath)
-    val configFileStream = Try {
-      fileSystem.open(environmentConfigFilePath)
-    }
-    val configReadLines: BufferedSource = configFileStream match {
-      case Success(value) => scala.io.Source.fromInputStream(value)
-      case Failure(exception) =>
-        throw new RuntimeException(s"Error opening configuration file $fullFilePath. " +
-          s"Exception: $exception")
-    }
-    configReadLines.mkString
-  }
-
+  def environmentType: String =
+    sys.props.getOrElse("OMS_ENV",
+      sys.env.getOrElse("OMS_ENV", "empty")).toLowerCase
 }
 
 object ConfigurationSettings extends ConfigurationSettings

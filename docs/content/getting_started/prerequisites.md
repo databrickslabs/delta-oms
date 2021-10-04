@@ -10,6 +10,6 @@ Make sure you have the following available before proceeding :
 - Access to Databricks environment with access to Delta tables/databases
 - Ability to create Databricks job and run them on new cluster
 - Proper access permissions to create database, tables and write data to the desired OMS location
-- Access to create [libraries](https://github.com/pureconfig/pureconfig) on your Databricks environment. Required to attach the relevant DeltaOMS (delta-oms) and PureConfig maven `com.github.pureconfig:pureconfig_2.12:0.14.0` libraries
+- Access to create [libraries](https://docs.databricks.com/libraries/index.html) on your Databricks environment. Required to attach the relevant DeltaOMS (delta-oms) libraries
 - (Optional) Able to access the DeltaOMS github [repo](https://github.com/databrickslabs/delta-oms) for demo notebooks and scripts
 - Databricks Runtime 8.3+
