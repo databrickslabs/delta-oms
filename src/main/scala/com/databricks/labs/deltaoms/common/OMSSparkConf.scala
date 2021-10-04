@@ -17,7 +17,8 @@
 package com.databricks.labs.deltaoms.common
 
 import com.databricks.labs.deltaoms.configuration.{OMSConfig, SparkSettings}
-
+// TODO - Modify as per suggestion here :
+//  https://github.com/databrickslabs/delta-oms/pull/17#discussion_r721681401
 trait OMSSparkConf extends Serializable with SparkSettings {
 
   def buildConfKey(key: String): String = s"databricks.labs.deltaoms.${key}"
