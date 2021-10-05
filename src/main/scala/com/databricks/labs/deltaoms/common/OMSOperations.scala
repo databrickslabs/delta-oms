@@ -352,6 +352,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       .option("readChangeFeed", "true")
       .option("startingVersion", lastProcessedVersion + 1)
       .load(s"$rawActionsTablePath")
+      .filter("""_change_type IN ("insert", "update_postimage")""")
   }
 
   def processCommitInfoFromRawActions(rawActions: DataFrame,
