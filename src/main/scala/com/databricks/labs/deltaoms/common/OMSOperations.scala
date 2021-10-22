@@ -269,23 +269,21 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     }
   }
 
-  def fetchStreamingDeltaLogForPath(path: String, useAutoloader: Boolean = false)
+  def fetchStreamingDeltaLogForPath(path: String, useAutoloader: Boolean = true)
   : Option[DataFrame] = {
     val actionSchema: StructType = ScalaReflection.schemaFor[SingleAction].dataType
       .asInstanceOf[StructType]
     val regex_str = "^(.*)\\/_delta_log\\/(.*)\\.json$"
     val file_modification_time = getFileModificationTimeUDF()
-    if (useAutoloader) {
-      spark.conf.set("spark.databricks.cloudFiles.schemaInference.enabled", "true")
+    val deltaLogDFOpt = if (useAutoloader) {
       Some(spark.readStream.format("cloudFiles")
         .option("cloudFiles.format", "json")
-        .option("failOnUnknownFields", "true")
-        .option("unparsedDataColumn", "_unparsed_data")
         .schema(actionSchema)
         .load(path))
     } else {
-      val deltaLogDFOpt = getDeltaLogs(actionSchema, path)
-      if (deltaLogDFOpt.nonEmpty) {
+      getDeltaLogs(actionSchema, path)
+    }
+    if (deltaLogDFOpt.nonEmpty) {
         val deltaLogDF = deltaLogDFOpt.get
         Some(deltaLogDF
           .withColumn(FILE_NAME, input_file_name())
@@ -301,7 +299,6 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       } else {
         None
       }
-    }
   }
 
   def getCurrentRawActionsVersion(rawActionsTablePath: String): Long = {
@@ -358,7 +355,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
   def processCommitInfoFromRawActions(rawActions: DataFrame,
     commitSnapshotTablePath: String,
     commitSnapshotTableName: String): Unit = {
-    val commitInfo = rawActions.where(col("commitInfo").isNotNull)
+    val commitInfo = rawActions.where(col("commitInfo.operation").isNotNull)
       .selectExpr(COMMIT_VERSION, s"current_timestamp() as $UPDATE_TS",
         COMMIT_TS, FILE_NAME, PATH,
         PUID, COMMIT_DATE, "commitInfo.*").drop("version", "timestamp")
