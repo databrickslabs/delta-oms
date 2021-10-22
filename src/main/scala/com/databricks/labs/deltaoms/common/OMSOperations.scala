@@ -211,7 +211,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       fetchStreamTargetAndDeltaLogForPath(p,
         config.checkpointBase.get,
         config.checkpointSuffix.get,
-        getRawActionsTablePath(config)))
+        getRawActionsTablePath(config), config.useAutoloader))
     val logWriteStreamQueries = logReadStreams
       .map(lrs => processDeltaLogStreams(lrs,
         getRawActionsTablePath(config),
@@ -252,14 +252,15 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
   }
 
   def fetchStreamTargetAndDeltaLogForPath(pathInfo: (String, String),
-    checkpointBaseDir: String, checkpointSuffix: String, rawActionsTablePath: String):
+    checkpointBaseDir: String, checkpointSuffix: String, rawActionsTablePath: String,
+    useAutoLoader: Boolean):
   Option[(DataFrame, StreamTargetInfo)] = {
     val wildCardPath = pathInfo._1
     val wuid = pathInfo._2
     val checkpointPath = checkpointBaseDir + "/_oms_checkpoints/raw_actions_" +
       wuid + checkpointSuffix
 
-    val readPathStream = fetchStreamingDeltaLogForPath(wildCardPath)
+    val readPathStream = fetchStreamingDeltaLogForPath(wildCardPath, useAutoLoader)
     if(readPathStream.isDefined) {
       Some(readPathStream.get,
         StreamTargetInfo(path = rawActionsTablePath, checkpointPath = checkpointPath,

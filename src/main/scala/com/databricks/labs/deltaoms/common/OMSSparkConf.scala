@@ -45,13 +45,14 @@ trait OMSSparkConf extends Serializable with SparkSettings {
   val TRIGGER_INTERVAL = buildConfKey("trigger.interval")
   val STARTING_STREAM = buildConfKey("starting.stream")
   val ENDING_STREAM = buildConfKey("ending.stream")
+  val USE_AUTOLOADER = buildConfKey("use.autoloader")
 
 
   val configFields = Seq(BASE_LOCATION, DB_NAME, CHECKPOINT_BASE, CHECKPOINT_SUFFIX,
     RAW_ACTION_TABLE, SOURCE_CONFIG_TABLE, PATH_CONFIG_TABLE, PROCESSED_HISTORY_TABLE,
     COMMITINFO_SNAPSHOT_TABLE, ACTION_SNAPSHOT_TABLE, CONSOLIDATE_WILDCARD_PATHS,
     TRUNCATE_PATH_CONFIG, SKIP_PATH_CONFIG, SKIP_INITIALIZE, SRC_DATABASES,
-    TABLE_PATTERN, TRIGGER_INTERVAL, STARTING_STREAM, ENDING_STREAM)
+    TABLE_PATTERN, TRIGGER_INTERVAL, STARTING_STREAM, ENDING_STREAM, USE_AUTOLOADER)
 
   def consolidateOMSConfigFromSparkConf(config: OMSConfig): OMSConfig = {
     configFields.foldLeft(config) {
@@ -99,6 +100,9 @@ trait OMSSparkConf extends Serializable with SparkSettings {
             fold(omsSparkConfig) { scv => omsSparkConfig.copy(startingStream = scv.toInt)}
           case ENDING_STREAM => spark.conf.getOption(ENDING_STREAM).
             fold(omsSparkConfig) { scv => omsSparkConfig.copy(endingStream = scv.toInt)}
+          case USE_AUTOLOADER => spark.conf.getOption(USE_AUTOLOADER).
+            fold(omsSparkConfig) {
+              scv => omsSparkConfig.copy(useAutoloader = scv.toBoolean)}
         }
       }
     }
