@@ -140,7 +140,8 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
       OMSSparkConf.TABLE_PATTERN ->  "*test*",
       OMSSparkConf.TRIGGER_INTERVAL ->  "30 sec",
       OMSSparkConf.STARTING_STREAM ->  "4",
-      OMSSparkConf.ENDING_STREAM ->  "10")
+      OMSSparkConf.ENDING_STREAM ->  "10",
+      OMSSparkConf.USE_AUTOLOADER -> "false")
 
 
     withSQLConf(deltaOMSOptionalSparkConfigs: _*) {
@@ -157,7 +158,7 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
         actionSnapshotTable = "test.actionsnapshot",
         consolidateWildcardPaths = false,
         truncatePathConfig = true,
-        skipPathConfig = false,
+        useAutoloader = false,
         skipInitializeOMS = true,
         srcDatabases = Some("sampleBases"),
         tablePattern = Some("*test*"),
