@@ -48,6 +48,16 @@ Assuming you already have DeltaOMS running on your environment,new input sources
 - If running as an always running streaming job, restart the DeltaOMS streaming job(s)
 - If running as a scheduled job, new sources will be automatically picked up during subsequent runs
 
+**Q. (Advanced) Is there an option to add all Delta tables under a path using wildcard expressions to be tracked by DeltaOMS ?**
+
+You could use a special wildcard expression [`PATH/**`] to the `sourceconfig` table and add all Delta tables under a path for DeltaOMS tracking.
+
+An example syntax to add such a path is :
+
+`INSERT INTO <omsDBName>.sourceconfig VALUES('dbfs:/user/warehouse/**',false, Map('wildCardLevel','0'))`
+
+DeltaOMS will discover all delta tables under the path `'dbfs:/user/warehouse/` and add it to the internal `pathconfig` table for tracking.
+
 **Q. (Advanced) How do I add arbitrary wildcard paths to be tracked by DeltaOMS ?**
 
 We recommend using the `sourceconfig` configuration table to set up input source tracking for DeltaOMS 
@@ -73,13 +83,3 @@ spark.sql(s"""INSERT INTO <omsDBName>.pathconfig VALUES (
 ```
 Once these are added , the operational metrics from tables under these wildcard location 
 can be captured and processed using the regular OMS jobs.
-
-**Q. (Advanced) Is there an option to add all Delta tables under a path using wildcard expressions to be tracked by DeltaOMS ?**
-
-You could use a special wildcard expression [`PATH/**`] to the `sourceconfig` table and add all Delta tables under a path for DeltaOMS tracking.
-
-An example syntax to add such a path is :
-
-`INSERT INTO <omsDBName>.sourceconfig VALUES('dbfs:/user/warehouse/**',false, Map('wildCardLevel','0'))`
-
-DeltaOMS will discover all delta tables under the path `'dbfs:/user/warehouse/` and add it to the internal `pathconfig` table for tracking.

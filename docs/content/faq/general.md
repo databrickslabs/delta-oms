@@ -52,7 +52,13 @@ manage and use this feature for operational insights on the Delta Lake.
 
 **Q. How will I be charged ?**
 
-This solution is fully deployed in the users environment. The automated jobs for the framework 
-will run on the users Databricks environment.Depending on the configuration set by the users 
-(for example, update frequency of the audit logs, number of databases/delta path enabled etc.), 
+This solution is fully deployed in the users Databricks environment. The automated jobs for the framework 
+will run on the Databricks environment.Depending on the configuration set by the users 
+(for example, update frequency of the audit logs, number of databases/delta path enabled, number of transactions ingested etc.), 
 the cost of the automated jobs and associated storage cost will vary. 
+
+We ran few simple benchmarks on a cluster with 12 cores , 90 GB memory (On-Demand pricing) and noticed the following:
+
+- Initial ingestion and processing of 36,000 Delta transactions took about 12 minutes
+- Subsequently, each 1000 incremental transactions got ingested and processed in about 2 minutes 
+- It costs about $15 for processing 1M transactions
