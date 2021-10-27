@@ -7,17 +7,17 @@
 <meta name=author content="Himanish Kushary (Databricks)">
 <link rel=icon href=https://databrickslabs.github.io/delta-oms/images/favicon.png type=image/png>
 <title>Execution :: Delta Operational Metrics Store (DeltaOMS)</title>
-<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1633460515 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1633460515 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1633460515 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1633460515 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1633460515 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1633460515 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1633460515 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1633460515 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1633460515 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1633460515 rel=stylesheet>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1633460515></script>
+<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1635345058 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1635345058 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1635345058 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1635345058 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1635345058 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1635345058 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1635345058 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1635345058 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1635345058 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1635345058 rel=stylesheet>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1635345058></script>
 <style>:root #header+#content>#left>#rlblock_left{display:none!important}</style>
 <script async defer src=https://buttons.github.io/buttons.js></script>
 </head>
@@ -34,10 +34,10 @@
 <input data-search-input id=search-by type=search placeholder=Search...>
 <span data-search-clear><i class="fas fa-times"></i></span>
 </div>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1633460515></script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1633460515></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1635345058></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1635345058></script>
 <script type=text/javascript>var baseurl="https://databrickslabs.github.io/delta-oms/"</script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1633460515></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1635345058></script>
 </div>
 <section id=homelinks>
 <ul>
@@ -206,6 +206,11 @@ Assuming you already have DeltaOMS running on your environment,new input sources
 <li>If running as an always running streaming job, restart the DeltaOMS streaming job(s)</li>
 <li>If running as a scheduled job, new sources will be automatically picked up during subsequent runs</li>
 </ul>
+<p><strong>Q. (Advanced) Is there an option to add all Delta tables under a path using wildcard expressions to be tracked by DeltaOMS ?</strong></p>
+<p>You could use a special wildcard expression [<code>PATH/**</code>] to the <code>sourceconfig</code> table and add all Delta tables under a path for DeltaOMS tracking.</p>
+<p>An example syntax to add such a path is :</p>
+<p><code>INSERT INTO &lt;omsDBName>.sourceconfig VALUES('dbfs:/user/warehouse/**',false, Map('wildCardLevel','0'))</code></p>
+<p>DeltaOMS will discover all delta tables under the path <code>'dbfs:/user/warehouse/</code> and add it to the internal <code>pathconfig</code> table for tracking.</p>
 <p><strong>Q. (Advanced) How do I add arbitrary wildcard paths to be tracked by DeltaOMS ?</strong></p>
 <p>We recommend using the <code>sourceconfig</code> configuration table to set up input source tracking for DeltaOMS
 (Refer to <a href=https://databrickslabs.github.io/delta-oms/developer_guide/>Developer Guide</a></p>
@@ -225,11 +230,6 @@ using the SQL statements</p>
  &quot;&quot;&quot;)
 </code></pre><p>Once these are added , the operational metrics from tables under these wildcard location
 can be captured and processed using the regular OMS jobs.</p>
-<p><strong>Q. (Advanced) Is there an option to add all Delta tables under a path using wildcard expressions to be tracked by DeltaOMS ?</strong></p>
-<p>You could use a special wildcard expression [<code>PATH/**</code>] to the <code>sourceconfig</code> table and add all Delta tables under a path for DeltaOMS tracking.</p>
-<p>An example syntax to add such a path is :</p>
-<p><code>INSERT INTO &lt;omsDBName>.sourceconfig VALUES('dbfs:/user/warehouse/**',false, Map('wildCardLevel','0'))</code></p>
-<p>DeltaOMS will discover all delta tables under the path <code>'dbfs:/user/warehouse/</code> and add it to the internal <code>pathconfig</code> table for tracking.</p>
 <footer class=footline>
 </footer>
 </div>
@@ -242,17 +242,17 @@ can be captured and processed using the regular OMS jobs.</p>
 <div style=left:-1000px;overflow:scroll;position:absolute;top:-1000px;border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px>
 <div style=border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px></div>
 </div>
-<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1633460515></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1633460515></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1633460515></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1633460515></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1633460515></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1633460515></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1635345058></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1635345058></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1635345058></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1635345058></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1635345058></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1635345058></script>
 <script>hljs.initHighlightingOnLoad()</script>
-<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1633460515></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1633460515></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1633460515></script>
-<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1633460515></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1635345058></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1635345058></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1635345058></script>
+<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1635345058></script>
 <script>mermaid.initialize({startOnLoad:!0})</script>
 </body>
 </html>
