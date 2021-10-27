@@ -30,3 +30,4 @@ DeltaOMS Spark configuration (spark.conf) details :
 | databricks.labs.deltaoms.trigger.interval   | Trigger interval for processing the Delta logs from the configured tables/paths  | N | 30s | Once | Ingestion |
 | databricks.labs.deltaoms.starting.stream | Starting stream number for the Ingestion Job | N | 10 | 1 | Ingestion |
 | databricks.labs.deltaoms.ending.stream | Ending stream number for the Ingestion Job | N | 30 | 50 | Ingestion |
+| databricks.labs.deltaoms.use.autoloader | Use Autoloader for the Ingestion Job | N | false | true | Ingestion |

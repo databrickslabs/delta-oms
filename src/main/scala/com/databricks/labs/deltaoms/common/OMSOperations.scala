@@ -211,7 +211,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       fetchStreamTargetAndDeltaLogForPath(p,
         config.checkpointBase.get,
         config.checkpointSuffix.get,
-        getRawActionsTablePath(config)))
+        getRawActionsTablePath(config), config.useAutoloader))
     val logWriteStreamQueries = logReadStreams
       .map(lrs => processDeltaLogStreams(lrs,
         getRawActionsTablePath(config),
@@ -252,14 +252,15 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
   }
 
   def fetchStreamTargetAndDeltaLogForPath(pathInfo: (String, String),
-    checkpointBaseDir: String, checkpointSuffix: String, rawActionsTablePath: String):
+    checkpointBaseDir: String, checkpointSuffix: String, rawActionsTablePath: String,
+    useAutoLoader: Boolean):
   Option[(DataFrame, StreamTargetInfo)] = {
     val wildCardPath = pathInfo._1
     val wuid = pathInfo._2
     val checkpointPath = checkpointBaseDir + "/_oms_checkpoints/raw_actions_" +
       wuid + checkpointSuffix
 
-    val readPathStream = fetchStreamingDeltaLogForPath(wildCardPath)
+    val readPathStream = fetchStreamingDeltaLogForPath(wildCardPath, useAutoLoader)
     if(readPathStream.isDefined) {
       Some(readPathStream.get,
         StreamTargetInfo(path = rawActionsTablePath, checkpointPath = checkpointPath,
@@ -269,23 +270,21 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     }
   }
 
-  def fetchStreamingDeltaLogForPath(path: String, useAutoloader: Boolean = false)
+  def fetchStreamingDeltaLogForPath(path: String, useAutoloader: Boolean = true)
   : Option[DataFrame] = {
     val actionSchema: StructType = ScalaReflection.schemaFor[SingleAction].dataType
       .asInstanceOf[StructType]
     val regex_str = "^(.*)\\/_delta_log\\/(.*)\\.json$"
     val file_modification_time = getFileModificationTimeUDF()
-    if (useAutoloader) {
-      spark.conf.set("spark.databricks.cloudFiles.schemaInference.enabled", "true")
+    val deltaLogDFOpt = if (useAutoloader) {
       Some(spark.readStream.format("cloudFiles")
         .option("cloudFiles.format", "json")
-        .option("failOnUnknownFields", "true")
-        .option("unparsedDataColumn", "_unparsed_data")
         .schema(actionSchema)
         .load(path))
     } else {
-      val deltaLogDFOpt = getDeltaLogs(actionSchema, path)
-      if (deltaLogDFOpt.nonEmpty) {
+      getDeltaLogs(actionSchema, path)
+    }
+    if (deltaLogDFOpt.nonEmpty) {
         val deltaLogDF = deltaLogDFOpt.get
         Some(deltaLogDF
           .withColumn(FILE_NAME, input_file_name())
@@ -301,7 +300,6 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       } else {
         None
       }
-    }
   }
 
   def getCurrentRawActionsVersion(rawActionsTablePath: String): Long = {
@@ -358,7 +356,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
   def processCommitInfoFromRawActions(rawActions: DataFrame,
     commitSnapshotTablePath: String,
     commitSnapshotTableName: String): Unit = {
-    val commitInfo = rawActions.where(col("commitInfo").isNotNull)
+    val commitInfo = rawActions.where(col("commitInfo.operation").isNotNull)
       .selectExpr(COMMIT_VERSION, s"current_timestamp() as $UPDATE_TS",
         COMMIT_TS, FILE_NAME, PATH,
         PUID, COMMIT_DATE, "commitInfo.*").drop("version", "timestamp")

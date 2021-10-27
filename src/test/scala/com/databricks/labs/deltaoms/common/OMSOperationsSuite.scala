@@ -145,7 +145,7 @@ class OMSOperationsSuite extends QueryTest
   }
 
   test("streamingUpdateRawDeltaActionsToOMS") {
-    streamingUpdateRawDeltaActionsToOMS(omsConfig)
+    streamingUpdateRawDeltaActionsToOMS(omsConfig.copy(useAutoloader = false))
     val rawActionsTable = getRawActionsTableName(omsConfig)
     checkAnswer(spark.sql(s"SELECT count(*) FROM $rawActionsTable"), Row(393))
   }
