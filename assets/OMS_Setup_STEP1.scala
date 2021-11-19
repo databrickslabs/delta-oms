@@ -66,7 +66,7 @@ display(spark.sql(s"select * from $omsDBName.pathconfig"))
 // COMMAND ----------
 
 // MAGIC %md
-// MAGIC ## Now, follow the instructions in the document to create the DeltaOMS Ingestion and Processing jobs to start collecting operation metrics
+// MAGIC ## Now, follow the instructions in the document (https://databrickslabs.github.io/delta-oms/) to create the DeltaOMS Ingestion and Processing jobs to start collecting the Delta logs with operation metrics
 
 // COMMAND ----------
 

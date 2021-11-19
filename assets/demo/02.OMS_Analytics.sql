@@ -1,6 +1,6 @@
 -- Databricks notebook source
 -- MAGIC %md
--- MAGIC # Setup the DeltaOMD Database name
+-- MAGIC # Setup and update the DeltaOMD Database name
 
 -- COMMAND ----------
 
