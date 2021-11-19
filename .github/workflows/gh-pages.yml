@@ -3,7 +3,7 @@ name: Publish Github Pages
 on:
   push:
     branches:
-      - master  # Set a branch to deploy
+      - master
 defaults:
   run:
     working-directory: ./docs
