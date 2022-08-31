@@ -12,4 +12,4 @@ Make sure you have the following available before proceeding :
 - Proper access permissions to create database, tables and write data to the desired OMS location
 - Access to create [libraries](https://docs.databricks.com/libraries/index.html) on your Databricks environment. Required to attach the relevant DeltaOMS (delta-oms) libraries
 - (Optional) Able to access the DeltaOMS github [repo](https://github.com/databrickslabs/delta-oms) for demo notebooks and scripts
-- Databricks Runtime 9.1 LTS+
+- Databricks Runtime 11.0+

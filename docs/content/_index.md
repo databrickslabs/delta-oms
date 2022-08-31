@@ -6,14 +6,17 @@ draft: false
 
 # Delta Operational Metrics Store (DeltaOMS)
 Delta Operational Metrics Store (DeltaOMS) is a solution that helps to build a 
-centralized repository of operational metrics/statistics for your [Lakehouse](http://cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf) 
+centralized repository of Delta Transaction logs and associated 
+operational metrics/statistics for your [Lakehouse](http://cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf) 
 built on [Delta Lake](https://github.com/delta-io/delta) 
 
 ## Project Overview
-DeltaOMS provides a solution for automatically collecting operational metrics/statistics from Delta 
-Lakehouse tables into a separate centralized database. This will enable you to gain centralized access 
-to the operational metrics for your data in near real-time. This centralized data can be utilized
-to gain helpful operational insights, setting up monitoring/alerting and observability for your 
+DeltaOMS provides a solution for automatically collecting Delta Transaction logs and associated 
+operational metrics/statistics from Delta Lakehouse tables into a separate centralized database. 
+This will enable you to gain centralized access to the Delta log metadata (like file size, file statistics) 
+and operational metrics for your data in near real-time. 
+
+This centralized data can be utilized to gain helpful operational insights, setting up monitoring/alerting and observability for your 
 Delta Lakehouse ETL Pipelines. It could also help you to identify trends based on data characteristics, 
 improve ETL pipeline performance, provide capabilities for auditing and traceability of your Delta Lake data etc.
 
@@ -48,8 +51,8 @@ make it available for analytics.
 
 ## How much does it cost ?
 DeltaOMS does not have any **direct cost** associated with it other than the cost to run the jobs 
-on your environment.The overall cost will be determined primarily by the number of Delta Lakehouse 
-objects tracked and frequency of the OMS data refresh. 
+on your environment.The overall cost will be determined primarily by the scale of Delta Lakehouse 
+objects (Delta transaction log files) tracked and frequency of the OMS data refresh. 
 We have found that the additional insights gained from DeltaOMS helps reduce the total cost of 
 ownership through better management and optimization of your data pipelines while providing much 
 improved view on the operational metrics and statistics for the Delta Lakehouse.

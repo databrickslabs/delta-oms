@@ -59,6 +59,6 @@ the cost of the automated jobs and associated storage cost will vary.
 
 We ran few simple benchmarks on a cluster with 12 cores , 90 GB memory (On-Demand pricing) and noticed the following:
 
-- Initial ingestion and processing of 36,000 Delta transactions took about 12 minutes
+- Initial ingestion and processing of 36,000 Delta transactions (~ 1 Kb Delta log files) took about 12 minutes
 - Subsequently, each 1000 incremental transactions got ingested and processed in about 2 minutes 
 - It costs about $15 for processing 1M transactions

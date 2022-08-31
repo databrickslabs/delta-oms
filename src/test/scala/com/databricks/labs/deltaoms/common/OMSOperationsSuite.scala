@@ -147,7 +147,7 @@ class OMSOperationsSuite extends QueryTest
   test("streamingUpdateRawDeltaActionsToOMS") {
     streamingUpdateRawDeltaActionsToOMS(omsConfig.copy(useAutoloader = false))
     val rawActionsTable = getRawActionsTableName(omsConfig)
-    checkAnswer(spark.sql(s"SELECT count(*) FROM $rawActionsTable"), Row(393))
+    checkAnswer(spark.sql(s"SELECT count(*) FROM $rawActionsTable"), Row(381))
   }
 
   test("getCurrentRawActionsVersion") {
@@ -172,7 +172,7 @@ class OMSOperationsSuite extends QueryTest
       getActionSnapshotTablePath(omsConfig),
       getActionSnapshotTableName(omsConfig))
     checkAnswer(spark.sql(s"SELECT count(*) FROM ${getActionSnapshotTableName(omsConfig)}"),
-      Row(1497))
+      Row(1485))
   }
 
   test("updateLastProcessedRawActions and getLastProcessedRawActionsVersion") {

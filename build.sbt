@@ -37,13 +37,13 @@ ThisBuild / dynverSonatypeSnapshots := true
 lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 
-val sparkVersion = "3.1.1"
-val deltaVersion = "1.0.0"
+val sparkVersion = "3.3.0"
+val deltaVersion = "2.1.0"
 
 lazy val commonSettings = Seq(
   name := "delta-oms",
   organization := "com.databricks.labs",
-  scalaVersion := "2.12.10",
+  scalaVersion := "2.12.14",
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   scalacOptions ++= Seq("-target:jvm-1.8"),
   javaOptions += "-Xmx1024m",
@@ -90,7 +90,7 @@ lazy val root = (project in file(".")).
       "io.delta" %% "delta-core" % deltaVersion % "provided",
 
       // Test Dependencies
-      "org.scalatest" %% "scalatest" % "3.1.0" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.9" % Test,
       "junit" % "junit" % "4.12" % Test,
       "com.novocode" % "junit-interface" % "0.11" % Test,
       "org.apache.spark" %% "spark-catalyst" % sparkVersion % Test classifier "tests",
