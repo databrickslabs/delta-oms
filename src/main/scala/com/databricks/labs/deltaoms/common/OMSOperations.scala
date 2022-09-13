@@ -295,7 +295,8 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
           .withColumn(COMMIT_VERSION, regexp_extract(col(s"$FILE_NAME"),
             regex_str, 2).cast(LongType))
           .withColumn(UPDATE_TS, lit(Instant.now()))
-          .withColumn(COMMIT_DATE, to_date(col(s"$COMMIT_TS"))))
+          .withColumn(COMMIT_DATE, to_date(col(s"$COMMIT_TS")))
+          .drop("_metadata"))
       } else {
         None
       }
