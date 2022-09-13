@@ -287,14 +287,14 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     }
     if (deltaLogDFOpt.nonEmpty) {
         val deltaLogDF = deltaLogDFOpt.get
-        Some(deltaLogDF
           .withColumn(FILE_NAME, col("_metadata.file_path"))
+          .withColumn(COMMIT_TS, col("_metadata.file_modification_time"))
+        Some(deltaLogDF
           .withColumn(PATH, regexp_extract(col(s"$FILE_NAME"), regex_str, 1))
           .withColumn(PUID, substring(sha1(col(s"$PATH")), 0, 7))
           .withColumn(COMMIT_VERSION, regexp_extract(col(s"$FILE_NAME"),
             regex_str, 2).cast(LongType))
           .withColumn(UPDATE_TS, lit(Instant.now()))
-          .withColumn(COMMIT_TS, col("_metadata.file_modification_time"))
           .withColumn(COMMIT_DATE, to_date(col(s"$COMMIT_TS"))))
       } else {
         None
