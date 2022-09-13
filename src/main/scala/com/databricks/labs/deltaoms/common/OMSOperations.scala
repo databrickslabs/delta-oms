@@ -275,10 +275,11 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     val actionSchema: StructType = ScalaReflection.schemaFor[SingleAction].dataType
       .asInstanceOf[StructType]
     val regex_str = "^(.*)\\/_delta_log\\/(.*)\\.json$"
-    val file_modification_time = getFileModificationTimeUDF()
     val deltaLogDFOpt = if (useAutoloader) {
       Some(spark.readStream.format("cloudFiles")
         .option("cloudFiles.format", "json")
+        .option("cloudFiles.maxFilesPerTrigger", "1024")
+        .option("cloudFiles.useIncrementalListing", "true")
         .schema(actionSchema)
         .load(path))
     } else {
@@ -287,16 +288,14 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     if (deltaLogDFOpt.nonEmpty) {
         val deltaLogDF = deltaLogDFOpt.get
         Some(deltaLogDF
-          .withColumn(FILE_NAME, input_file_name())
+          .withColumn(FILE_NAME, col("_metadata.file_path"))
           .withColumn(PATH, regexp_extract(col(s"$FILE_NAME"), regex_str, 1))
           .withColumn(PUID, substring(sha1(col(s"$PATH")), 0, 7))
           .withColumn(COMMIT_VERSION, regexp_extract(col(s"$FILE_NAME"),
             regex_str, 2).cast(LongType))
           .withColumn(UPDATE_TS, lit(Instant.now()))
-          .withColumn("modTs", file_modification_time(col(s"$FILE_NAME")))
-          .withColumn(COMMIT_TS, to_timestamp($"modTs"))
-          .withColumn(COMMIT_DATE, to_date(col(s"$COMMIT_TS")))
-          .drop("modTs"))
+          .withColumn(COMMIT_TS, col("_metadata.file_modification_time"))
+          .withColumn(COMMIT_DATE, to_date(col(s"$COMMIT_TS"))))
       } else {
         None
       }
@@ -505,7 +504,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
 
   def getDeltaLogs(schema: StructType, path: String): Option[DataFrame] = {
     val deltaLogTry = Try {
-      spark.readStream.schema(schema).json(path)
+      spark.readStream.schema(schema).json(path).select("*", "_metadata")
     }
     deltaLogTry match {
       case Success(value) => Some(value)

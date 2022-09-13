@@ -227,10 +227,10 @@ class OMSOperationsSuite extends QueryTest
     val hadoopConf = new SerializableConfiguration(spark.sessionState.newHadoopConf())
 
     val wildCardSubDirectories = listSubDirectories(wildCardSourceConfig, hadoopConf)
-    assert(wildCardSubDirectories.length == 3)
+    assert(wildCardSubDirectories.length == 5)
     val wildCardTablePaths = wildCardSubDirectories
       .flatMap(UtilityOperations.recursiveListDeltaTablePaths(_, hadoopConf))
-    assert(wildCardTablePaths.length == 9)
+    assert(wildCardTablePaths.length == 10)
     assert(wildCardTablePaths.
       contains(SourceConfig("file:/tmp/spark-warehouse/oms.db/oms_default_inbuilt/raw_actions")))
   }

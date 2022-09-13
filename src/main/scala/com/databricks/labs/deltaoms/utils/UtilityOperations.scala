@@ -171,17 +171,6 @@ trait UtilityOperations extends Serializable with Logging {
     SparkSession.active.sql(s"DROP DATABASE IF EXISTS $dbName CASCADE")
   }
 
-  def getFileModificationTimeUDF(): UserDefinedFunction = {
-    val spark = SparkSession.active
-    val conf = spark.sparkContext.broadcast(
-      new SerializableConfiguration(spark.sessionState.newHadoopConf()))
-
-    udf((filePath: String) => {
-      val p = new Path(filePath)
-      p.getFileSystem(conf.value.value).listStatus(p).map(_.getModificationTime).head / 1000
-    })
-  }
-
   def getDeltaWildCardPathUDF(): UserDefinedFunction = {
     udf((filePath: String, wildCardLevel: Int) => {
       assert(wildCardLevel == -1 || wildCardLevel == 0 || wildCardLevel == 1,
@@ -243,7 +232,7 @@ trait UtilityOperations extends Serializable with Logging {
   }
 
   def recursiveListDeltaTablePaths(path: String, conf: SerializableConfiguration): Set[String] = {
-    implicit def  remoteIteratorToIterator[A](ri: RemoteIterator[A]): Iterator[A] =
+    implicit def remoteIteratorToIterator[A](ri: RemoteIterator[A]): Iterator[A] =
       new Iterator[A] {
         override def hasNext: Boolean = ri.hasNext
         override def next(): A = ri.next()
