@@ -281,7 +281,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
         .option("cloudFiles.maxFilesPerTrigger", "1024")
         .option("cloudFiles.useIncrementalListing", "true")
         .schema(actionSchema)
-        .load(path))
+        .load(path).select("*", "_metadata"))
     } else {
       getDeltaLogs(actionSchema, path)
     }
