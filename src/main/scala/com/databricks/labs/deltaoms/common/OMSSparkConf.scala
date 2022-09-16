@@ -43,6 +43,7 @@ trait OMSSparkConf extends Serializable with SparkSettings {
   val SRC_DATABASES = buildConfKey("src.databases")
   val TABLE_PATTERN = buildConfKey("table.pattern")
   val TRIGGER_INTERVAL = buildConfKey("trigger.interval")
+  val TRIGGER_MAX_FILES = buildConfKey("trigger.max.files")
   val STARTING_STREAM = buildConfKey("starting.stream")
   val ENDING_STREAM = buildConfKey("ending.stream")
   val USE_AUTOLOADER = buildConfKey("use.autoloader")
@@ -52,7 +53,8 @@ trait OMSSparkConf extends Serializable with SparkSettings {
     RAW_ACTION_TABLE, SOURCE_CONFIG_TABLE, PATH_CONFIG_TABLE, PROCESSED_HISTORY_TABLE,
     COMMITINFO_SNAPSHOT_TABLE, ACTION_SNAPSHOT_TABLE, CONSOLIDATE_WILDCARD_PATHS,
     TRUNCATE_PATH_CONFIG, SKIP_PATH_CONFIG, SKIP_INITIALIZE, SRC_DATABASES,
-    TABLE_PATTERN, TRIGGER_INTERVAL, STARTING_STREAM, ENDING_STREAM, USE_AUTOLOADER)
+    TABLE_PATTERN, TRIGGER_INTERVAL, STARTING_STREAM, ENDING_STREAM, USE_AUTOLOADER,
+    TRIGGER_MAX_FILES)
 
   def consolidateOMSConfigFromSparkConf(config: OMSConfig): OMSConfig = {
     configFields.foldLeft(config) {
@@ -103,6 +105,9 @@ trait OMSSparkConf extends Serializable with SparkSettings {
           case USE_AUTOLOADER => spark.conf.getOption(USE_AUTOLOADER).
             fold(omsSparkConfig) {
               scv => omsSparkConfig.copy(useAutoloader = scv.toBoolean)}
+          case TRIGGER_MAX_FILES => spark.conf.getOption(TRIGGER_MAX_FILES).
+            fold(omsSparkConfig) {
+              scv => omsSparkConfig.copy(maxFilesPerTrigger = scv)}
         }
       }
     }

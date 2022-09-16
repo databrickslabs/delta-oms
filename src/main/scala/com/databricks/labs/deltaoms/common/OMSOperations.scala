@@ -211,7 +211,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       fetchStreamTargetAndDeltaLogForPath(p,
         config.checkpointBase.get,
         config.checkpointSuffix.get,
-        getRawActionsTablePath(config), config.useAutoloader))
+        getRawActionsTablePath(config), config.useAutoloader, config.maxFilesPerTrigger))
     val logWriteStreamQueries = logReadStreams
       .map(lrs => processDeltaLogStreams(lrs,
         getRawActionsTablePath(config),
@@ -253,14 +253,15 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
 
   def fetchStreamTargetAndDeltaLogForPath(pathInfo: (String, String),
     checkpointBaseDir: String, checkpointSuffix: String, rawActionsTablePath: String,
-    useAutoLoader: Boolean):
+    useAutoLoader: Boolean, maxFilesPerTrigger: String):
   Option[(DataFrame, StreamTargetInfo)] = {
     val wildCardPath = pathInfo._1
     val wuid = pathInfo._2
     val checkpointPath = checkpointBaseDir + "/_oms_checkpoints/raw_actions_" +
       wuid + checkpointSuffix
 
-    val readPathStream = fetchStreamingDeltaLogForPath(wildCardPath, useAutoLoader)
+    val readPathStream = fetchStreamingDeltaLogForPath(wildCardPath, useAutoLoader,
+      maxFilesPerTrigger)
     if(readPathStream.isDefined) {
       Some(readPathStream.get,
         StreamTargetInfo(path = rawActionsTablePath, checkpointPath = checkpointPath,
@@ -270,7 +271,8 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     }
   }
 
-  def fetchStreamingDeltaLogForPath(path: String, useAutoloader: Boolean = true)
+  def fetchStreamingDeltaLogForPath(path: String, useAutoloader: Boolean = true,
+    maxFilesPerTrigger: String = "1024")
   : Option[DataFrame] = {
     val actionSchema: StructType = ScalaReflection.schemaFor[SingleAction].dataType
       .asInstanceOf[StructType]
@@ -278,7 +280,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     val deltaLogDFOpt = if (useAutoloader) {
       Some(spark.readStream.format("cloudFiles")
         .option("cloudFiles.format", "json")
-        .option("cloudFiles.maxFilesPerTrigger", "1024")
+        .option("cloudFiles.maxFilesPerTrigger", maxFilesPerTrigger)
         .option("cloudFiles.useIncrementalListing", "true")
         .schema(actionSchema)
         .load(path).select("*", "_metadata"))
