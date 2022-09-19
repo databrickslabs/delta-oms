@@ -28,6 +28,7 @@ DeltaOMS Spark configuration (spark.conf) details :
 | databricks.labs.deltaoms.skip.path.config   | Skip populating the internal Path Config tables during each streaming ingestion run  | N | true | false | Ingestion |
 | databricks.labs.deltaoms.skip.initialize   | Skip running DeltaOMS initialization for each run  | N | true | false | Configuration, Ingestion  |
 | databricks.labs.deltaoms.trigger.interval   | Trigger interval for processing the Delta logs from the configured tables/paths  | N | 30s | AvailableNow | Ingestion |
+| databricks.labs.deltaoms.trigger.max.files   | Maximum number of Delta log files to process for each Trigger interval | N | 2048 | 1024 | Ingestion |
 | databricks.labs.deltaoms.starting.stream | Starting stream number for the Ingestion Job | N | 10 | 1 | Ingestion |
 | databricks.labs.deltaoms.ending.stream | Ending stream number for the Ingestion Job | N | 30 | 50 | Ingestion |
 | databricks.labs.deltaoms.use.autoloader | Use Autoloader for the Ingestion Job | N | false | true | Ingestion |
