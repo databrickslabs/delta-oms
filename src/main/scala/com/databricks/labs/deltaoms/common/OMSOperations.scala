@@ -285,7 +285,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
         .schema(actionSchema)
         .load(path).select("*", "_metadata"))
     } else {
-      getDeltaLogs(actionSchema, path)
+      getDeltaLogs(actionSchema, path, maxFilesPerTrigger)
     }
     if (deltaLogDFOpt.nonEmpty) {
         val deltaLogDF = deltaLogDFOpt.get
@@ -505,9 +505,12 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     snapshotInputFiles
   }
 
-  def getDeltaLogs(schema: StructType, path: String): Option[DataFrame] = {
+  def getDeltaLogs(schema: StructType, path: String,
+    maxFilesPerTrigger: String = "1024"): Option[DataFrame] = {
     val deltaLogTry = Try {
-      spark.readStream.schema(schema).json(path).select("*", "_metadata")
+      spark.readStream.schema(schema)
+        .option("maxFilesPerTrigger", maxFilesPerTrigger)
+        .json(path).select("*", "_metadata")
     }
     deltaLogTry match {
       case Success(value) => Some(value)

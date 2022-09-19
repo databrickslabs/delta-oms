@@ -64,7 +64,7 @@ trait OMSRunner extends Serializable
     val response = httpClient.execute(getClusterByIdGet)
     logInfo(EntityUtils.toString(response.getEntity, "UTF-8"))
   }
-  setTrackingHeader()
+  scala.util.control.Exception.ignoring(classOf[Exception]) { setTrackingHeader() }
 
   def consolidateAndValidateOMSConfig(args: Array[String], config: OMSConfig): OMSConfig
 
