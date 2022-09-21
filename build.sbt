@@ -11,6 +11,7 @@
  */
 
 val gitUrl = "https://github.com/databrickslabs/delta-oms"
+val buildTarget = System.getProperty("build.target", "db")
 
 inThisBuild(List(
   organization := "com.databricks.labs",
@@ -102,10 +103,14 @@ lazy val root = (project in file(".")).
     buildInfoPackage := "com.databricks.labs.deltaoms.common",
     assembly / test  := {},
     assembly / assemblyOption := (assembly / assemblyOption).value.copy(includeScala = false),
-    assembly / assemblyShadeRules := Seq(
-      ShadeRule.rename("org.apache.spark.sql.delta.**" ->
-        "com.databricks.sql.transaction.tahoe.@1").inAll
-    ),
+    if(buildTarget == "db") {
+      assembly / assemblyShadeRules := Seq(
+        ShadeRule.rename("org.apache.spark.sql.delta.**" ->
+          "com.databricks.sql.transaction.tahoe.@1").inAll
+      )
+    } else {
+      Nil
+    },
     assembly / logLevel := Level.Error,
     assembly / artifact := {
       val art = (assembly / artifact).value
