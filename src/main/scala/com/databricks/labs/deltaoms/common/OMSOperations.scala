@@ -164,8 +164,8 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     val readStream = streamTargetAndLog._1
     val targetInfo = streamTargetAndLog._2
     assert(targetInfo.wuid.isDefined, "OMS Readstreams should be associated with WildcardPath")
-    val triggerInterval = triggerIntervalOption.getOrElse("once")
-    val trigger = if (triggerInterval.equalsIgnoreCase("once") || triggerInterval.equalsIgnoreCase("availablenow") || triggerInterval.equalsIgnoreCase("available_now")) { // scalastyle:ignore
+    val triggerInterval = triggerIntervalOption.getOrElse("availableNow")
+    val trigger = if (triggerInterval.equalsIgnoreCase("availableNow") || triggerInterval.equalsIgnoreCase("once")) { // scalastyle:ignore
       Trigger.AvailableNow()
     } else {
       Trigger.ProcessingTime(triggerInterval)
