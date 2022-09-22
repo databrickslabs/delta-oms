@@ -245,5 +245,4 @@ trait UtilityOperations extends Serializable with Logging {
       .toSet
   }
 }
-
 object UtilityOperations extends UtilityOperations

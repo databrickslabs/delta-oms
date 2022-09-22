@@ -27,7 +27,7 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
   with BeforeAndAfter with ConfigurationSettings {
 
   test("Command Line Parsing Valid Switches") {
-    val args = Array("--skipPathConfig")
+    val args = Array(OMSCommandLineParser.SKIP_PATH_CONFIG)
     assert(OMSCommandLineParser.parseCommandArgsAndConsolidateOMSConfig(args,
       OMSConfig()) == OMSConfig(skipPathConfig = true))
     assert(OMSCommandLineParser.parseCommandArgsAndConsolidateOMSConfig(args,
@@ -41,14 +41,17 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
   }
 
   test("Command Line Parsing Invalid key/value parameters") {
-    val args = Array("--dbName=abc", "--baseCheckpointLocation=/checkBaseLocation")
+    val args = Array(s"${OMSCommandLineParser.DB_NAME}=abc",
+      "--baseCheckpointLocation=/checkBaseLocation")
     assertThrows[scala.MatchError](OMSCommandLineParser
       .parseCommandArgsAndConsolidateOMSConfig(args, OMSConfig()))
   }
 
   test("Command Line Parsing Valid Key/Value Parameters") {
-    val args = Array("--dbName=abc", "--baseLocation=/sampleBase",
-      "--checkpointBase=/checkBase", "--checkpointSuffix=_checkSuffix_123")
+    val args = Array(s"${OMSCommandLineParser.DB_NAME}=abc",
+      s"${OMSCommandLineParser.BASE_LOCATION}=/sampleBase",
+      s"${OMSCommandLineParser.CHECKPOINT_BASE}=/checkBase",
+      s"${OMSCommandLineParser.CHECKPOINT_SUFFIX}=_checkSuffix_123")
     assert(OMSCommandLineParser.parseCommandArgsAndConsolidateOMSConfig(args, OMSConfig()) ==
       OMSConfig(dbName = Some("abc"), baseLocation = Some("/sampleBase"),
         checkpointBase = Some("/checkBase"), checkpointSuffix = Some("_checkSuffix_123")))
@@ -66,10 +69,15 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
   }
 
   test("Consolidate and Validate Command Line Parsing Valid Parameters") {
-    val argsAll = Array("--dbName=abc", "--baseLocation=/sampleBase",
-      "--checkpointBase=/checkBase", "--checkpointSuffix=_checkSuffix_123",
-      "--skipPathConfig", "--skipInitializeOMS",
-      "--skipWildcardPathsConsolidation", "--startingStream=1", "--endingStream=20")
+    val argsAll = Array(s"${OMSCommandLineParser.DB_NAME}=abc",
+      s"${OMSCommandLineParser.BASE_LOCATION}=/sampleBase",
+      s"${OMSCommandLineParser.CHECKPOINT_BASE}=/checkBase",
+      s"${OMSCommandLineParser.CHECKPOINT_SUFFIX}=_checkSuffix_123",
+      s"${OMSCommandLineParser.SKIP_PATH_CONFIG}",
+      s"${OMSCommandLineParser.SKIP_INITIALIZE_OMS}",
+      s"${OMSCommandLineParser.SKIP_WILDCARD_PATHS_CONSOLIDATION}",
+      s"${OMSCommandLineParser.STARTING_STREAM}=1",
+      s"${OMSCommandLineParser.ENDING_STREAM}=20")
     assert(OMSCommandLineParser.consolidateAndValidateOMSConfig(argsAll, OMSConfig()) ==
       OMSConfig(dbName = Some("abc"), baseLocation = Some("/sampleBase"),
         checkpointBase = Some("/checkBase"), checkpointSuffix = Some("_checkSuffix_123"),
@@ -139,6 +147,7 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
       OMSSparkConf.SRC_DATABASES ->  "sampleBases",
       OMSSparkConf.TABLE_PATTERN ->  "*test*",
       OMSSparkConf.TRIGGER_INTERVAL ->  "30 sec",
+      OMSSparkConf.TRIGGER_MAX_FILES ->  "3000",
       OMSSparkConf.STARTING_STREAM ->  "4",
       OMSSparkConf.ENDING_STREAM ->  "10",
       OMSSparkConf.USE_AUTOLOADER -> "false")
@@ -164,7 +173,8 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
         tablePattern = Some("*test*"),
         triggerInterval = Some("30 sec"),
         startingStream = 4,
-        endingStream = 10
+        endingStream = 10,
+        maxFilesPerTrigger = "3000"
       ))
     }
   }
@@ -219,5 +229,4 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
         omsConfig.copy(dbName = Some("xyz"), baseLocation = Some("/sampleBase")))
     }
   }
-
 }
