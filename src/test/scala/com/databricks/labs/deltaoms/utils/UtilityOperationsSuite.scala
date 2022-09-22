@@ -19,9 +19,10 @@ package com.databricks.labs.deltaoms.utils
 import com.databricks.labs.deltaoms.common.OMSInitializer
 import com.databricks.labs.deltaoms.configuration.ConfigurationSettings
 import com.databricks.labs.deltaoms.model.DatabaseDefinition
+import com.databricks.labs.deltaoms.utils.UtilityOperations.resolveWildCardPath
 import org.scalatest.BeforeAndAfter
 
-import org.apache.spark.sql.{QueryTest, Row}
+import org.apache.spark.sql.QueryTest
 import org.apache.spark.sql.delta.test.DeltaTestSharedSession
 import org.apache.spark.sql.test.SharedSparkSession
 
@@ -52,5 +53,22 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
     val exception = intercept[java.lang.RuntimeException](UtilityOperations.createDatabaseIfAbsent(
       DatabaseDefinition("NonWorkingDB", Some("//testdb/nonworking"))))
     assert(exception.getMessage.contains("Unable to create the Database"))
+  }
+
+  test("Invalid Wild Card Level") {
+    assertThrows[java.lang.AssertionError](
+      resolveWildCardPath("dbfs:/warehouse/deltaoms/table_6", 2))
+    assertThrows[java.lang.AssertionError](
+      resolveWildCardPath("dbfs:/warehouse/deltaoms/table_6", -2))
+  }
+
+  test("Valid Wild Card Level") {
+    val basePath = "dbfs:/warehouse/deltaoms/table_6"
+    assert(resolveWildCardPath(basePath, 1)
+      == "dbfs:/warehouse/*/*/_delta_log/*.json", "WildCard Level = 1")
+    assert(resolveWildCardPath(basePath, 0)
+      == "dbfs:/warehouse/deltaoms/*/_delta_log/*.json", "WildCard Level = 0")
+    assert(resolveWildCardPath(basePath, -1)
+      == "dbfs:/warehouse/deltaoms/table_6/_delta_log/*.json", "WildCard Level = -1")
   }
 }

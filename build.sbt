@@ -103,7 +103,7 @@ lazy val root = (project in file(".")).
     buildInfoPackage := "com.databricks.labs.deltaoms.common",
     assembly / test  := {},
     assembly / assemblyOption := (assembly / assemblyOption).value.copy(includeScala = false),
-    if(buildTarget == "db") {
+    if (buildTarget == "db") {
       assembly / assemblyShadeRules := Seq(
         ShadeRule.rename("org.apache.spark.sql.delta.**" ->
           "com.databricks.sql.transaction.tahoe.@1").inAll

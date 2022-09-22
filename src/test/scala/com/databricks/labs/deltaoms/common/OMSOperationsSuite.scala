@@ -234,5 +234,4 @@ class OMSOperationsSuite extends QueryTest
     assert(wildCardTablePaths.
       contains(SourceConfig("file:/tmp/spark-warehouse/oms.db/oms_default_inbuilt/raw_actions")))
   }
-
 }
