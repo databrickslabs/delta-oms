@@ -11,7 +11,6 @@
  */
 
 val gitUrl = "https://github.com/databrickslabs/delta-oms"
-val buildTarget = System.getProperty("build.target", "db")
 
 inThisBuild(List(
   organization := "com.databricks.labs",
@@ -103,14 +102,10 @@ lazy val root = (project in file(".")).
     buildInfoPackage := "com.databricks.labs.deltaoms.common",
     assembly / test  := {},
     assembly / assemblyOption := (assembly / assemblyOption).value.copy(includeScala = false),
-    if (buildTarget == "db") {
-      assembly / assemblyShadeRules := Seq(
+    assembly / assemblyShadeRules := Seq(
         ShadeRule.rename("org.apache.spark.sql.delta.**" ->
           "com.databricks.sql.transaction.tahoe.@1").inAll
-      )
-    } else {
-      Nil
-    },
+      ),
     assembly / logLevel := Level.Error,
     assembly / artifact := {
       val art = (assembly / artifact).value
@@ -121,14 +116,15 @@ lazy val root = (project in file(".")).
   )
 
 def versionFmt(out: sbtdynver.GitDescribeOutput): String = {
-  if(out.isCleanAfterTag) out.ref.dropPrefix
+  if (out.isCleanAfterTag) out.ref.dropPrefix
   else out.ref.dropPrefix + out.commitSuffix.mkString("-", "+", "") + "-SNAPSHOT"
 }
 
 def fallbackVersion(d: java.util.Date): String = s"HEAD-${sbtdynver.DynVer timestamp d}"
 
 inThisBuild(List(
-  version := dynverGitDescribeOutput.value.mkVersion(versionFmt, fallbackVersion(dynverCurrentDate.value)),
+  version := dynverGitDescribeOutput.value.mkVersion(versionFmt,
+    fallbackVersion(dynverCurrentDate.value)),
   dynver := {
     val d = new java.util.Date
     sbtdynver.DynVer.getGitDescribeOutput(d).mkVersion(versionFmt, fallbackVersion(d))
@@ -138,6 +134,6 @@ inThisBuild(List(
 lazy val distribution = project
   .settings(commonSettings,
     sonatypeProfileName := "com.databricks",
-    Compile / packageBin := (root / assembly).value,
+    Compile / packageBin := (root / assembly).value
   )
 

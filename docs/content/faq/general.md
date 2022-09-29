@@ -52,15 +52,7 @@ manage and use this feature for operational insights on the Delta Lake.
 
 **Q Can I run this solution on non-Databricks environment ?**
 
-To run this solution on a non-Databricks environment :
-- Build the OSS version of the jar using `sbt -Dbuild.target=oss clean compile assembly`
-- Include the jar into the Spark execution enviroment runtime (either `spark-shell` or `spark-submit`. For example : 
-```
-spark-shell --packages "io.delta:delta-core_2.12:2.1.0,com.databricks.labs:delta-oms_2.12:0.x.0" 
---conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" 
---conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog"
-```
-- Setup and execute the Spark jobs as appropriate for your execution environment. Follow [Getting Started]({{%relref "getting_started/_index.md" %}})
+This project is distributed under Databricks license and cannot be used outside of Databricks environment
 
 **Q. How will I be charged ?**
 
