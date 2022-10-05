@@ -29,7 +29,7 @@ This simplifies the process for users looking to gain insights into their Delta 
 **Q. What typical operational insights would I get from the solution ?**
 
 DeltaOMS centralized repository provides interfaces for custom analysis on the Delta Lake 
-operational metrics using tools like Apache Spark, Databricks SQL Analytics etc. 
+operational metrics using tools like Apache Spark, Databricks SQL etc. 
 
 For example, it could answer questions like :
 
@@ -50,15 +50,25 @@ For example, it could answer questions like :
 Data Engineering teams, Data Lake Admins and Operational Analysts would be able to 
 manage and use this feature for operational insights on the Delta Lake. 
 
+**Q Can I run this solution on non-Databricks environment ?**
+
+This project is distributed under Databricks license and cannot be used outside of Databricks environment
+
 **Q. How will I be charged ?**
 
-This solution is fully deployed in the users Databricks environment. The automated jobs for the framework 
-will run on the Databricks environment.Depending on the configuration set by the users 
+This solution is fully deployed in the users Databricks or Spark environment. The jobs for the framework 
+will run on the execution environment.Depending on the configuration set by the users 
 (for example, update frequency of the audit logs, number of databases/delta path enabled, number of transactions ingested etc.), 
 the cost of the automated jobs and associated storage cost will vary. 
 
-We ran few simple benchmarks on a cluster with 12 cores , 90 GB memory (On-Demand pricing) and noticed the following:
+We ran few simple ingestion benchmarks on an AWS based Databricks cluster :
 
-- Initial ingestion and processing of 36,000 Delta transactions took about 12 minutes
-- Subsequently, each 1000 incremental transactions got ingested and processed in about 2 minutes 
-- It costs about $15 for processing 1M transactions
+|                                   | Xtra Small |  Small | Medium |  Large |
+| --------------------------------- |------------|--------|--------|--------|
+| Initial Txns                      | 100000     | 87000  | 76400  | 27500  |
+| Avg Txns Size                     | ~1 Kb      | ~500 Kb| ~1 MB  | ~2.5 MB|
+| Approx Total Txns Size            | ~100 Mb    | ~44 GB | ~76 GB | ~70 GB |
+| Cluster Config<br>*- Workers*<br>*- Driver*<br>*- DB Runtime*| <br>**(5) i3.2xl** - 305 GB Mem , 40 Cores <br>**i3.xl** - 61 GB Mem, 8 Cores <br> **DB Runtime** - 11.2 | <br>**(5) i3.4xl** - 610 GB Mem , 80 Cores <br>**i3.2xl** - 61 GB Mem, 8 Cores <br> **DB Runtime** - 11.2 | <br>**(5) i3.4xl** - 610 GB Mem , 80 Cores <br>**i3.2xl** - 61 GB Mem, 8 Cores <br> **DB Runtime** - 11.2  | <br>**(5) i3.4xl** - 610 GB Mem , 80 Cores <br>**i3.2xl** - 61 GB Mem, 8 Cores <br> **DB Runtime** - 11.2 |
+| Initial Raw Ingestion Time        | ~15  mins      | ~ 50 mins  |  ~ 60 mins |   ~ 40 mins    |
+| Incremental Additional Txns       | 1000       | 1000   | 1000   | 1000   |
+| Incremental Raw Ingestion Time    |   ~ 1 min         |   ~ 2 min      |  ~ 3 min      |   ~ 3 mins     |

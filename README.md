@@ -5,11 +5,11 @@
 
 # Delta Operational Metrics Store (DeltaOMS)
 Delta Operational Metrics Store (DeltaOMS) is a solution that helps to build a 
-centralized repository of operational metrics/statistics for your [Lakehouse](http://cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf) 
+centralized repository of Delta Transaction logs and associated operational metrics/statistics for your [Lakehouse](http://cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf) 
 built on [Delta Lake](https://github.com/delta-io/delta) 
 
 ## Project Overview
-DeltaOMS provides a solution for automatically collecting operational metrics/statistics from Delta 
+DeltaOMS provides a solution for automatically collecting Delta Transaction logs and associated operational metrics/statistics from Delta 
 Lakehouse tables into a separate centralized database. This will enable you to gain centralized access 
 to the operational metrics for your data in near real-time. This centralized data can be utilized
 to gain helpful operational insights, setting up monitoring/alerting and observability for your 

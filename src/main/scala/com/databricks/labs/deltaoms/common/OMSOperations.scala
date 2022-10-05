@@ -164,9 +164,9 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     val readStream = streamTargetAndLog._1
     val targetInfo = streamTargetAndLog._2
     assert(targetInfo.wuid.isDefined, "OMS Readstreams should be associated with WildcardPath")
-    val triggerInterval = triggerIntervalOption.getOrElse("once")
-    val trigger = if (triggerInterval.equalsIgnoreCase("once")) {
-      Trigger.Once()
+    val triggerInterval = triggerIntervalOption.getOrElse("availableNow")
+    val trigger = if (triggerInterval.equalsIgnoreCase("availableNow") || triggerInterval.equalsIgnoreCase("once")) { // scalastyle:ignore
+      Trigger.AvailableNow()
     } else {
       Trigger.ProcessingTime(triggerInterval)
     }
@@ -211,7 +211,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       fetchStreamTargetAndDeltaLogForPath(p,
         config.checkpointBase.get,
         config.checkpointSuffix.get,
-        getRawActionsTablePath(config), config.useAutoloader))
+        getRawActionsTablePath(config), config.useAutoloader, config.maxFilesPerTrigger))
     val logWriteStreamQueries = logReadStreams
       .map(lrs => processDeltaLogStreams(lrs,
         getRawActionsTablePath(config),
@@ -253,14 +253,15 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
 
   def fetchStreamTargetAndDeltaLogForPath(pathInfo: (String, String),
     checkpointBaseDir: String, checkpointSuffix: String, rawActionsTablePath: String,
-    useAutoLoader: Boolean):
+    useAutoLoader: Boolean, maxFilesPerTrigger: String):
   Option[(DataFrame, StreamTargetInfo)] = {
     val wildCardPath = pathInfo._1
     val wuid = pathInfo._2
     val checkpointPath = checkpointBaseDir + "/_oms_checkpoints/raw_actions_" +
       wuid + checkpointSuffix
 
-    val readPathStream = fetchStreamingDeltaLogForPath(wildCardPath, useAutoLoader)
+    val readPathStream = fetchStreamingDeltaLogForPath(wildCardPath, useAutoLoader,
+      maxFilesPerTrigger)
     if(readPathStream.isDefined) {
       Some(readPathStream.get,
         StreamTargetInfo(path = rawActionsTablePath, checkpointPath = checkpointPath,
@@ -270,33 +271,34 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     }
   }
 
-  def fetchStreamingDeltaLogForPath(path: String, useAutoloader: Boolean = true)
+  def fetchStreamingDeltaLogForPath(path: String, useAutoloader: Boolean = true,
+    maxFilesPerTrigger: String = "1024")
   : Option[DataFrame] = {
     val actionSchema: StructType = ScalaReflection.schemaFor[SingleAction].dataType
       .asInstanceOf[StructType]
     val regex_str = "^(.*)\\/_delta_log\\/(.*)\\.json$"
-    val file_modification_time = getFileModificationTimeUDF()
     val deltaLogDFOpt = if (useAutoloader) {
       Some(spark.readStream.format("cloudFiles")
         .option("cloudFiles.format", "json")
+        .option("cloudFiles.maxFilesPerTrigger", maxFilesPerTrigger)
+        .option("cloudFiles.useIncrementalListing", "true")
         .schema(actionSchema)
-        .load(path))
+        .load(path).select("*", "_metadata"))
     } else {
-      getDeltaLogs(actionSchema, path)
+      getDeltaLogs(actionSchema, path, maxFilesPerTrigger)
     }
     if (deltaLogDFOpt.nonEmpty) {
         val deltaLogDF = deltaLogDFOpt.get
+          .withColumn(FILE_NAME, col("_metadata.file_path"))
+          .withColumn(COMMIT_TS, col("_metadata.file_modification_time"))
         Some(deltaLogDF
-          .withColumn(FILE_NAME, input_file_name())
           .withColumn(PATH, regexp_extract(col(s"$FILE_NAME"), regex_str, 1))
           .withColumn(PUID, substring(sha1(col(s"$PATH")), 0, 7))
           .withColumn(COMMIT_VERSION, regexp_extract(col(s"$FILE_NAME"),
             regex_str, 2).cast(LongType))
           .withColumn(UPDATE_TS, lit(Instant.now()))
-          .withColumn("modTs", file_modification_time(col(s"$FILE_NAME")))
-          .withColumn(COMMIT_TS, to_timestamp($"modTs"))
           .withColumn(COMMIT_DATE, to_date(col(s"$COMMIT_TS")))
-          .drop("modTs"))
+          .drop("_metadata"))
       } else {
         None
       }
@@ -503,9 +505,12 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     snapshotInputFiles
   }
 
-  def getDeltaLogs(schema: StructType, path: String): Option[DataFrame] = {
+  def getDeltaLogs(schema: StructType, path: String,
+    maxFilesPerTrigger: String = "1024"): Option[DataFrame] = {
     val deltaLogTry = Try {
-      spark.readStream.schema(schema).json(path)
+      spark.readStream.schema(schema)
+        .option("maxFilesPerTrigger", maxFilesPerTrigger)
+        .json(path).select("*", "_metadata")
     }
     deltaLogTry match {
       case Success(value) => Some(value)

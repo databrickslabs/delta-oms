@@ -171,30 +171,21 @@ trait UtilityOperations extends Serializable with Logging {
     SparkSession.active.sql(s"DROP DATABASE IF EXISTS $dbName CASCADE")
   }
 
-  def getFileModificationTimeUDF(): UserDefinedFunction = {
-    val spark = SparkSession.active
-    val conf = spark.sparkContext.broadcast(
-      new SerializableConfiguration(spark.sessionState.newHadoopConf()))
-
-    udf((filePath: String) => {
-      val p = new Path(filePath)
-      p.getFileSystem(conf.value.value).listStatus(p).map(_.getModificationTime).head / 1000
-    })
+  def resolveWildCardPath(filePath: String, wildCardLevel: Int) : String = {
+    assert(wildCardLevel == -1 || wildCardLevel == 0 || wildCardLevel == 1,
+      "WildCard Level should be -1, 0 or 1")
+    val modifiedPath = if (wildCardLevel == 0) {
+      (filePath.split("/").dropRight(1):+"*")
+    } else if (wildCardLevel == 1) {
+      (filePath.split("/").dropRight(2):+"*":+"*")
+    } else {
+      filePath.split("/")
+    }
+    modifiedPath.mkString("/") + "/_delta_log/*.json"
   }
 
   def getDeltaWildCardPathUDF(): UserDefinedFunction = {
-    udf((filePath: String, wildCardLevel: Int) => {
-      assert(wildCardLevel == -1 || wildCardLevel == 0 || wildCardLevel == 1,
-        "WildCard Level should be -1, 0 or 1")
-      val modifiedPath = if (wildCardLevel == 0) {
-        (filePath.split("/").dropRight(1):+"*")
-      } else if (wildCardLevel == 1) {
-        (filePath.split("/").dropRight(2):+"*":+"*")
-      } else {
-        filePath.split("/")
-      }
-      modifiedPath.mkString("/") + "/_delta_log/*.json"
-    })
+    udf((filePath: String, wildCardLevel: Int) => resolveWildCardPath(filePath, wildCardLevel))
   }
 
   def consolidateWildCardPaths(wildCardPaths: Seq[(String, String)]): Seq[(String, String)] = {
@@ -243,7 +234,7 @@ trait UtilityOperations extends Serializable with Logging {
   }
 
   def recursiveListDeltaTablePaths(path: String, conf: SerializableConfiguration): Set[String] = {
-    implicit def  remoteIteratorToIterator[A](ri: RemoteIterator[A]): Iterator[A] =
+    implicit def remoteIteratorToIterator[A](ri: RemoteIterator[A]): Iterator[A] =
       new Iterator[A] {
         override def hasNext: Boolean = ri.hasNext
         override def next(): A = ri.next()
@@ -256,5 +247,4 @@ trait UtilityOperations extends Serializable with Logging {
       .toSet
   }
 }
-
 object UtilityOperations extends UtilityOperations

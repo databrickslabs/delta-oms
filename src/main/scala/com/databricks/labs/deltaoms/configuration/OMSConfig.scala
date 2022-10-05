@@ -34,5 +34,6 @@ case class OMSConfig(baseLocation: Option[String] = None,
   srcDatabases: Option[String] = None,
   tablePattern: Option[String] = None,
   triggerInterval: Option[String] = None,
+  maxFilesPerTrigger : String = "1024",
   startingStream: Int = 1,
   endingStream: Int = 50)
