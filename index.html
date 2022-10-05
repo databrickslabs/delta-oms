@@ -7,17 +7,17 @@
 <meta name=author content="Himanish Kushary (Databricks)">
 <link rel=icon href=https://databrickslabs.github.io/delta-oms/images/favicon.png type=image/png>
 <title>Delta Operational Metrics Store (DeltaOMS) :: Delta Operational Metrics Store (DeltaOMS)</title>
-<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1637347686 rel=stylesheet>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1637347686></script>
+<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1664981959 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1664981959 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1664981959 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1664981959 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1664981959 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1664981959 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1664981959 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1664981959 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1664981959 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1664981959 rel=stylesheet>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1664981959></script>
 <style>:root #header+#content>#left>#rlblock_left{display:none!important}</style>
 <script async defer src=https://buttons.github.io/buttons.js></script>
 </head>
@@ -34,10 +34,10 @@
 <input data-search-input id=search-by type=search placeholder=Search...>
 <span data-search-clear><i class="fas fa-times"></i></span>
 </div>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1637347686></script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1637347686></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1664981959></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1664981959></script>
 <script type=text/javascript>var baseurl="https://databrickslabs.github.io/delta-oms/"</script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1637347686></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1664981959></script>
 </div>
 <section id=homelinks>
 <ul>
@@ -157,13 +157,15 @@ Contributing
 </span>
 <h1 id=delta-operational-metrics-store-deltaoms>Delta Operational Metrics Store (DeltaOMS)</h1>
 <p>Delta Operational Metrics Store (DeltaOMS) is a solution that helps to build a
-centralized repository of operational metrics/statistics for your <a href=http://cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf>Lakehouse</a>
+centralized repository of Delta Transaction logs and associated
+operational metrics/statistics for your <a href=http://cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf>Lakehouse</a>
 built on <a href=https://github.com/delta-io/delta>Delta Lake</a></p>
 <h2 id=project-overview>Project Overview</h2>
-<p>DeltaOMS provides a solution for automatically collecting operational metrics/statistics from Delta
-Lakehouse tables into a separate centralized database. This will enable you to gain centralized access
-to the operational metrics for your data in near real-time. This centralized data can be utilized
-to gain helpful operational insights, setting up monitoring/alerting and observability for your
+<p>DeltaOMS provides a solution for automatically collecting Delta Transaction logs and associated
+operational metrics/statistics from Delta Lakehouse tables into a separate centralized database.
+This will enable you to gain centralized access to the Delta log metadata (like file size, file statistics)
+and operational metrics for your data in near real-time.</p>
+<p>This centralized data can be utilized to gain helpful operational insights, setting up monitoring/alerting and observability for your
 Delta Lakehouse ETL Pipelines. It could also help you to identify trends based on data characteristics,
 improve ETL pipeline performance, provide capabilities for auditing and traceability of your Delta Lake data etc.</p>
 <p>Few examples of how you could use the centralized operational metrics/statistics collated by DeltaOMS :</p>
@@ -192,8 +194,8 @@ your environment to create a centralized operational metrics database, capture m
 make it available for analytics.</p>
 <h2 id=how-much-does-it-cost->How much does it cost ?</h2>
 <p>DeltaOMS does not have any <strong>direct cost</strong> associated with it other than the cost to run the jobs
-on your environment.The overall cost will be determined primarily by the number of Delta Lakehouse
-objects tracked and frequency of the OMS data refresh.
+on your environment.The overall cost will be determined primarily by the scale of Delta Lakehouse
+objects (Delta transaction log files) tracked and frequency of the OMS data refresh.
 We have found that the additional insights gained from DeltaOMS helps reduce the total cost of
 ownership through better management and optimization of your data pipelines while providing much
 improved view on the operational metrics and statistics for the Delta Lakehouse.</p>
@@ -240,17 +242,17 @@ They will be reviewed as time permits, but there are no formal SLAs for support.
 <div style=left:-1000px;overflow:scroll;position:absolute;top:-1000px;border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px>
 <div style=border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px></div>
 </div>
-<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1637347686></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1664981959></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1664981959></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1664981959></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1664981959></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1664981959></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1664981959></script>
 <script>hljs.initHighlightingOnLoad()</script>
-<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1637347686></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1664981959></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1664981959></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1664981959></script>
+<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1664981959></script>
 <script>mermaid.initialize({startOnLoad:!0})</script>
 </body>
 </html>

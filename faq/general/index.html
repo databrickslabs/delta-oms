@@ -7,17 +7,17 @@
 <meta name=author content="Himanish Kushary (Databricks)">
 <link rel=icon href=https://databrickslabs.github.io/delta-oms/images/favicon.png type=image/png>
 <title>General :: Delta Operational Metrics Store (DeltaOMS)</title>
-<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1637347686 rel=stylesheet>
-<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1637347686 rel=stylesheet>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1637347686></script>
+<link href=https://databrickslabs.github.io/delta-oms/css/nucleus.css?1664981958 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/fontawesome-all.min.css?1664981958 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hybrid.css?1664981958 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/featherlight.min.css?1664981958 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/perfect-scrollbar.min.css?1664981958 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/auto-complete.css?1664981958 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/atom-one-dark-reasonable.css?1664981958 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/theme.css?1664981958 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/tabs.css?1664981958 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/css/hugo-theme.css?1664981958 rel=stylesheet>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery-3.3.1.min.js?1664981958></script>
 <style>:root #header+#content>#left>#rlblock_left{display:none!important}</style>
 <script async defer src=https://buttons.github.io/buttons.js></script>
 </head>
@@ -34,10 +34,10 @@
 <input data-search-input id=search-by type=search placeholder=Search...>
 <span data-search-clear><i class="fas fa-times"></i></span>
 </div>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1637347686></script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1637347686></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/lunr.min.js?1664981958></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/auto-complete.js?1664981958></script>
 <script type=text/javascript>var baseurl="https://databrickslabs.github.io/delta-oms/"</script>
-<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1637347686></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/js/search.js?1664981958></script>
 </div>
 <section id=homelinks>
 <ul>
@@ -194,7 +194,7 @@ a single pane of glass dashboard for typical operational analytics.
 This simplifies the process for users looking to gain insights into their Delta Lakehouse table operations.</p>
 <p><strong>Q. What typical operational insights would I get from the solution ?</strong></p>
 <p>DeltaOMS centralized repository provides interfaces for custom analysis on the Delta Lake
-operational metrics using tools like Apache Spark, Databricks SQL Analytics etc.</p>
+operational metrics using tools like Apache Spark, Databricks SQL etc.</p>
 <p>For example, it could answer questions like :</p>
 <ul>
 <li>What are the most frequent WRITE operations across my data lake ?</li>
@@ -212,17 +212,76 @@ operational metrics using tools like Apache Spark, Databricks SQL Analytics etc.
 <p><strong>Q. Who should use this feature ?</strong></p>
 <p>Data Engineering teams, Data Lake Admins and Operational Analysts would be able to
 manage and use this feature for operational insights on the Delta Lake.</p>
+<p><strong>Q Can I run this solution on non-Databricks environment ?</strong></p>
+<p>This project is distributed under Databricks license and cannot be used outside of Databricks environment</p>
 <p><strong>Q. How will I be charged ?</strong></p>
-<p>This solution is fully deployed in the users Databricks environment. The automated jobs for the framework
-will run on the Databricks environment.Depending on the configuration set by the users
+<p>This solution is fully deployed in the users Databricks or Spark environment. The jobs for the framework
+will run on the execution environment.Depending on the configuration set by the users
 (for example, update frequency of the audit logs, number of databases/delta path enabled, number of transactions ingested etc.),
 the cost of the automated jobs and associated storage cost will vary.</p>
-<p>We ran few simple benchmarks on a cluster with 12 cores , 90 GB memory (On-Demand pricing) and noticed the following:</p>
-<ul>
-<li>Initial ingestion and processing of 36,000 Delta transactions took about 12 minutes</li>
-<li>Subsequently, each 1000 incremental transactions got ingested and processed in about 2 minutes</li>
-<li>It costs about $15 for processing 1M transactions</li>
-</ul>
+<p>We ran few simple ingestion benchmarks on an AWS based Databricks cluster :</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Xtra Small</th>
+<th>Small</th>
+<th>Medium</th>
+<th>Large</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Initial Txns</td>
+<td>100000</td>
+<td>87000</td>
+<td>76400</td>
+<td>27500</td>
+</tr>
+<tr>
+<td>Avg Txns Size</td>
+<td>~1 Kb</td>
+<td>~500 Kb</td>
+<td>~1 MB</td>
+<td>~2.5 MB</td>
+</tr>
+<tr>
+<td>Approx Total Txns Size</td>
+<td>~100 Mb</td>
+<td>~44 GB</td>
+<td>~76 GB</td>
+<td>~70 GB</td>
+</tr>
+<tr>
+<td>Cluster Config<em>- Workers</em><em>- Driver</em><em>- DB Runtime</em></td>
+<td><strong>(5) i3.2xl</strong> - 305 GB Mem , 40 Cores <strong>i3.xl</strong> - 61 GB Mem, 8 Cores <strong>DB Runtime</strong> - 11.2</td>
+<td><strong>(5) i3.4xl</strong> - 610 GB Mem , 80 Cores <strong>i3.2xl</strong> - 61 GB Mem, 8 Cores <strong>DB Runtime</strong> - 11.2</td>
+<td><strong>(5) i3.4xl</strong> - 610 GB Mem , 80 Cores <strong>i3.2xl</strong> - 61 GB Mem, 8 Cores <strong>DB Runtime</strong> - 11.2</td>
+<td><strong>(5) i3.4xl</strong> - 610 GB Mem , 80 Cores <strong>i3.2xl</strong> - 61 GB Mem, 8 Cores <strong>DB Runtime</strong> - 11.2</td>
+</tr>
+<tr>
+<td>Initial Raw Ingestion Time</td>
+<td>~15 mins</td>
+<td>~ 50 mins</td>
+<td>~ 60 mins</td>
+<td>~ 40 mins</td>
+</tr>
+<tr>
+<td>Incremental Additional Txns</td>
+<td>1000</td>
+<td>1000</td>
+<td>1000</td>
+<td>1000</td>
+</tr>
+<tr>
+<td>Incremental Raw Ingestion Time</td>
+<td>~ 1 min</td>
+<td>~ 2 min</td>
+<td>~ 3 min</td>
+<td>~ 3 mins</td>
+</tr>
+</tbody>
+</table>
 <footer class=footline>
 </footer>
 </div>
@@ -235,17 +294,17 @@ the cost of the automated jobs and associated storage cost will vary.</p>
 <div style=left:-1000px;overflow:scroll;position:absolute;top:-1000px;border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px>
 <div style=border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px></div>
 </div>
-<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1637347686></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/clipboard.min.js?1664981958></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.min.js?1664981958></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/perfect-scrollbar.jquery.min.js?1664981958></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/jquery.sticky.js?1664981958></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/featherlight.min.js?1664981958></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/highlight.pack.js?1664981958></script>
 <script>hljs.initHighlightingOnLoad()</script>
-<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1637347686></script>
-<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1637347686></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/modernizr.custom-3.6.0.js?1664981958></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/learn.js?1664981958></script>
+<script src=https://databrickslabs.github.io/delta-oms/js/hugo-learn.js?1664981958></script>
+<script src=https://databrickslabs.github.io/delta-oms/mermaid/mermaid.js?1664981958></script>
 <script>mermaid.initialize({startOnLoad:!0})</script>
 </body>
 </html>
