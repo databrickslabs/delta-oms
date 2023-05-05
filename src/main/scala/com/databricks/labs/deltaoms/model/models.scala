@@ -45,7 +45,9 @@ case class ProcessedHistory(tableName: String, lastVersion: Long,
 
 case class TableDefinition(
   tableName: String,
-  databaseName: String = "default",
+  schemaName: String,
+  catalogName: String,
+  qualifiedSchemaName: String,
   schema: StructType,
   path: String,
   comment: Option[String] = None,
@@ -55,11 +57,28 @@ case class TableDefinition(
   assert(path.nonEmpty & tableName.nonEmpty, "Table Name and Path is required")
 }
 
-case class DatabaseDefinition(databaseName: String,
-  location: Option[String],
+case class ExternalLocationDefinition(locationName: String,
+  locationUrl: String,
+  storageCredentialName: String,
+  comment: Option[String] = None) {
+  assert(locationName.nonEmpty, "Location Name is required")
+  assert(locationUrl.nonEmpty, "Location URL is required")
+  assert(storageCredentialName.nonEmpty, "Storage Credential Name is required")
+}
+
+case class CatalogDefinition(catalogName: String,
+  locationUrl: Option[String],
+  comment: Option[String] = None) {
+  assert(catalogName.nonEmpty, "Catalog Name is required")
+}
+
+case class SchemaDefinition(catalogName: String,
+  schemaName: String,
+  qualifiedSchemaName: String,
+  locationUrl: Option[String],
   comment: Option[String] = None,
   properties: Map[String, String] = Map.empty) {
-  assert(databaseName.nonEmpty, "Database Name is required")
+  assert(schemaName.nonEmpty, "Schema Name is required")
 }
 
 case class StreamTargetInfo(path: String, checkpointPath: String,

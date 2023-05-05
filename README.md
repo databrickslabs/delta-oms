@@ -63,11 +63,14 @@ DeltaOMS [documentation](https://databrickslabs.github.io/delta-oms/)
 Refer to the  [Getting Started](https://databrickslabs.github.io/delta-oms/getting_started/) guide
 
 ## Building the Project
-DeltaOMS uses `sbt` as the build tool. Following are the high level building steps:
+DeltaOMS uses `sbt` as the build tool. Following are the high level building and testing steps:
 
 - `git clone` the repo to a local directory
-- Execute `sbt clean compile test` to compile and test the code
+- Execute `sbt clean compile test` to compile and test the entire code
+- Run specific Test suite `sbt 'testOnly *OMSInitializerSuite'`
+- Run specific test case `sbt 'testOnly *OMSInitializerSuite -- -z "Initialize OMS Database and tables"'`
 - Build the jar using `sbt clean compile assembly`
+- Generate coverage report `sbt clean coverage test coverageReport`
 - Refer to the [build.sbt](./build.sbt) for library dependencies
 
 ## Deploying / Installing / Using the Project

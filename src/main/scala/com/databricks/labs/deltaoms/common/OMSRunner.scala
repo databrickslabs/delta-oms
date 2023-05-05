@@ -67,27 +67,52 @@ trait OMSRunner extends Serializable
 
   scala.util.control.Exception.ignoring(classOf[Throwable]) { setTrackingHeader() }
 
-  def consolidateAndValidateOMSConfig(args: Array[String], config: OMSConfig): OMSConfig
+  def validateOMSConfig(config: OMSConfig): OMSConfig
 
   def fetchConsolidatedOMSConfig(args: Array[String]) : OMSConfig = {
-    val sparkOMSConfig = consolidateOMSConfigFromSparkConf(omsConfig)
-    consolidateAndValidateOMSConfig(args, sparkOMSConfig)
+    validateOMSConfig(OMSSparkConf.consolidateOMSConfigFromSparkConf(omsConfig))
   }
+}
 
-  def consolidateOMSConfigFromSparkConf(config: OMSConfig): OMSConfig = {
-    OMSSparkConf.consolidateOMSConfigFromSparkConf(config)
+private object ValidationUtils {
+  def validateOMSConfig(omsConfig: OMSConfig, isBatch: Boolean = true): Unit = {
+    assert(omsConfig.locationUrl.isDefined,
+      "Mandatory configuration OMS Location URL missing. " +
+        "Provide through Command line argument --locationUrl")
+    assert(omsConfig.locationName.isDefined,
+      "Mandatory configuration OMS Location Name missing. " +
+        "Provide through Command line argument --locationName")
+    assert(omsConfig.storageCredentialName.isDefined,
+      "Mandatory configuration OMS Storage Credential Name missing. " +
+        "Provide through Command line argument --locationName")
+    assert(omsConfig.catalogName.isDefined,
+      "Mandatory configuration OMS Catalog Name missing. " +
+        "Provide through Command line argument --catalogName")
+    assert(omsConfig.schemaName.isDefined,
+      "Mandatory configuration OMS Schema Name missing. " +
+        "Provide through Command line argument --schemaName")
+    if(!isBatch) {
+      assert(omsConfig.checkpointBase.isDefined,
+        "Mandatory configuration OMS Checkpoint Base Location missing. " +
+          "Provide through Command line argument --checkpointBase")
+      assert(omsConfig.checkpointSuffix.isDefined,
+        "Mandatory configuration OMS Checkpoint Suffix missing. " +
+          "Provide through Command line argument --checkpointSuffix")
+    }
   }
 }
 
 trait BatchOMSRunner extends OMSRunner {
-  def consolidateAndValidateOMSConfig(args: Array[String], config: OMSConfig): OMSConfig = {
-    OMSCommandLineParser.consolidateAndValidateOMSConfig(args, omsConfig)
+  def validateOMSConfig(config: OMSConfig): OMSConfig = {
+    ValidationUtils.validateOMSConfig(omsConfig)
+    config
   }
 }
 
-trait StreamOMSRunner extends OMSRunner{
-  def consolidateAndValidateOMSConfig(args: Array[String], config: OMSConfig): OMSConfig = {
-    OMSCommandLineParser.consolidateAndValidateOMSConfig(args, omsConfig, isBatch = false)
+trait StreamOMSRunner extends OMSRunner {
+  def validateOMSConfig(config: OMSConfig): OMSConfig = {
+    ValidationUtils.validateOMSConfig(omsConfig, isBatch = false)
+    config
   }
 }
 

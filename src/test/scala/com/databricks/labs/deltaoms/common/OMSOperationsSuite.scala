@@ -60,11 +60,11 @@ class OMSOperationsSuite extends QueryTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    initializeOMS(omsConfig, dropAndRecreate = true)
+    initializeOMS(omsConfig, dropAndRecreate = true, ucEnabled = false)
     createMockDatabaseAndTables(mockTables)
-    spark.sql(s"INSERT INTO ${omsConfig.dbName.get}.${omsConfig.sourceConfigTable} " +
+    spark.sql(s"INSERT INTO ${omsConfig.schemaName.get}.${omsConfig.sourceConfigTable} " +
       s"VALUES('$db1Name', false, Map('wildCardLevel','0'))")
-    spark.sql(s"INSERT INTO ${omsConfig.dbName.get}.${omsConfig.sourceConfigTable} " +
+    spark.sql(s"INSERT INTO ${omsConfig.schemaName.get}.${omsConfig.sourceConfigTable} " +
       s"VALUES('$db2Name', false, Map('wildCardLevel','0'))")
     updateOMSPathConfigFromSourceConfig(omsConfig)
   }
@@ -72,7 +72,7 @@ class OMSOperationsSuite extends QueryTest
   override def afterAll(): Unit = {
     try {
       cleanupDatabases(mockTables)
-      cleanupOMS(omsConfig)
+      cleanupOMS(omsConfig, ucEnabled = false)
     } finally {
       super.afterAll()
     }
@@ -87,7 +87,7 @@ class OMSOperationsSuite extends QueryTest
 
   test("OMS Source Configured") {
     val sourcePaths = spark.sql(
-      s"SELECT path FROM ${omsConfig.dbName.get}.${omsConfig.sourceConfigTable}")
+      s"SELECT path FROM ${omsConfig.schemaName.get}.${omsConfig.sourceConfigTable}")
     checkDatasetUnorderly(sourcePaths.as[String], db1Name, db2Name)
   }
 
@@ -99,7 +99,7 @@ class OMSOperationsSuite extends QueryTest
 
   test("updateOMSPathConfigFromSourceConfig") {
     updateOMSPathConfigFromSourceConfig(omsConfig)
-    val pathConfigTable = s"${omsConfig.dbName.get}.${omsConfig.pathConfigTable}"
+    val pathConfigTable = s"${omsConfig.schemaName.get}.${omsConfig.pathConfigTable}"
     checkAnswer(spark.sql(s"SELECT count(*) FROM $pathConfigTable"), Row(3))
     checkAnswer(spark.sql(s"SELECT count(distinct ${Utils.WUID}) FROM $pathConfigTable"), Row(2))
     checkAnswer(spark.sql(s"SELECT count(distinct ${Utils.PUID}) FROM $pathConfigTable"), Row(3))
@@ -112,7 +112,7 @@ class OMSOperationsSuite extends QueryTest
     val configuredSources: Array[SourceConfig] = fetchSourceConfigForProcessing(omsConfig)
     updateOMSPathConfigFromList(configuredSources.toSeq,
       getPathConfigTablePath(omsConfig), truncate = true)
-    val pathConfigTable = s"${omsConfig.dbName.get}.${omsConfig.pathConfigTable}"
+    val pathConfigTable = s"${omsConfig.schemaName.get}.${omsConfig.pathConfigTable}"
     checkAnswer(spark.sql(s"SELECT count(*) FROM $pathConfigTable"), Row(3))
     checkAnswer(spark.sql(s"SELECT count(distinct ${Utils.WUID}) FROM $pathConfigTable"), Row(2))
     checkAnswer(spark.sql(s"SELECT count(distinct ${Utils.PUID}) FROM $pathConfigTable"), Row(3))
@@ -203,7 +203,7 @@ class OMSOperationsSuite extends QueryTest
   }
 
   test("updateOMSPathConfigFromMetaStore") {
-    val pathConfigTable = s"${omsConfig.dbName.get}.${omsConfig.pathConfigTable}"
+    val pathConfigTable = s"${omsConfig.schemaName.get}.${omsConfig.pathConfigTable}"
     checkAnswer(spark.sql(s"SELECT count(*) FROM $pathConfigTable"), Row(3))
     updateOMSPathConfigFromMetaStore(omsConfig)
     checkAnswer(spark.sql(s"SELECT count(*) FROM $pathConfigTable"), Row(12))

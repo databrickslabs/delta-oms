@@ -17,101 +17,156 @@
 package com.databricks.labs.deltaoms.common
 
 import com.databricks.labs.deltaoms.configuration.{OMSConfig, SparkSettings}
-// TODO - Modify as per suggestion here :
-//  https://github.com/databrickslabs/delta-oms/pull/17#discussion_r721681401
-trait OMSSparkConf extends Serializable with SparkSettings {
+import com.databricks.labs.deltaoms.common.OMSSparkConfUtils.{buildConfKey, getSparkConf}
 
-  def buildConfKey(key: String): String = s"databricks.labs.deltaoms.${key}"
+private object OMSSparkConfUtils extends SparkSettings {
+  def buildConfKey(key: String): String = s"databricks.labs.deltaoms.$key"
 
+  def getSparkConf[T](confKey: String): Option[String] = {
+    spark.conf.getOption(confKey)
+  }
+}
+
+case class WithSparkConf[T](value: T, sparkConfigName: String, is_required: Boolean = false)
+
+case class OMSSparkConfig(
   // Mandatory Configurations
-  val BASE_LOCATION = buildConfKey("base.location")
-  val DB_NAME = buildConfKey("db.name")
-  val CHECKPOINT_BASE = buildConfKey("checkpoint.base")
-  val CHECKPOINT_SUFFIX = buildConfKey("checkpoint.suffix")
+  locationUrl: WithSparkConf[Option[String]] = WithSparkConf(None,
+    buildConfKey("location.url"), is_required = true),
+  locationName: WithSparkConf[Option[String]] = WithSparkConf(None,
+    buildConfKey("location.name"), is_required = true),
+  storageCredentialName: WithSparkConf[Option[String]] = WithSparkConf(None,
+    buildConfKey("storage.credential.name"), is_required = true),
+  catalogName: WithSparkConf[Option[String]] = WithSparkConf(None,
+    buildConfKey("catalog.name"), is_required = true),
+  schemaName: WithSparkConf[Option[String]] = WithSparkConf(None,
+    buildConfKey("schema.name"), is_required = true),
+  checkpointBase: WithSparkConf[Option[String]] = WithSparkConf(None,
+    buildConfKey("checkpoint.base"), is_required = true),
+  checkpointSuffix: WithSparkConf[Option[String]] = WithSparkConf(None,
+    buildConfKey("checkpoint.suffix"), is_required = true),
 
   // Optional Configuration
-  val RAW_ACTION_TABLE = buildConfKey("raw.action.table")
-  val SOURCE_CONFIG_TABLE = buildConfKey("source.config.table")
-  val PATH_CONFIG_TABLE = buildConfKey("path.config.table")
-  val PROCESSED_HISTORY_TABLE = buildConfKey("processed.history.table")
-  val COMMITINFO_SNAPSHOT_TABLE = buildConfKey("commitinfo.snapshot.table")
-  val ACTION_SNAPSHOT_TABLE = buildConfKey("action.snapshot.table")
-  val CONSOLIDATE_WILDCARD_PATHS = buildConfKey("consolidate.wildcard.paths")
-  val TRUNCATE_PATH_CONFIG = buildConfKey("truncate.path.config")
-  val SKIP_PATH_CONFIG = buildConfKey("skip.path.config")
-  val SKIP_INITIALIZE = buildConfKey("skip.initialize")
-  val SRC_DATABASES = buildConfKey("src.databases")
-  val TABLE_PATTERN = buildConfKey("table.pattern")
-  val TRIGGER_INTERVAL = buildConfKey("trigger.interval")
-  val TRIGGER_MAX_FILES = buildConfKey("trigger.max.files")
-  val STARTING_STREAM = buildConfKey("starting.stream")
-  val ENDING_STREAM = buildConfKey("ending.stream")
-  val USE_AUTOLOADER = buildConfKey("use.autoloader")
+  rawActionTable: WithSparkConf[String] = WithSparkConf("rawactions",
+    buildConfKey("raw.action.table")),
+  sourceConfigTable: WithSparkConf[String] = WithSparkConf("sourceconfig",
+    buildConfKey("source.config.table")),
+  pathConfigTable: WithSparkConf[String] = WithSparkConf("pathconfig",
+    buildConfKey("path.config.table")),
+  processedHistoryTable: WithSparkConf[String] = WithSparkConf("processedhistory",
+    buildConfKey("processed.history.table")),
+  commitInfoSnapshotTable: WithSparkConf[String] = WithSparkConf("commitinfosnapshots",
+    buildConfKey("commitinfo.snapshot.table")),
+  actionSnapshotTable: WithSparkConf[String] = WithSparkConf("actionsnapshots",
+    buildConfKey("action.snapshot.table")),
+  consolidateWildcardPaths: WithSparkConf[Boolean] = WithSparkConf(true,
+    buildConfKey("consolidate.wildcard.paths")),
+  truncatePathConfig: WithSparkConf[Boolean] = WithSparkConf(false,
+    buildConfKey("truncate.path.config")),
+  skipPathConfig: WithSparkConf[Boolean] = WithSparkConf(false,
+    buildConfKey("skip.path.config")),
+  skipInitializeOMS: WithSparkConf[Boolean] = WithSparkConf(false,
+    buildConfKey("skip.initialize")),
+  useAutoloader: WithSparkConf[Boolean] = WithSparkConf(false,
+    buildConfKey("use.autoloader")),
+  srcDatabases: WithSparkConf[Option[String]] = WithSparkConf(None,
+    buildConfKey("src.databases")),
+  tablePattern: WithSparkConf[Option[String]] = WithSparkConf(None,
+    buildConfKey("table.pattern")),
+  maxFilesPerTrigger: WithSparkConf[Option[String]] = WithSparkConf(None,
+    buildConfKey("trigger.max.files")),
+  triggerInterval: WithSparkConf[Option[String]] = WithSparkConf(None,
+    buildConfKey("trigger.interval")),
+  startingStream: WithSparkConf[Int] = WithSparkConf(1,
+    buildConfKey("starting.stream")),
+  endingStream: WithSparkConf[Int] = WithSparkConf(50,
+    buildConfKey("ending.stream")))
 
+trait OMSSparkConf extends Serializable with SparkSettings {
 
-  val configFields = Seq(BASE_LOCATION, DB_NAME, CHECKPOINT_BASE, CHECKPOINT_SUFFIX,
-    RAW_ACTION_TABLE, SOURCE_CONFIG_TABLE, PATH_CONFIG_TABLE, PROCESSED_HISTORY_TABLE,
-    COMMITINFO_SNAPSHOT_TABLE, ACTION_SNAPSHOT_TABLE, CONSOLIDATE_WILDCARD_PATHS,
-    TRUNCATE_PATH_CONFIG, SKIP_PATH_CONFIG, SKIP_INITIALIZE, SRC_DATABASES,
-    TABLE_PATTERN, TRIGGER_INTERVAL, STARTING_STREAM, ENDING_STREAM, USE_AUTOLOADER,
-    TRIGGER_MAX_FILES)
+  // Mandatory Configurations
+  val LOCATION_URL: String = buildConfKey("location.url")
+  val LOCATION_NAME: String = buildConfKey("location.name")
+  val STORAGE_CREDENTIAL_NAME: String = buildConfKey("storage.credential.name")
+  val CATALOG_NAME: String = buildConfKey("catalog.name")
+  val SCHEMA_NAME: String = buildConfKey("schema.name")
+  val CHECKPOINT_BASE: String = buildConfKey("checkpoint.base")
+  val CHECKPOINT_SUFFIX: String = buildConfKey("checkpoint.suffix")
+
+  // Optional Configuration
+  val RAW_ACTION_TABLE: String = buildConfKey("raw.action.table")
+  val SOURCE_CONFIG_TABLE: String = buildConfKey("source.config.table")
+  val PATH_CONFIG_TABLE: String = buildConfKey("path.config.table")
+  val PROCESSED_HISTORY_TABLE: String = buildConfKey("processed.history.table")
+  val COMMITINFO_SNAPSHOT_TABLE: String = buildConfKey("commitinfo.snapshot.table")
+  val ACTION_SNAPSHOT_TABLE: String = buildConfKey("action.snapshot.table")
+  val CONSOLIDATE_WILDCARD_PATHS: String = buildConfKey("consolidate.wildcard.paths")
+  val TRUNCATE_PATH_CONFIG: String = buildConfKey("truncate.path.config")
+  val SKIP_PATH_CONFIG: String = buildConfKey("skip.path.config")
+  val SKIP_INITIALIZE: String = buildConfKey("skip.initialize")
+  val USE_AUTOLOADER: String = buildConfKey("use.autoloader")
+  val SRC_DATABASES: String = buildConfKey("src.databases")
+  val TABLE_PATTERN: String = buildConfKey("table.pattern")
+  val TRIGGER_MAX_FILES: String = buildConfKey("trigger.max.files")
+  val TRIGGER_INTERVAL: String = buildConfKey("trigger.interval")
+  val STARTING_STREAM: String = buildConfKey("starting.stream")
+  val ENDING_STREAM: String = buildConfKey("ending.stream")
+
 
   def consolidateOMSConfigFromSparkConf(config: OMSConfig): OMSConfig = {
-    configFields.foldLeft(config) {
-      (omsSparkConfig, configValue) => {
-        configValue match {
-          case BASE_LOCATION => spark.conf.getOption(BASE_LOCATION).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(baseLocation = Some(scv))}
-          case DB_NAME => spark.conf.getOption(DB_NAME).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(dbName = Some(scv))}
-          case CHECKPOINT_BASE => spark.conf.getOption(CHECKPOINT_BASE).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(checkpointBase = Some(scv))}
-          case CHECKPOINT_SUFFIX => spark.conf.getOption(CHECKPOINT_SUFFIX).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(checkpointSuffix = Some(scv))}
-          case RAW_ACTION_TABLE => spark.conf.getOption(RAW_ACTION_TABLE).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(rawActionTable = scv)}
-          case SOURCE_CONFIG_TABLE => spark.conf.getOption(SOURCE_CONFIG_TABLE).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(sourceConfigTable = scv)}
-          case PATH_CONFIG_TABLE => spark.conf.getOption(PATH_CONFIG_TABLE).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(pathConfigTable = scv)}
-          case PROCESSED_HISTORY_TABLE => spark.conf.getOption(PROCESSED_HISTORY_TABLE).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(processedHistoryTable = scv)}
-          case COMMITINFO_SNAPSHOT_TABLE => spark.conf.getOption(COMMITINFO_SNAPSHOT_TABLE).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(commitInfoSnapshotTable = scv)}
-          case ACTION_SNAPSHOT_TABLE => spark.conf.getOption(ACTION_SNAPSHOT_TABLE).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(actionSnapshotTable = scv)}
-          case CONSOLIDATE_WILDCARD_PATHS => spark.conf.getOption(CONSOLIDATE_WILDCARD_PATHS).
-            fold(omsSparkConfig) {
-              scv => omsSparkConfig.copy(consolidateWildcardPaths = scv.toBoolean)}
-          case TRUNCATE_PATH_CONFIG => spark.conf.getOption(TRUNCATE_PATH_CONFIG).
-            fold(omsSparkConfig) {
-              scv => omsSparkConfig.copy(truncatePathConfig = scv.toBoolean)}
-          case SKIP_PATH_CONFIG => spark.conf.getOption(SKIP_PATH_CONFIG).
-            fold(omsSparkConfig) {
-              scv => omsSparkConfig.copy(skipPathConfig = scv.toBoolean)}
-          case SKIP_INITIALIZE => spark.conf.getOption(SKIP_INITIALIZE).
-            fold(omsSparkConfig) {
-              scv => omsSparkConfig.copy(skipInitializeOMS = scv.toBoolean)}
-          case SRC_DATABASES => spark.conf.getOption(SRC_DATABASES).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(srcDatabases = Some(scv))}
-          case TABLE_PATTERN => spark.conf.getOption(TABLE_PATTERN).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(tablePattern = Some(scv))}
-          case TRIGGER_INTERVAL => spark.conf.getOption(TRIGGER_INTERVAL).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(triggerInterval = Some(scv))}
-          case STARTING_STREAM => spark.conf.getOption(STARTING_STREAM).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(startingStream = scv.toInt)}
-          case ENDING_STREAM => spark.conf.getOption(ENDING_STREAM).
-            fold(omsSparkConfig) { scv => omsSparkConfig.copy(endingStream = scv.toInt)}
-          case USE_AUTOLOADER => spark.conf.getOption(USE_AUTOLOADER).
-            fold(omsSparkConfig) {
-              scv => omsSparkConfig.copy(useAutoloader = scv.toBoolean)}
-          case TRIGGER_MAX_FILES => spark.conf.getOption(TRIGGER_MAX_FILES).
-            fold(omsSparkConfig) {
-              scv => omsSparkConfig.copy(maxFilesPerTrigger = scv)}
-        }
+    val sparkOmsConfMap = OMSSparkConfig()
+    OMSConfig(
+      locationUrl = getSparkConf(sparkOmsConfMap.locationUrl.sparkConfigName)
+        .fold(config.locationUrl) {Some(_)},
+      locationName = getSparkConf(sparkOmsConfMap.locationName.sparkConfigName)
+        .fold(config.locationName) {Some(_)},
+      storageCredentialName = getSparkConf(sparkOmsConfMap.storageCredentialName.sparkConfigName)
+        .fold(config.storageCredentialName) {Some(_)},
+      catalogName = getSparkConf(sparkOmsConfMap.catalogName.sparkConfigName)
+        .fold(config.catalogName) {Some(_)},
+      schemaName = getSparkConf(sparkOmsConfMap.schemaName.sparkConfigName)
+        .fold(config.schemaName) {Some(_)},
+      checkpointBase = getSparkConf(sparkOmsConfMap.checkpointBase.sparkConfigName)
+        .fold(config.checkpointBase) {Some(_)},
+      checkpointSuffix = getSparkConf(sparkOmsConfMap.checkpointSuffix.sparkConfigName)
+        .fold(config.checkpointSuffix) {Some(_)},
+      rawActionTable = getSparkConf(sparkOmsConfMap.rawActionTable.sparkConfigName)
+        .fold(config.rawActionTable) {_.toString()},
+      sourceConfigTable = getSparkConf(sparkOmsConfMap.sourceConfigTable.sparkConfigName)
+        .fold(config.sourceConfigTable) {_.toString()},
+      pathConfigTable = getSparkConf(sparkOmsConfMap.pathConfigTable.sparkConfigName)
+        .fold(config.pathConfigTable) {_.toString()},
+      processedHistoryTable = getSparkConf(sparkOmsConfMap.processedHistoryTable.sparkConfigName)
+        .fold(config.processedHistoryTable) {_.toString()},
+      commitInfoSnapshotTable =
+        getSparkConf(sparkOmsConfMap.commitInfoSnapshotTable.sparkConfigName)
+          .fold(config.commitInfoSnapshotTable) {_.toString()},
+      actionSnapshotTable = getSparkConf(sparkOmsConfMap.actionSnapshotTable.sparkConfigName)
+        .fold(config.actionSnapshotTable) {_.toString()},
+      consolidateWildcardPaths =
+        getSparkConf(sparkOmsConfMap.consolidateWildcardPaths.sparkConfigName)
+          .fold(config.consolidateWildcardPaths) {_.toBoolean},
+      truncatePathConfig = getSparkConf(sparkOmsConfMap.truncatePathConfig.sparkConfigName)
+        .fold(config.truncatePathConfig) {_.toBoolean},
+      skipPathConfig = getSparkConf(sparkOmsConfMap.skipPathConfig.sparkConfigName)
+        .fold(config.skipPathConfig) {_.toBoolean},
+      skipInitializeOMS = getSparkConf(sparkOmsConfMap.skipInitializeOMS.sparkConfigName)
+        .fold(config.skipInitializeOMS) {_.toBoolean},
+      useAutoloader = getSparkConf(sparkOmsConfMap.useAutoloader.sparkConfigName)
+        .fold(config.useAutoloader) {_.toBoolean},
+      srcDatabases = getSparkConf(sparkOmsConfMap.srcDatabases.sparkConfigName)
+        .fold(config.srcDatabases) {Some(_)},
+      tablePattern = getSparkConf(sparkOmsConfMap.tablePattern.sparkConfigName)
+        .fold(config.tablePattern) {Some(_)},
+      maxFilesPerTrigger = getSparkConf(sparkOmsConfMap.maxFilesPerTrigger.sparkConfigName)
+        .fold(config.maxFilesPerTrigger) {_.toString()},
+      triggerInterval = getSparkConf(sparkOmsConfMap.triggerInterval.sparkConfigName)
+        .fold(config.triggerInterval) {Some(_)},
+      startingStream = getSparkConf(sparkOmsConfMap.startingStream.sparkConfigName)
+        .fold(config.startingStream) {_.toInt},
+      endingStream = getSparkConf(sparkOmsConfMap.endingStream.sparkConfigName)
+        .fold(config.endingStream) {_.toInt})
       }
-    }
-  }
 }
 
 object OMSSparkConf extends OMSSparkConf

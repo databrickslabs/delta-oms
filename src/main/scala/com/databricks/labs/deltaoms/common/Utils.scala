@@ -17,40 +17,53 @@
 package com.databricks.labs.deltaoms.common
 
 import com.databricks.labs.deltaoms.configuration.OMSConfig
-import com.databricks.labs.deltaoms.model.{DatabaseDefinition, TableDefinition}
+import com.databricks.labs.deltaoms.model.{CatalogDefinition, ExternalLocationDefinition, SchemaDefinition, TableDefinition}
 
 import org.apache.spark.internal.Logging
 
 trait Utils extends Serializable with Logging with Schemas {
 
-  def getOMSDBPath(config: OMSConfig): String =
-    s"${config.baseLocation.get}/${config.dbName.get}"
-  def getRawActionsTableName(config: OMSConfig): String =
-    s"${config.dbName.get}.${config.rawActionTable}"
+  def getOMSCatalogName(config: OMSConfig) : String = config.catalogName.getOrElse("")
+  def getOMSSchemaName(config: OMSConfig) : String = config.schemaName.getOrElse("")
+  def getOMSCatalogPath(config: OMSConfig): String = config.catalogName
+    .fold(s"${config.locationUrl.get}") {c => s"${config.locationUrl.get}/${c}"}
+
+  def getOMSSchemaPath(config: OMSConfig): String =
+    s"${getOMSCatalogPath(config)}/${config.schemaName.get}"
+  def getOMSQualifiedSchemaName(config: OMSConfig): String = config.catalogName
+    .fold(s"${config.schemaName.get}") {c => s"$c.`${config.schemaName.get}`"}
+
+
   def getRawActionsTablePath(config: OMSConfig): String =
-    s"${getOMSDBPath(config)}/${config.rawActionTable}/"
+    s"${getOMSSchemaPath(config)}/${config.rawActionTable}/"
   def getPathConfigTablePath(config: OMSConfig): String =
-    s"${getOMSDBPath(config)}/${config.pathConfigTable}/"
+    s"${getOMSSchemaPath(config)}/${config.pathConfigTable}/"
   def getSourceConfigTablePath(config: OMSConfig): String =
-    s"${getOMSDBPath(config)}/${config.sourceConfigTable}/"
+    s"${getOMSSchemaPath(config)}/${config.sourceConfigTable}/"
   def getProcessedHistoryTablePath(config: OMSConfig): String =
-    s"${getOMSDBPath(config)}/${config.processedHistoryTable}/"
+    s"${getOMSSchemaPath(config)}/${config.processedHistoryTable}/"
   def getCommitSnapshotTablePath(config: OMSConfig): String =
-    s"${getOMSDBPath(config)}/${config.commitInfoSnapshotTable}/"
-  def getCommitSnapshotTableName(config: OMSConfig): String =
-    s"${config.dbName.get}.${config.commitInfoSnapshotTable}"
+    s"${getOMSSchemaPath(config)}/${config.commitInfoSnapshotTable}/"
   def getActionSnapshotTablePath(config: OMSConfig): String =
-    s"${getOMSDBPath(config)}/${config.actionSnapshotTable}/"
+    s"${getOMSSchemaPath(config)}/${config.actionSnapshotTable}/"
+
+  def getRawActionsTableName(config: OMSConfig): String =
+    s"${getOMSQualifiedSchemaName(config)}.`${config.rawActionTable}`"
+  def getCommitSnapshotTableName(config: OMSConfig): String =
+    s"${getOMSQualifiedSchemaName(config)}.`${config.commitInfoSnapshotTable}`"
   def getActionSnapshotTableName(config: OMSConfig): String =
-    s"${config.dbName.get}.${config.actionSnapshotTable}"
+    s"${getOMSQualifiedSchemaName(config)}.`${config.actionSnapshotTable}`"
 
   val puidCommitDatePartitions = Seq(PUID, COMMIT_DATE)
 
-  private val omsProperties = Map("entity" -> s"$ENTITY_NAME", "oms.version" -> s"$OMS_VERSION")
+  private val omsProperties: Map[String, String] =
+    Map("entity" -> s"$ENTITY_NAME", "oms.version" -> s"$OMS_VERSION")
 
   def pathConfigTableDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(omsConfig.pathConfigTable,
-      omsConfig.dbName.get,
+      getOMSSchemaName(omsConfig),
+      getOMSCatalogName(omsConfig),
+      getOMSQualifiedSchemaName(omsConfig),
       pathConfig,
       getPathConfigTablePath(omsConfig),
       Some("Delta OMS Path Config Table"),
@@ -60,7 +73,9 @@ trait Utils extends Serializable with Logging with Schemas {
 
   def sourceConfigDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(omsConfig.sourceConfigTable,
-      omsConfig.dbName.get,
+      getOMSSchemaName(omsConfig),
+      getOMSCatalogName(omsConfig),
+      getOMSQualifiedSchemaName(omsConfig),
       sourceConfig,
       getSourceConfigTablePath(omsConfig),
       Some("Delta OMS Source Config Table"),
@@ -70,7 +85,9 @@ trait Utils extends Serializable with Logging with Schemas {
 
   def rawActionsTableDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(omsConfig.rawActionTable,
-      omsConfig.dbName.get,
+      getOMSSchemaName(omsConfig),
+      getOMSCatalogName(omsConfig),
+      getOMSQualifiedSchemaName(omsConfig),
       rawAction,
       getRawActionsTablePath(omsConfig),
       Some("Delta OMS Raw Actions Table"),
@@ -80,7 +97,9 @@ trait Utils extends Serializable with Logging with Schemas {
 
   def processedHistoryTableDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(omsConfig.processedHistoryTable,
-      omsConfig.dbName.get,
+      getOMSSchemaName(omsConfig),
+      getOMSCatalogName(omsConfig),
+      getOMSQualifiedSchemaName(omsConfig),
       processedHistory,
       getProcessedHistoryTablePath(omsConfig),
       Some("Delta OMS Processed History Table"),
@@ -88,11 +107,29 @@ trait Utils extends Serializable with Logging with Schemas {
     )
   }
 
-  def omsDatabaseDefinition(omsConfig: OMSConfig): DatabaseDefinition = {
-    DatabaseDefinition(omsConfig.dbName.get,
-      Some(getOMSDBPath(omsConfig)),
-      Some("Delta OMS Database"),
-      omsProperties
+  def omsExternalLocationDefinition(omsConfig: OMSConfig): ExternalLocationDefinition = {
+    ExternalLocationDefinition(omsConfig.locationName.get,
+      omsConfig.locationUrl.get,
+      omsConfig.storageCredentialName.get,
+      Some("DeltaOMS External Location")
+    )
+  }
+
+  def omsCatalogDefinition(omsConfig: OMSConfig): CatalogDefinition = {
+    CatalogDefinition(getOMSCatalogName(omsConfig),
+      Some(getOMSCatalogPath(omsConfig)),
+      Some("DeltaOMS Catalog")
+    )
+  }
+
+  def omsSchemaDefinition(omsConfig: OMSConfig,
+    props: Option[Map[String, String]] = None): SchemaDefinition = {
+    SchemaDefinition(getOMSCatalogName(omsConfig),
+      getOMSSchemaName(omsConfig),
+      getOMSQualifiedSchemaName(omsConfig),
+      Some(getOMSSchemaPath(omsConfig)),
+      Some("DeltaOMS Schema"),
+      props.getOrElse(omsProperties)
     )
   }
 }

@@ -25,47 +25,79 @@ import org.apache.spark.internal.Logging
 
 trait OMSInitializer extends Serializable with Logging {
 
-  def initializeOMS(config: OMSConfig, dropAndRecreate: Boolean = false): Unit = {
+  def initializeOMS(config: OMSConfig, dropAndRecreate: Boolean = false,
+    ucEnabled: Boolean): Unit = {
     if (dropAndRecreate) {
-      cleanupOMS(config)
+      cleanupOMS(config, ucEnabled)
     }
-    createOMSDB(config)
-    createOMSTables(config)
-    /* Uncomment to add the new created OMS Database to be monitored by OMS
-    if (dropAndRecreate) {
-      populateOMSSourceConfigTableWithSelf(config.dbName, config.sourceConfigTable)
-    } */
+    createOMSSchema(config, ucEnabled)
+    if (!ucEnabled) createOMSTables(config) else createUCManagedOMSTables(config)
   }
 
-  def createOMSDB(config: OMSConfig): Unit = {
-    logInfo("Creating the OMS Database on Delta Lake")
-    createDatabaseIfAbsent(omsDatabaseDefinition(config))
+  def createOMSSchema(config: OMSConfig, ucEnabled: Boolean): Unit = {
+    if (ucEnabled) {
+      logInfo("Creating the OMS Database Objects on UC")
+      // CREATE EXTERNAL LOCATION
+      val extLocQuery = externalLocationCreationQuery(omsExternalLocationDefinition(config))
+      executeSQL(extLocQuery._1, extLocQuery._2)
+      // CREATE CATALOG
+      val catalogQuery = catalogCreationQuery(omsCatalogDefinition(config))
+      executeSQL(catalogQuery._1, catalogQuery._2)
+    }
+    // CREATE SCHEMA / DATABASE
+    logInfo("Creating the OMS Schema/Database")
+    val schemaQuery = schemaCreationQuery(omsSchemaDefinition(config), ucEnabled)
+    executeSQL(schemaQuery._1, schemaQuery._2)
   }
 
   def createOMSTables(config: OMSConfig): Unit = {
     logInfo("Creating the EXTERNAL Source Config table on OMS Delta Lake")
     createTableIfAbsent(sourceConfigDefinition(config))
     logInfo("Creating the INTERNAL Path Config table on OMS Delta Lake")
-    createPathConfigTables(config)
+    createTableIfAbsent(pathConfigTableDefinition(config))
     logInfo("Creating the Delta Raw Actions table on OMS Delta Lake")
     createTableIfAbsent(rawActionsTableDefinition(config))
     logInfo("Creating the Processing History table on OMS Delta Lake")
     createTableIfAbsent(processedHistoryTableDefinition(config))
   }
 
-  def createPathConfigTables(config: OMSConfig): Unit = {
-    logInfo("Creating the Delta Table Path Config Table on Delta OMS")
-    createTableIfAbsent(pathConfigTableDefinition(config))
+  def createUCManagedOMSTables(config: OMSConfig): Unit = {
+    logInfo("Creating the EXTERNAL Source Config table on OMS Delta Lake")
+    val srcConfigTableQuery = tableCreateQuery(sourceConfigDefinition(config))
+    executeSQL(srcConfigTableQuery._1, srcConfigTableQuery._2)
+    // createTableIfAbsent(sourceConfigDefinition(config))
+
+    logInfo("Creating the INTERNAL Path Config table on OMS Delta Lake")
+    val pathConfigTableQuery = tableCreateQuery(pathConfigTableDefinition(config))
+    executeSQL(pathConfigTableQuery._1, pathConfigTableQuery._2)
+    // createPathConfigTables(config)
+
+    logInfo("Creating the Delta Raw Actions table on OMS Delta Lake")
+    val rawActionsTableQuery = tableCreateQuery(rawActionsTableDefinition(config))
+    executeSQL(rawActionsTableQuery._1, rawActionsTableQuery._2)
+    // createTableIfAbsent(rawActionsTableDefinition(config))
+
+    logInfo("Creating the Processing History table on OMS Delta Lake")
+    val processedHistoryTableQuery = tableCreateQuery(processedHistoryTableDefinition(config))
+    executeSQL(processedHistoryTableQuery._1, processedHistoryTableQuery._2)
+    // createTableIfAbsent(processedHistoryTableDefinition(config))
   }
 
-  def cleanupOMS(config: OMSConfig): Unit = {
-    val deleteDBPath = Try {
-      deleteDirectory(getOMSDBPath(config))
+  def cleanupOMS(config: OMSConfig, ucEnabled: Boolean): Unit = {
+    if (!ucEnabled) {
+      val delSchemaPath = getOMSSchemaPath(config)
+      val deleteSchemaPath = Try {
+        deleteDirectory(delSchemaPath)
+      }
+      deleteSchemaPath match {
+        case Success(value) =>
+          logInfo(s"Successfully deleted the directory ${getOMSSchemaPath(config)}")
+        case Failure(exception) =>
+          throw new RuntimeException(s"Unable to delete  $delSchemaPath : $exception")
+      }
+      dropDatabase(config.schemaName.get)
+    } else {
+      dropCatalog(config.catalogName.get)
     }
-    deleteDBPath match {
-      case Success(value) => logInfo(s"Successfully deleted the directory ${getOMSDBPath(config)}")
-      case Failure(exception) => throw exception
-    }
-    dropDatabase(config.dbName.get)
   }
 }

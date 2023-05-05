@@ -22,12 +22,15 @@ object ConfigurePathsFromMetastore extends BatchOMSRunner {
 
   def main(args: Array[String]): Unit = {
     spark.conf.set("spark.databricks.labs.deltaoms.class", value = getClass.getCanonicalName)
+    val ucEnabled: Boolean = spark.conf.getOption("databricks.labs.deltaoms.ucenabled")
+      .fold(true)(_.toBoolean)
+
     val consolidatedOMSConfig = fetchConsolidatedOMSConfig(args)
     logInfo(s"Starting Delta table path configuration update for OMS with Configuration : " +
       s"$consolidatedOMSConfig")
     // Create the OMS Database and Path Config Table Structures , if needed
     if(!consolidatedOMSConfig.skipInitializeOMS) {
-      initializeOMS(consolidatedOMSConfig)
+      initializeOMS(consolidatedOMSConfig, ucEnabled = ucEnabled)
     }
 
     // Fetch the latest metastore delta tables and update the Path in the config table

@@ -16,8 +16,11 @@
 
 package com.databricks.labs.deltaoms.configuration
 
-case class OMSConfig(baseLocation: Option[String] = None,
-  dbName: Option[String] = None,
+case class OMSConfig(locationUrl: Option[String] = None,
+  locationName: Option[String] = None,
+  storageCredentialName : Option[String] = None,
+  catalogName: Option[String] = None,
+  schemaName: Option[String] = None,
   checkpointBase: Option[String] = None,
   checkpointSuffix: Option[String] = None,
   rawActionTable: String = "rawactions",

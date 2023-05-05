@@ -20,7 +20,7 @@ import java.net.URI
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
-import com.databricks.labs.deltaoms.model.{DatabaseDefinition, SourceConfig, TableDefinition}
+import com.databricks.labs.deltaoms.model.{CatalogDefinition, SchemaDefinition, ExternalLocationDefinition, SourceConfig, TableDefinition}
 import io.delta.tables.DeltaTable
 import org.apache.hadoop.fs.{FileSystem, Path, RemoteIterator}
 
@@ -107,33 +107,76 @@ trait UtilityOperations extends Serializable with Logging {
     DeltaTableIdentifier(spark, identifier)
   }
 
-  def createDatabaseIfAbsent(dbDefn: DatabaseDefinition): Unit = {
+  def executeSQL(stmt: String, ctx: String) : Unit = {
     val spark = SparkSession.active
-    val dBCreateSQL = new StringBuilder(s"CREATE DATABASE IF NOT EXISTS ${dbDefn.databaseName} ")
-    if (dbDefn.comment.nonEmpty) {
-      dBCreateSQL.append(s"COMMENT '${dbDefn.comment.get}' ")
-    }
-    if (dbDefn.location.nonEmpty) {
-      dBCreateSQL.append(s"LOCATION '${dbDefn.location.get}' ")
-    }
-    if (dbDefn.properties.nonEmpty) {
-      val tableProperties = dbDefn.properties.map(_.productIterator.mkString("'", "'='", "'"))
-        .mkString(",")
-      dBCreateSQL.append(s"WITH DBPROPERTIES($tableProperties) ")
-    }
-    logDebug(s"CREATING DATABASE using SQL => ${dBCreateSQL.toString()}")
+    logDebug(s"CREATING $ctx using SQL => $stmt")
     Try {
-      spark.sql(dBCreateSQL.toString())
+      spark.sql(stmt)
     } match {
-      case Success(value) => logInfo(s"Successfully created the database ${dbDefn.databaseName}")
+      case Success(value) => logInfo(s"Successfully created $ctx using SQL $stmt")
       case Failure(exception) =>
-        throw new RuntimeException(s"Unable to create the Database: $exception")
+        throw new RuntimeException(s"Unable to create $ctx using SQL $stmt: $exception")
     }
+  }
+
+  def catalogCreationQuery(catalogDef: CatalogDefinition): (String, String) = {
+    val catSql = new StringBuilder(s"CREATE CATALOG IF NOT EXISTS `${catalogDef.catalogName}` " +
+      s"MANAGED LOCATION '${catalogDef.locationUrl.get}' ")
+    if (catalogDef.comment.nonEmpty) {
+      catSql.append(s"COMMENT '${catalogDef.comment.get}'")
+    }
+    (catSql.toString(), "CATALOG")
+  }
+
+  def externalLocationCreationQuery(extLocDef: ExternalLocationDefinition): (String, String) = {
+    val externalLocSql = new StringBuilder(s"CREATE EXTERNAL LOCATION IF NOT EXISTS " +
+      s"`${extLocDef.locationName}` " +
+      s"URL '${extLocDef.locationUrl}' " +
+      s"WITH (STORAGE CREDENTIAL `${extLocDef.storageCredentialName}`) ")
+    if (extLocDef.comment.nonEmpty) {
+      externalLocSql.append(s"COMMENT '${extLocDef.comment.get}'")
+    }
+    (externalLocSql.toString(), "EXTERNAL LOCATION")
+  }
+
+  def schemaCreationQuery(schemaDef: SchemaDefinition,
+    ucEnabled: Boolean): (String, String) = {
+    val schemaIdentifier = if (ucEnabled) "SCHEMA" else "DATABASE"
+    val locationIdentifier = if (ucEnabled) "MANAGED LOCATION" else "LOCATION"
+
+    val schemaCreateSQL = new StringBuilder(s"CREATE $schemaIdentifier IF NOT EXISTS " +
+        s"${schemaDef.qualifiedSchemaName} ")
+    if (schemaDef.locationUrl.nonEmpty) {
+      schemaCreateSQL.append(s"$locationIdentifier '${schemaDef.locationUrl.get}' ")
+    }
+    if (schemaDef.comment.nonEmpty) {
+      schemaCreateSQL.append(s"COMMENT '${schemaDef.comment.get}' ")
+    }
+    if (schemaDef.properties.nonEmpty) {
+      val tableProperties = schemaDef.properties.map(_.productIterator.mkString("'", "'='", "'"))
+        .mkString(",")
+      schemaCreateSQL.append(s"WITH DBPROPERTIES($tableProperties)")
+    }
+    (schemaCreateSQL.toString(), schemaIdentifier)
+  }
+
+  def tableCreateQuery(tableDef: TableDefinition): (String, String) = {
+    val tableCreateSQL =
+      new StringBuilder(s"CREATE TABLE IF NOT EXISTS " +
+        s"${tableDef.qualifiedSchemaName}.`${tableDef.tableName}` " +
+        s"(${tableDef.schema.toDDL}) ")
+    if(tableDef.partitionColumnNames.nonEmpty) {
+      tableCreateSQL.append(s"""PARTITIONED BY (${tableDef.partitionColumnNames.mkString(",")}) """)
+    }
+    if (tableDef.comment.nonEmpty) {
+      tableCreateSQL.append(s"COMMENT '${tableDef.comment.get}'")
+    }
+    (tableCreateSQL.toString(), "TABLE")
   }
 
   def createTableIfAbsent(tableDefn: TableDefinition): Unit = {
     val spark = SparkSession.active
-    val fqTableName = s"${tableDefn.databaseName}.${tableDefn.tableName}"
+    val fqTableName = s"${tableDefn.schemaName}.${tableDefn.tableName}"
     val tableId = spark.sessionState.sqlParser.parseTableIdentifier(s"${fqTableName}")
     if (!DeltaTable.isDeltaTable(tableDefn.path) && !DeltaTableUtils.isDeltaTable(spark, tableId)) {
       val emptyDF = spark.createDataFrame(spark.sparkContext.emptyRDD[Row], tableDefn.schema)
@@ -167,8 +210,12 @@ trait UtilityOperations extends Serializable with Logging {
     fileSystem.delete(new Path(dirName), true)
   }
 
-  def dropDatabase(dbName: String): DataFrame = {
-    SparkSession.active.sql(s"DROP DATABASE IF EXISTS $dbName CASCADE")
+  def dropSchema(dbName: String): DataFrame = {
+    SparkSession.active.sql(s"DROP SCHEMA IF EXISTS $dbName CASCADE")
+  }
+
+  def dropCatalog(catalogName: String): DataFrame = {
+    SparkSession.active.sql(s"DROP SCHEMA IF EXISTS $catalogName CASCADE")
   }
 
   def resolveWildCardPath(filePath: String, wildCardLevel: Int) : String = {
@@ -245,6 +292,11 @@ trait UtilityOperations extends Serializable with Logging {
       .filter(x => x.contains("_delta_log") && x.endsWith(".json"))
       .map(_.split("/").dropRight(2).mkString("/"))
       .toSet
+  }
+
+  // Legacy Support Methods
+  def dropDatabase(dbName: String): DataFrame = {
+    SparkSession.active.sql(s"DROP DATABASE IF EXISTS $dbName CASCADE")
   }
 }
 object UtilityOperations extends UtilityOperations

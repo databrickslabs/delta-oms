@@ -16,6 +16,8 @@
 
 package com.databricks.labs.deltaoms.configuration
 
+import java.util.Locale
+
 import org.apache.spark.internal.Logging
 
 trait ConfigurationSettings extends Serializable with Logging {
@@ -23,8 +25,11 @@ trait ConfigurationSettings extends Serializable with Logging {
 
   def omsConfigSource: OMSConfig = environment match {
     case Empty => OMSConfig()
-    case InBuilt => OMSConfig(baseLocation = Some("/tmp/spark-warehouse/oms.db"),
-      dbName = Some("oms_default_inbuilt"),
+    case InBuilt => OMSConfig(
+      locationUrl = Some("/tmp/spark-warehouse/oms.db"),
+      locationName = Some("inbuilt_location"),
+      storageCredentialName = Some("inbuilt_storage_credential"),
+      schemaName = Some("oms_default_inbuilt"),
       checkpointBase = Some("/tmp/_oms_checkpoints/"),
       checkpointSuffix = Some("_1"),
       rawActionTable = "raw_actions",
@@ -39,7 +44,7 @@ trait ConfigurationSettings extends Serializable with Logging {
 
   def environmentType: String =
     sys.props.getOrElse("OMS_ENV",
-      sys.env.getOrElse("OMS_ENV", "empty")).toLowerCase
+      sys.env.getOrElse("OMS_ENV", "empty")).toLowerCase(Locale.ROOT)
 }
 
 object ConfigurationSettings extends ConfigurationSettings

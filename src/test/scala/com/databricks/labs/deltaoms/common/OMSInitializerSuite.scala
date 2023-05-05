@@ -32,7 +32,8 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
     System.setProperty("OMS_ENV", "empty")
     assert(environmentType == "empty")
     assert(environment == EnvironmentResolver.fetchEnvironment("empty"))
-    assert(omsConfig.dbName.isEmpty)
+    assert(omsConfig.schemaName.isEmpty)
+    assert(omsConfig.catalogName.isEmpty)
     System.clearProperty("OMS_ENV")
   }
 
@@ -40,15 +41,17 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
     System.setProperty("OMS_ENV", "inbuilt")
     assert(environmentType == "inbuilt")
     assert(environment == EnvironmentResolver.fetchEnvironment("inbuilt"))
-    assert(omsConfig.dbName.get == "oms_default_inbuilt")
+    assert(omsConfig.schemaName.get == "oms_default_inbuilt")
+    assert(omsConfig.catalogName.isEmpty)
+    assert(omsConfig.locationName.get == "inbuilt_location")
   }
 
   test("Initialize OMS Database and tables") {
-    val dbName = omsConfig.dbName.get
+    val dbName = omsConfig.schemaName.get
     assert(!spark.catalog.databaseExists(dbName))
-    initializeOMS(omsConfig)
+    initializeOMS(omsConfig, ucEnabled = false)
     assert(spark.catalog.databaseExists(dbName))
-    initializeOMS(omsConfig, dropAndRecreate = true)
+    initializeOMS(omsConfig, dropAndRecreate = true, ucEnabled = false)
     assert(spark.catalog.databaseExists(dbName))
     assert(spark.catalog.tableExists(dbName, omsConfig.sourceConfigTable))
     assert(spark.catalog.tableExists(dbName, omsConfig.pathConfigTable))
@@ -58,7 +61,9 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
 
   test("cleanupOMS DB Path Exception") {
     val dbInvalidPathOMSConfig =
-      OMSConfig(dbName = Some("abc"), baseLocation = Some("s3://sampleBase"))
-    assertThrows[java.io.IOException](cleanupOMS(dbInvalidPathOMSConfig))
+      OMSConfig(schemaName = Some("abc"), locationUrl = Some("s3://sampleBase"))
+    assert(intercept[java.lang.RuntimeException] {
+      cleanupOMS(dbInvalidPathOMSConfig, ucEnabled = false)
+    }.getMessage.contains("org.apache.hadoop.fs.UnsupportedFileSystemException"))
   }
 }
