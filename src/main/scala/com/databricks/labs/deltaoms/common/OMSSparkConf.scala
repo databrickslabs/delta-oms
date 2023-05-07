@@ -20,7 +20,7 @@ import com.databricks.labs.deltaoms.configuration.{OMSConfig, SparkSettings}
 import com.databricks.labs.deltaoms.common.OMSSparkConfUtils.{buildConfKey, getSparkConf}
 
 private object OMSSparkConfUtils extends SparkSettings {
-  def buildConfKey(key: String): String = s"databricks.labs.deltaoms.$key"
+  def buildConfKey(key: String): String = s"spark.databricks.labs.deltaoms.$key"
 
   def getSparkConf[T](confKey: String): Option[String] = {
     spark.conf.getOption(confKey)

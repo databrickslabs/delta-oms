@@ -24,6 +24,7 @@ import org.apache.http.client.methods.{CloseableHttpResponse, HttpGet}
 import org.apache.http.util.EntityUtils
 import org.apache.http.client.config.RequestConfig
 import com.databricks.dbutils_v1.DBUtilsHolder.dbutils
+import com.databricks.labs.deltaoms.common.OMSSparkConf.consolidateOMSConfigFromSparkConf
 
 trait OMSRunner extends Serializable
   with SparkSettings
@@ -67,51 +68,43 @@ trait OMSRunner extends Serializable
 
   scala.util.control.Exception.ignoring(classOf[Throwable]) { setTrackingHeader() }
 
-  def validateOMSConfig(config: OMSConfig): OMSConfig
+  def getValidatedOMSConfig(config: OMSConfig): OMSConfig
 
-  def fetchConsolidatedOMSConfig(args: Array[String]) : OMSConfig = {
-    validateOMSConfig(OMSSparkConf.consolidateOMSConfigFromSparkConf(omsConfig))
+  def consolidateOMSConfig() : OMSConfig = {
+    val sparkOMSConfig = consolidateOMSConfigFromSparkConf(omsConfig)
+    getValidatedOMSConfig(sparkOMSConfig)
   }
-}
 
-private object ValidationUtils {
   def validateOMSConfig(omsConfig: OMSConfig, isBatch: Boolean = true): Unit = {
     assert(omsConfig.locationUrl.isDefined,
-      "Mandatory configuration OMS Location URL missing. " +
-        "Provide through Command line argument --locationUrl")
+      "Mandatory configuration OMS Location URL missing")
     assert(omsConfig.locationName.isDefined,
-      "Mandatory configuration OMS Location Name missing. " +
-        "Provide through Command line argument --locationName")
+      "Mandatory configuration OMS Location Name missing")
     assert(omsConfig.storageCredentialName.isDefined,
-      "Mandatory configuration OMS Storage Credential Name missing. " +
-        "Provide through Command line argument --locationName")
+      "Mandatory configuration OMS Storage Credential Name missing")
     assert(omsConfig.catalogName.isDefined,
-      "Mandatory configuration OMS Catalog Name missing. " +
-        "Provide through Command line argument --catalogName")
+      "Mandatory configuration OMS Catalog Name missing")
     assert(omsConfig.schemaName.isDefined,
-      "Mandatory configuration OMS Schema Name missing. " +
-        "Provide through Command line argument --schemaName")
+      "Mandatory configuration OMS Schema Name missing")
     if(!isBatch) {
       assert(omsConfig.checkpointBase.isDefined,
-        "Mandatory configuration OMS Checkpoint Base Location missing. " +
-          "Provide through Command line argument --checkpointBase")
+        "Mandatory configuration OMS Checkpoint Base Location missing")
       assert(omsConfig.checkpointSuffix.isDefined,
-        "Mandatory configuration OMS Checkpoint Suffix missing. " +
-          "Provide through Command line argument --checkpointSuffix")
+        "Mandatory configuration OMS Checkpoint Suffix missing")
     }
   }
 }
 
 trait BatchOMSRunner extends OMSRunner {
-  def validateOMSConfig(config: OMSConfig): OMSConfig = {
-    ValidationUtils.validateOMSConfig(omsConfig)
+  def getValidatedOMSConfig(config: OMSConfig): OMSConfig = {
+    validateOMSConfig(omsConfig)
     config
   }
 }
 
 trait StreamOMSRunner extends OMSRunner {
-  def validateOMSConfig(config: OMSConfig): OMSConfig = {
-    ValidationUtils.validateOMSConfig(omsConfig, isBatch = false)
+  def getValidatedOMSConfig(config: OMSConfig): OMSConfig = {
+    validateOMSConfig(omsConfig, isBatch = false)
     config
   }
 }

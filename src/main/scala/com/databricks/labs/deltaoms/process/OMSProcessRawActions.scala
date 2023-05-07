@@ -23,7 +23,7 @@ object OMSProcessRawActions extends BatchOMSRunner {
 
   def main(args: Array[String]): Unit = {
     spark.conf.set("spark.databricks.labs.deltaoms.class", value = getClass.getCanonicalName)
-    val consolidatedOMSConfig = fetchConsolidatedOMSConfig(args)
+    val consolidatedOMSConfig = consolidateOMSConfig()
     logInfo(s"Starting processing the OMS Raw Data : $consolidatedOMSConfig")
     // Get the current version for Raw Actions
     val currentRawActionsVersion =
