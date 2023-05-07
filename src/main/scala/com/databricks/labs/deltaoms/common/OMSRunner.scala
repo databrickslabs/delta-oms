@@ -97,14 +97,14 @@ trait OMSRunner extends Serializable
 
 trait BatchOMSRunner extends OMSRunner {
   def getValidatedOMSConfig(config: OMSConfig): OMSConfig = {
-    validateOMSConfig(omsConfig)
+    validateOMSConfig(config)
     config
   }
 }
 
 trait StreamOMSRunner extends OMSRunner {
   def getValidatedOMSConfig(config: OMSConfig): OMSConfig = {
-    validateOMSConfig(omsConfig, isBatch = false)
+    validateOMSConfig(config, isBatch = false)
     config
   }
 }
