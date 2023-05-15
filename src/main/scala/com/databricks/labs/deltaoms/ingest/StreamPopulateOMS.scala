@@ -22,14 +22,7 @@ object StreamPopulateOMS extends StreamOMSRunner {
 
   def main(args: Array[String]): Unit = {
     spark.conf.set("spark.databricks.labs.deltaoms.class", value = getClass.getCanonicalName)
-    val ucEnabled: Boolean = spark.conf.getOption("spark.databricks.labs.deltaoms.ucenabled")
-      .fold(true)(_.toBoolean)
-
     val consolidatedOMSConfig = consolidateOMSConfig()
-    // Create the OMS Database and Table Structures , if needed
-    if(!consolidatedOMSConfig.skipInitializeOMS) {
-      initializeOMS(consolidatedOMSConfig, ucEnabled = ucEnabled)
-    }
     // Update the OMS Path Config from Table Config
     if(!consolidatedOMSConfig.skipPathConfig) {
       updateOMSPathConfigFromSourceConfig(consolidatedOMSConfig)

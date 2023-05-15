@@ -20,7 +20,7 @@ import com.databricks.labs.deltaoms.common.{OMSInitializer, Schemas}
 import com.databricks.labs.deltaoms.common.Utils.{omsCatalogDefinition, omsExternalLocationDefinition, omsSchemaDefinition, pathConfigTableDefinition, processedHistoryTableDefinition, puidCommitDatePartitions, rawActionsTableDefinition, sourceConfigDefinition}
 import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, OMSConfig}
 import com.databricks.labs.deltaoms.model.SchemaDefinition
-import com.databricks.labs.deltaoms.utils.UtilityOperations.{executeSQL, resolveWildCardPath}
+import com.databricks.labs.deltaoms.utils.UtilityOperations.{executeSQL, isUCEnabled, resolveWildCardPath}
 import org.scalatest.BeforeAndAfter
 
 import org.apache.spark.sql.QueryTest
@@ -70,7 +70,7 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
   test("Error creating Database") {
     val nonWorkingDbQuery: (String, String) = UtilityOperations.
       schemaCreationQuery(SchemaDefinition("default", "NonWorkingDB", "default.`NonWorkingDB`",
-        Some("//tmp/testdb/nonworking")), ucEnabled = false)
+        Some("//tmp/testdb/nonworking")))
     val exception = intercept[java.lang.RuntimeException](executeSQL
     (nonWorkingDbQuery._1, nonWorkingDbQuery._2))
     assert(exception.getMessage.contains("Unable to create DATABASE"))
@@ -108,8 +108,9 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
     val testConfig = OMSConfig(catalogName = Some("deltaoms"),
       schemaName = Some("deltaoms_test"),
       locationUrl = Some("s3://databricks-deltaoms/deltaoms"))
+    spark.conf.set("spark.databricks.labs.deltaoms.ucenabled", value = true)
     val schemaQuery = UtilityOperations.schemaCreationQuery(omsSchemaDefinition(testConfig,
-      Some(Map("entity" -> "oms", "oms.version" -> "0.5.0"))), ucEnabled = true)
+      Some(Map("entity" -> "oms", "oms.version" -> "0.5.0"))))
     assert(schemaQuery._1 ==
       """CREATE SCHEMA IF NOT EXISTS deltaoms.`deltaoms_test`
         |MANAGED LOCATION 's3://databricks-deltaoms/deltaoms/deltaoms/deltaoms_test'
@@ -118,13 +119,18 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
         .stripMargin.replaceAll("\n", " ")
     )
     assert(schemaQuery._2 == "SCHEMA")
+    spark.conf.set("spark.databricks.labs.deltaoms.ucenabled", value = false)
+  }
+
+  test("ucenabled check") {
+    assert(!isUCEnabled)
   }
 
   test("Valid Database Creation SQL") {
     val testConfig = OMSConfig(schemaName = Some("deltaoms_test"),
       locationUrl = Some("//databricks-deltaoms/deltaoms"))
     val schemaQuery = UtilityOperations.schemaCreationQuery(omsSchemaDefinition(testConfig,
-      Some(Map("entity" -> "oms", "oms.version" -> "0.5.0"))), ucEnabled = false)
+      Some(Map("entity" -> "oms", "oms.version" -> "0.5.0"))))
     assert(schemaQuery._1 ==
       """CREATE DATABASE IF NOT EXISTS deltaoms_test
         |LOCATION '//databricks-deltaoms/deltaoms/deltaoms_test'

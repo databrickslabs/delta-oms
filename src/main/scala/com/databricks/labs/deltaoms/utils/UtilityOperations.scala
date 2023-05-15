@@ -20,96 +20,110 @@ import java.net.URI
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
-import com.databricks.labs.deltaoms.model.{CatalogDefinition, SchemaDefinition, ExternalLocationDefinition, SourceConfig, TableDefinition}
-import io.delta.tables.DeltaTable
+import com.databricks.labs.deltaoms.model.{CatalogDefinition, ExternalLocationDefinition, SchemaDefinition, SourceConfig, TableDefinition}
 import org.apache.hadoop.fs.{FileSystem, Path, RemoteIterator}
 
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
-import org.apache.spark.sql.catalyst.TableIdentifier
-import org.apache.spark.sql.delta.{DeltaTableIdentifier, DeltaTableUtils}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.expressions.UserDefinedFunction
-import org.apache.spark.sql.functions.{col, udf}
+import org.apache.spark.sql.functions.{col, udf, lit, concat, first, lower}
 import org.apache.spark.util.SerializableConfiguration
 
 trait UtilityOperations extends Serializable with Logging {
 
-  def fetchMetaStoreDeltaTables(databases: Option[String], pattern: Option[String])
-  : Seq[DeltaTableIdentifier] = {
-    val srcDatabases = if (databases.isDefined && databases.get.trim.nonEmpty) {
-      databases.get.trim.split("[,;:]").map(_.trim).toSeq
-    } else {
-      Seq.empty[String]
+  def getTableLocation(tableName: String): (String, Option[String]) = {
+    val spark = SparkSession.active
+    import spark.implicits._
+
+    val tableLocationTry = Try {
+      spark.sql(s"DESCRIBE EXTENDED $tableName")
+        .where("col_name in ('Location','Provider')")
+        .drop("comment")
+        .withColumn("id", lit(1))
+        .groupBy("id")
+        .pivot("col_name", Seq("Location", "Provider"))
+        .agg(first("data_type"))
+        .where(lower(col("Provider")) === "delta")
+        .select("Location").as[String].collect()(0)
     }
-    val tablePattern: String = pattern.map {
-      _.trim
-    }.filterNot {
-      _.isEmpty
-    }.getOrElse("*")
-    getDeltaTablesFromMetastore(srcDatabases, tablePattern)
+
+    tableLocationTry match {
+      case Success(loc) => (tableName, Some(loc))
+      case Failure(ex) => logError(s"Error while validating location for $tableName : $ex")
+        (tableName, None)
+    }
   }
 
-  def getDeltaTablesFromMetastore(databases: Seq[String] = Seq.empty[String],
-    pattern: String = "*"): Seq[DeltaTableIdentifier] = {
-    val spark = SparkSession.active
-    val sessionCatalog = spark.sessionState.catalog
-    val databaseList = if (databases.nonEmpty) {
-      sessionCatalog.listDatabases.filter(databases.contains(_))
-    } else {
-      sessionCatalog.listDatabases
-    }
-    val allTables = databaseList.flatMap(dbName =>
-      sessionCatalog.listTables(dbName, pattern, includeLocalTempViews = false))
-    allTables.flatMap(tableIdentifierToDeltaTableIdentifier)
+  def isUCEnabled: Boolean = {
+    SparkSession.active.conf.getOption("spark.databricks.labs.deltaoms.ucenabled")
+      .fold(true)(_.toBoolean)
   }
 
-  def validateDeltaLocation(sourceConfig: SourceConfig): Seq[(Option[String], String,
-    Map[String, String])] = {
+  def resolveDeltaLocation(sourceConfig: SourceConfig):
+  Array[(String, Option[String], Map[String, String])] = {
     val spark = SparkSession.active
-    val sessionCatalog = spark.sessionState.catalog
+    import spark.implicits._
 
-    if (!sourceConfig.path.contains("/") && !sourceConfig.path.contains(".")
-      && sessionCatalog.databaseExists(sourceConfig.path)) {
-      val dbTables = sessionCatalog.listTables(sourceConfig.path, "*",
-        includeLocalTempViews = false)
-      val dbDeltaTableIds = dbTables.flatMap(tableIdentifierToDeltaTableIdentifier)
-      dbDeltaTableIds.map(ddt => (Some(ddt.unquotedString), ddt.getPath(spark).toString,
-        sourceConfig.parameters))
-    } else {
-      val pathDTableTry = Try {
-        DeltaTable.forPath(spark, sourceConfig.path)
+    if (!sourceConfig.path.contains("/") && !sourceConfig.path.contains(".")) {
+      // CATALOG
+      if (sourceConfig.path.equalsIgnoreCase("hive_metastore")) {
+        throw new RuntimeException(s"${sourceConfig.path} catalog is not supported. " +
+          s"Configure databases from ${sourceConfig.path} catalog instead")
       }
-      pathDTableTry match {
-        case Success(_) => Seq((None, sourceConfig.path, sourceConfig.parameters))
-        case Failure(e) =>
-          val nameDTableTry = Try {
-            DeltaTable.forName(spark, sourceConfig.path)
-          }
-          nameDTableTry match {
-            case Success(_) =>
-              val tableId = spark.sessionState.sqlParser.parseTableIdentifier(sourceConfig.path)
-              Seq((Some(sourceConfig.path),
-                new Path(spark.sessionState.catalog.getTableMetadata(tableId).location).toString,
-                sourceConfig.parameters))
-            case Failure(ex) =>
-              logError(s"Error while accessing Delta location $sourceConfig." +
-                s"It should be a valid database, table path or fully qualified table name.\n " +
-                s"Exception thrown: $ex")
-              throw ex
-          }
-      }
-    }
-  }
+      val tableList = spark.sql(s"SELECT (table_catalog || '.`' || " +
+        s"table_schema || '`.`' || table_name || '`' ) as qualifiedName " +
+        s"FROM ${sourceConfig.path}.information_schema.tables " +
+        s"WHERE table_schema <> 'information_schema' " +
+        s"AND table_type <> 'VIEW' " +
+        s"AND (data_source_format = 'DELTA' OR data_source_format = 'delta')").as[String].collect
 
-  def tableIdentifierToDeltaTableIdentifier(identifier: TableIdentifier)
-  : Option[DeltaTableIdentifier] = {
-    val spark = SparkSession.active
-    DeltaTableIdentifier(spark, identifier)
+      tableList.map { tl =>
+        getTableLocation(tl) match { case (t, l) => (t, l, Map("wildCardLevel" -> "1") )}}
+    } else if (!sourceConfig.path.contains("/")
+      && sourceConfig.path.count(_ == '.') == 1) {
+      // SCHEMA
+      val catalogName = sourceConfig.path.split('.')(0)
+      val schemaName = sourceConfig.path.split('.')(1)
+
+      val tableList = if (catalogName.equalsIgnoreCase("hive_metastore")) {
+        val qualifiedSchemaName = if (isUCEnabled) sourceConfig.path else schemaName
+        val qualifiedDBCol = if (isUCEnabled) col("database") else col("namespace")
+        val qualifiedCatalogName = if (isUCEnabled) lit("`hive_metastore`.`") else lit("`")
+        spark.sql(s"show tables in ${qualifiedSchemaName}")
+          .filter("isTemporary <> true")
+          .select(concat(qualifiedCatalogName, qualifiedDBCol,
+            lit("`.`"), col("tableName"),
+            lit("`")).as("qualifiedName")).as[String].collect()
+      } else {
+       spark.sql(s"SELECT (table_catalog || '.`' " +
+        s"|| table_schema || '`.`' || table_name || '`' ) as qualifiedName " +
+        s"FROM ${catalogName}.information_schema.tables " +
+        s"WHERE table_schema = '${schemaName}' AND table_type <> 'VIEW' " +
+        s"AND (data_source_format = 'DELTA' OR data_source_format = 'delta')").as[String].collect
+      }
+
+      tableList.map { tl =>
+        getTableLocation(tl) match { case (t, l) => (t, l, Map("wildCardLevel" -> "0") )}}
+    } else if (!sourceConfig.path.contains("/")
+      && sourceConfig.path.count(_ == '.') == 2) {
+      val catalogName = sourceConfig.path.split('.')(0)
+      val tableName = if (catalogName.equalsIgnoreCase("hive_metastore") && !isUCEnabled) {
+        s"`${sourceConfig.path.split('.')(1)}`.`${sourceConfig.path.split('.')(2)}`"
+      } else sourceConfig.path
+      // TABLE
+      Array(getTableLocation(tableName)
+      match { case (t, l) => (t, l, Map("wildCardLevel" -> "-1") )})
+    } else if (sourceConfig.path.contains("/")) {
+      Array((sourceConfig.path, Option(sourceConfig.path), Map("wildCardLevel" -> "0")))
+    } else {
+      throw new RuntimeException("Source Path should be a valid Catalog, " +
+        "Schema ,table or Wildcard Path (/**)")
+    }
   }
 
   def executeSQL(stmt: String, ctx: String) : Unit = {
     val spark = SparkSession.active
-    logDebug(s"CREATING $ctx using SQL => $stmt")
+    logInfo(s"CREATING $ctx using SQL => $stmt")
     Try {
       spark.sql(stmt)
     } match {
@@ -139,10 +153,9 @@ trait UtilityOperations extends Serializable with Logging {
     (externalLocSql.toString(), "EXTERNAL LOCATION")
   }
 
-  def schemaCreationQuery(schemaDef: SchemaDefinition,
-    ucEnabled: Boolean): (String, String) = {
-    val schemaIdentifier = if (ucEnabled) "SCHEMA" else "DATABASE"
-    val locationIdentifier = if (ucEnabled) "MANAGED LOCATION" else "LOCATION"
+  def schemaCreationQuery(schemaDef: SchemaDefinition): (String, String) = {
+    val schemaIdentifier = if (isUCEnabled) "SCHEMA" else "DATABASE"
+    val locationIdentifier = if (isUCEnabled) "MANAGED LOCATION" else "LOCATION"
 
     val schemaCreateSQL = new StringBuilder(s"CREATE $schemaIdentifier IF NOT EXISTS " +
         s"${schemaDef.qualifiedSchemaName} ")
@@ -174,36 +187,6 @@ trait UtilityOperations extends Serializable with Logging {
     (tableCreateSQL.toString(), "TABLE")
   }
 
-  def createTableIfAbsent(tableDefn: TableDefinition): Unit = {
-    val spark = SparkSession.active
-    val fqTableName = s"${tableDefn.schemaName}.${tableDefn.tableName}"
-    val tableId = spark.sessionState.sqlParser.parseTableIdentifier(s"${fqTableName}")
-    if (!DeltaTable.isDeltaTable(tableDefn.path) && !DeltaTableUtils.isDeltaTable(spark, tableId)) {
-      val emptyDF = spark.createDataFrame(spark.sparkContext.emptyRDD[Row], tableDefn.schema)
-      val dataFrameCreateWriter = emptyDF
-        .writeTo(fqTableName)
-        .tableProperty("location", tableDefn.path)
-      val dataFrameCreateWriterWithComment = tableDefn.comment.foldLeft(dataFrameCreateWriter) {
-        (dfw, c) => dfw.tableProperty("comment", c)
-      }
-      val dataFrameCreateWriterWithProperties = tableDefn.properties.toList
-        .foldLeft(dataFrameCreateWriterWithComment) {
-          (dfw, kv) => dfw.tableProperty(kv._1, kv._2)
-        }
-      if (tableDefn.partitionColumnNames.nonEmpty) {
-        val partitionColumns = tableDefn.partitionColumnNames.map(col)
-        dataFrameCreateWriterWithProperties
-          .using("delta")
-          .partitionedBy(partitionColumns.head, partitionColumns.tail: _*)
-          .createOrReplace()
-      } else {
-        dataFrameCreateWriterWithProperties
-          .using("delta")
-          .createOrReplace()
-      }
-    }
-  }
-
   def deleteDirectory(dirName: String): Boolean = {
     val fileSystem = FileSystem.get(new URI(dirName),
       SparkSession.active.sparkContext.hadoopConfiguration)
@@ -211,11 +194,15 @@ trait UtilityOperations extends Serializable with Logging {
   }
 
   def dropSchema(dbName: String): DataFrame = {
-    SparkSession.active.sql(s"DROP SCHEMA IF EXISTS $dbName CASCADE")
+    val schemaDropSql = s"DROP SCHEMA IF EXISTS $dbName CASCADE"
+    logInfo(s"Executing SQL : $schemaDropSql")
+    SparkSession.active.sql(schemaDropSql)
   }
 
   def dropCatalog(catalogName: String): DataFrame = {
-    SparkSession.active.sql(s"DROP SCHEMA IF EXISTS $catalogName CASCADE")
+    val catalogDropSql = s"DROP CATALOG IF EXISTS $catalogName CASCADE"
+    logInfo(s"Executing SQL : $catalogDropSql")
+    SparkSession.active.sql(catalogDropSql)
   }
 
   def resolveWildCardPath(filePath: String, wildCardLevel: Int) : String = {
@@ -262,9 +249,8 @@ trait UtilityOperations extends Serializable with Logging {
   def listSubDirectories(sourceConfig: SourceConfig, conf: SerializableConfiguration):
   Array[SourceConfig] = {
     val skipProcessing = sourceConfig.skipProcessing
-    val parameters = sourceConfig.parameters
     val subDirectories = listSubDirectories(sourceConfig.path, conf)
-    subDirectories.map(d => SourceConfig(d, skipProcessing, parameters))
+    subDirectories.map(d => SourceConfig(d, skipProcessing))
   }
 
   def listSubDirectories(path: String, conf: SerializableConfiguration): Array[String] = {
@@ -275,9 +261,8 @@ trait UtilityOperations extends Serializable with Logging {
   def recursiveListDeltaTablePaths(sourceConfig: SourceConfig, conf: SerializableConfiguration):
   Set[SourceConfig] = {
     val skipProcessing = sourceConfig.skipProcessing
-    val parameters = sourceConfig.parameters
     recursiveListDeltaTablePaths(sourceConfig.path, conf)
-      .map(d => SourceConfig(d, skipProcessing, parameters))
+      .map(d => SourceConfig(d, skipProcessing))
   }
 
   def recursiveListDeltaTablePaths(path: String, conf: SerializableConfiguration): Set[String] = {
@@ -296,7 +281,9 @@ trait UtilityOperations extends Serializable with Logging {
 
   // Legacy Support Methods
   def dropDatabase(dbName: String): DataFrame = {
-    SparkSession.active.sql(s"DROP DATABASE IF EXISTS $dbName CASCADE")
+    val dbDropSql = s"DROP DATABASE IF EXISTS $dbName CASCADE"
+    logInfo(s"Executing SQL : $dbDropSql")
+    SparkSession.active.sql(dbDropSql)
   }
 }
 object UtilityOperations extends UtilityOperations

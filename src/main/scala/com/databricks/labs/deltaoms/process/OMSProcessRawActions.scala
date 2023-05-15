@@ -27,30 +27,28 @@ object OMSProcessRawActions extends BatchOMSRunner {
     logInfo(s"Starting processing the OMS Raw Data : $consolidatedOMSConfig")
     // Get the current version for Raw Actions
     val currentRawActionsVersion =
-      getCurrentRawActionsVersion(getRawActionsTablePath(consolidatedOMSConfig))
+      getCurrentRawActionsVersion(getRawActionsTableName(consolidatedOMSConfig))
     // Get Last OMS Raw Actions Commit Version that was processed
     val lastProcessedRawActionsVersion =
-      getLastProcessedRawActionsVersion(getProcessedHistoryTablePath(consolidatedOMSConfig),
+      getLastProcessedRawActionsVersion(getProcessedHistoryTableName(consolidatedOMSConfig),
         consolidatedOMSConfig.rawActionTable)
     if (currentRawActionsVersion == 0 ||
       lastProcessedRawActionsVersion < currentRawActionsVersion) {
       // Read the changed data since that version
       val newRawActions = getUpdatedRawActions(lastProcessedRawActionsVersion,
-        getRawActionsTablePath(consolidatedOMSConfig))
+        getRawActionsTableName(consolidatedOMSConfig))
       // Extract and Persist Commit Info from the new Raw Actions
       processCommitInfoFromRawActions(newRawActions,
-        getCommitSnapshotTablePath(consolidatedOMSConfig),
         getCommitSnapshotTableName(consolidatedOMSConfig))
       // Extract, Compute Version Snapshots and Persist Action Info from the new Raw Actions
       processActionSnapshotsFromRawActions(newRawActions,
-        getActionSnapshotTablePath(consolidatedOMSConfig),
         getActionSnapshotTableName(consolidatedOMSConfig))
       // Find the latest version from the newly processed raw actions
       val latestRawActionVersion = getLatestRawActionsVersion(newRawActions)
       // Update history with the version
       updateLastProcessedRawActions(latestRawActionVersion,
         consolidatedOMSConfig.rawActionTable,
-        getProcessedHistoryTablePath(consolidatedOMSConfig))
+        getProcessedHistoryTableName(consolidatedOMSConfig))
     }
   }
 }

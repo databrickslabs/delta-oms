@@ -33,26 +33,18 @@ trait Utils extends Serializable with Logging with Schemas {
   def getOMSQualifiedSchemaName(config: OMSConfig): String = config.catalogName
     .fold(s"${config.schemaName.get}") {c => s"$c.`${config.schemaName.get}`"}
 
-
-  def getRawActionsTablePath(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.rawActionTable}/"
-  def getPathConfigTablePath(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.pathConfigTable}/"
-  def getSourceConfigTablePath(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.sourceConfigTable}/"
-  def getProcessedHistoryTablePath(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.processedHistoryTable}/"
-  def getCommitSnapshotTablePath(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.commitInfoSnapshotTable}/"
-  def getActionSnapshotTablePath(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.actionSnapshotTable}/"
-
+  def getSourceConfigTableName(config: OMSConfig): String =
+    s"${getOMSQualifiedSchemaName(config)}.`${config.sourceConfigTable}`"
+  def getPathConfigTableName(config: OMSConfig): String =
+    s"${getOMSQualifiedSchemaName(config)}.`${config.pathConfigTable}`"
   def getRawActionsTableName(config: OMSConfig): String =
     s"${getOMSQualifiedSchemaName(config)}.`${config.rawActionTable}`"
   def getCommitSnapshotTableName(config: OMSConfig): String =
     s"${getOMSQualifiedSchemaName(config)}.`${config.commitInfoSnapshotTable}`"
   def getActionSnapshotTableName(config: OMSConfig): String =
     s"${getOMSQualifiedSchemaName(config)}.`${config.actionSnapshotTable}`"
+  def getProcessedHistoryTableName(config: OMSConfig): String =
+    s"${getOMSQualifiedSchemaName(config)}.`${config.processedHistoryTable}`"
 
   val puidCommitDatePartitions = Seq(PUID, COMMIT_DATE)
 
@@ -60,50 +52,46 @@ trait Utils extends Serializable with Logging with Schemas {
     Map("entity" -> s"$ENTITY_NAME", "oms.version" -> s"$OMS_VERSION")
 
   def pathConfigTableDefinition(omsConfig: OMSConfig): TableDefinition = {
-    TableDefinition(omsConfig.pathConfigTable,
-      getOMSSchemaName(omsConfig),
-      getOMSCatalogName(omsConfig),
-      getOMSQualifiedSchemaName(omsConfig),
-      pathConfig,
-      getPathConfigTablePath(omsConfig),
-      Some("Delta OMS Path Config Table"),
-      omsProperties
+    TableDefinition(tableName = omsConfig.pathConfigTable,
+      schemaName = getOMSSchemaName(omsConfig),
+      catalogName = getOMSCatalogName(omsConfig),
+      qualifiedSchemaName = getOMSQualifiedSchemaName(omsConfig),
+      schema = pathConfig,
+      comment = Some("Delta OMS Path Config Table"),
+      properties = omsProperties
     )
   }
 
   def sourceConfigDefinition(omsConfig: OMSConfig): TableDefinition = {
-    TableDefinition(omsConfig.sourceConfigTable,
-      getOMSSchemaName(omsConfig),
-      getOMSCatalogName(omsConfig),
-      getOMSQualifiedSchemaName(omsConfig),
-      sourceConfig,
-      getSourceConfigTablePath(omsConfig),
-      Some("Delta OMS Source Config Table"),
-      omsProperties
+    TableDefinition(tableName = omsConfig.sourceConfigTable,
+      schemaName = getOMSSchemaName(omsConfig),
+      catalogName = getOMSCatalogName(omsConfig),
+      qualifiedSchemaName = getOMSQualifiedSchemaName(omsConfig),
+      schema = sourceConfig,
+      comment = Some("Delta OMS Source Config Table"),
+      properties = omsProperties
     )
   }
 
   def rawActionsTableDefinition(omsConfig: OMSConfig): TableDefinition = {
-    TableDefinition(omsConfig.rawActionTable,
-      getOMSSchemaName(omsConfig),
-      getOMSCatalogName(omsConfig),
-      getOMSQualifiedSchemaName(omsConfig),
-      rawAction,
-      getRawActionsTablePath(omsConfig),
-      Some("Delta OMS Raw Actions Table"),
-      omsProperties,
-      puidCommitDatePartitions)
+    TableDefinition(tableName = omsConfig.rawActionTable,
+      schemaName = getOMSSchemaName(omsConfig),
+      catalogName = getOMSCatalogName(omsConfig),
+      qualifiedSchemaName = getOMSQualifiedSchemaName(omsConfig),
+      schema = rawAction,
+      comment = Some("Delta OMS Raw Actions Table"),
+      properties = omsProperties,
+      partitionColumnNames = puidCommitDatePartitions)
   }
 
   def processedHistoryTableDefinition(omsConfig: OMSConfig): TableDefinition = {
-    TableDefinition(omsConfig.processedHistoryTable,
-      getOMSSchemaName(omsConfig),
-      getOMSCatalogName(omsConfig),
-      getOMSQualifiedSchemaName(omsConfig),
-      processedHistory,
-      getProcessedHistoryTablePath(omsConfig),
-      Some("Delta OMS Processed History Table"),
-      omsProperties
+    TableDefinition(tableName = omsConfig.processedHistoryTable,
+      schemaName = getOMSSchemaName(omsConfig),
+      catalogName = getOMSCatalogName(omsConfig),
+      qualifiedSchemaName = getOMSQualifiedSchemaName(omsConfig),
+      schema = processedHistory,
+      comment = Some("Delta OMS Processed History Table"),
+      properties = omsProperties
     )
   }
 

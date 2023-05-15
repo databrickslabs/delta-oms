@@ -25,17 +25,16 @@ import org.apache.spark.internal.Logging
 
 trait OMSInitializer extends Serializable with Logging {
 
-  def initializeOMS(config: OMSConfig, dropAndRecreate: Boolean = false,
-    ucEnabled: Boolean): Unit = {
+  def initializeOMS(config: OMSConfig, dropAndRecreate: Boolean = false): Unit = {
     if (dropAndRecreate) {
-      cleanupOMS(config, ucEnabled)
+      cleanupOMS(config)
     }
-    createOMSSchema(config, ucEnabled)
-    if (!ucEnabled) createOMSTables(config) else createUCManagedOMSTables(config)
+    createOMSSchema(config)
+    createManagedOMSTables(config)
   }
 
-  def createOMSSchema(config: OMSConfig, ucEnabled: Boolean): Unit = {
-    if (ucEnabled) {
+  def createOMSSchema(config: OMSConfig): Unit = {
+    if (isUCEnabled) {
       logInfo("Creating the OMS Database Objects on UC")
       // CREATE EXTERNAL LOCATION
       val extLocQuery = externalLocationCreationQuery(omsExternalLocationDefinition(config))
@@ -46,45 +45,30 @@ trait OMSInitializer extends Serializable with Logging {
     }
     // CREATE SCHEMA / DATABASE
     logInfo("Creating the OMS Schema/Database")
-    val schemaQuery = schemaCreationQuery(omsSchemaDefinition(config), ucEnabled)
+    val schemaQuery = schemaCreationQuery(omsSchemaDefinition(config))
     executeSQL(schemaQuery._1, schemaQuery._2)
   }
 
-  def createOMSTables(config: OMSConfig): Unit = {
-    logInfo("Creating the EXTERNAL Source Config table on OMS Delta Lake")
-    createTableIfAbsent(sourceConfigDefinition(config))
-    logInfo("Creating the INTERNAL Path Config table on OMS Delta Lake")
-    createTableIfAbsent(pathConfigTableDefinition(config))
-    logInfo("Creating the Delta Raw Actions table on OMS Delta Lake")
-    createTableIfAbsent(rawActionsTableDefinition(config))
-    logInfo("Creating the Processing History table on OMS Delta Lake")
-    createTableIfAbsent(processedHistoryTableDefinition(config))
-  }
-
-  def createUCManagedOMSTables(config: OMSConfig): Unit = {
+  def createManagedOMSTables(config: OMSConfig): Unit = {
     logInfo("Creating the EXTERNAL Source Config table on OMS Delta Lake")
     val srcConfigTableQuery = tableCreateQuery(sourceConfigDefinition(config))
     executeSQL(srcConfigTableQuery._1, srcConfigTableQuery._2)
-    // createTableIfAbsent(sourceConfigDefinition(config))
 
     logInfo("Creating the INTERNAL Path Config table on OMS Delta Lake")
     val pathConfigTableQuery = tableCreateQuery(pathConfigTableDefinition(config))
     executeSQL(pathConfigTableQuery._1, pathConfigTableQuery._2)
-    // createPathConfigTables(config)
 
     logInfo("Creating the Delta Raw Actions table on OMS Delta Lake")
     val rawActionsTableQuery = tableCreateQuery(rawActionsTableDefinition(config))
     executeSQL(rawActionsTableQuery._1, rawActionsTableQuery._2)
-    // createTableIfAbsent(rawActionsTableDefinition(config))
 
     logInfo("Creating the Processing History table on OMS Delta Lake")
     val processedHistoryTableQuery = tableCreateQuery(processedHistoryTableDefinition(config))
     executeSQL(processedHistoryTableQuery._1, processedHistoryTableQuery._2)
-    // createTableIfAbsent(processedHistoryTableDefinition(config))
   }
 
-  def cleanupOMS(config: OMSConfig, ucEnabled: Boolean): Unit = {
-    if (!ucEnabled) {
+  def cleanupOMS(config: OMSConfig): Unit = {
+    if (!isUCEnabled) {
       val delSchemaPath = getOMSSchemaPath(config)
       val deleteSchemaPath = Try {
         deleteDirectory(delSchemaPath)

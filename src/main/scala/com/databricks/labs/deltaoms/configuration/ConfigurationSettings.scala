@@ -40,6 +40,25 @@ trait ConfigurationSettings extends Serializable with Logging {
       actionSnapshotTable = "action_snapshots")
   }
 
+  def validateOMSConfig(omsConfig: OMSConfig, isBatch: Boolean = true): Unit = {
+    assert(omsConfig.locationUrl.isDefined,
+      "Mandatory configuration OMS Location URL missing")
+    assert(omsConfig.locationName.isDefined,
+      "Mandatory configuration OMS Location Name missing")
+    assert(omsConfig.storageCredentialName.isDefined,
+      "Mandatory configuration OMS Storage Credential Name missing")
+    assert(omsConfig.catalogName.isDefined,
+      "Mandatory configuration OMS Catalog Name missing")
+    assert(omsConfig.schemaName.isDefined,
+      "Mandatory configuration OMS Schema Name missing")
+    if(!isBatch) {
+      assert(omsConfig.checkpointBase.isDefined,
+        "Mandatory configuration OMS Checkpoint Base Location missing")
+      assert(omsConfig.checkpointSuffix.isDefined,
+        "Mandatory configuration OMS Checkpoint Suffix missing")
+    }
+  }
+
   def environment: Environment = EnvironmentResolver.fetchEnvironment(environmentType)
 
   def environmentType: String =

@@ -38,7 +38,7 @@ lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 
 val sparkVersion = "3.3.0"
-val deltaVersion = "2.1.0"
+val deltaVersion = "2.3.0"
 
 lazy val commonSettings = Seq(
   name := "delta-oms",

@@ -49,9 +49,11 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
   test("Initialize OMS Database and tables") {
     val dbName = omsConfig.schemaName.get
     assert(!spark.catalog.databaseExists(dbName))
-    initializeOMS(omsConfig, ucEnabled = false)
+    initializeOMS(omsConfig)
     assert(spark.catalog.databaseExists(dbName))
-    initializeOMS(omsConfig, dropAndRecreate = true, ucEnabled = false)
+    // spark.sql(s"show tables in $dbName").show()
+    // spark.sql(s"describe extended $dbName.${omsConfig.sourceConfigTable}").show(false)
+    initializeOMS(omsConfig, dropAndRecreate = true)
     assert(spark.catalog.databaseExists(dbName))
     assert(spark.catalog.tableExists(dbName, omsConfig.sourceConfigTable))
     assert(spark.catalog.tableExists(dbName, omsConfig.pathConfigTable))
@@ -63,7 +65,7 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
     val dbInvalidPathOMSConfig =
       OMSConfig(schemaName = Some("abc"), locationUrl = Some("s3://sampleBase"))
     assert(intercept[java.lang.RuntimeException] {
-      cleanupOMS(dbInvalidPathOMSConfig, ucEnabled = false)
+      cleanupOMS(dbInvalidPathOMSConfig)
     }.getMessage.contains("org.apache.hadoop.fs.UnsupportedFileSystemException"))
   }
 }

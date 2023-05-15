@@ -38,6 +38,10 @@ trait DeltaTestSharedSession { self: SharedSparkSession =>
       val session = new DeltaSharedSparkSession(sparkConf)
       session.conf.set(SQLConf.V2_SESSION_CATALOG_IMPLEMENTATION.key, classOf[DeltaCatalog].getName)
       // session.conf.set("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+      session.conf.set(SQLConf.DEFAULT_DATA_SOURCE_NAME.key, "delta")
+      session.conf.set(SQLConf.LEGACY_CREATE_HIVE_TABLE_BY_DEFAULT.key, value = false)
+      session.conf.set("spark.databricks.labs.deltaoms.ucenabled", value = false)
+      // session.conf.set(SQLConf.CONVERT_CTAS.key, value = true)
       session
     }
 }

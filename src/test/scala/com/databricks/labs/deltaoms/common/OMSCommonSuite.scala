@@ -30,67 +30,67 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
   test("Test Missing Fields Exceptions") {
 
     assert(intercept[java.lang.AssertionError] {
-        ValidationUtils.validateOMSConfig(OMSConfig(schemaName = Some("abc"),
+        validateOMSConfig(OMSConfig(schemaName = Some("abc"),
           catalogName = Some("cat"),
           locationName = Some("sampleLocation"),
           storageCredentialName = Some("sampleCredential"),
           checkpointBase = Some("/checkBase"),
-          checkpointSuffix = Some("_checkSuffix_123")), false)
+          checkpointSuffix = Some("_checkSuffix_123")), isBatch = false)
       }.getMessage.contains("Mandatory configuration OMS Location URL missing"))
 
     assert(intercept[java.lang.AssertionError] {
-      ValidationUtils.validateOMSConfig(OMSConfig(schemaName = Some("abc"),
+      validateOMSConfig(OMSConfig(schemaName = Some("abc"),
         catalogName = Some("cat"),
         locationUrl = Some("/sampleBase"),
         storageCredentialName = Some("sampleCredential"),
         checkpointBase = Some("/checkBase"),
-        checkpointSuffix = Some("_checkSuffix_123")), false)
+        checkpointSuffix = Some("_checkSuffix_123")), isBatch = false)
     }.getMessage.contains("Mandatory configuration OMS Location Name missing"))
 
     assert(intercept[java.lang.AssertionError] {
-      ValidationUtils.validateOMSConfig(OMSConfig(schemaName = Some("abc"),
+      validateOMSConfig(OMSConfig(schemaName = Some("abc"),
         catalogName = Some("cat"),
         locationUrl = Some("/sampleBase"),
         locationName = Some("sampleLocation"),
         checkpointBase = Some("/checkBase"),
-        checkpointSuffix = Some("_checkSuffix_123")), false)
+        checkpointSuffix = Some("_checkSuffix_123")), isBatch = false)
     }.getMessage.contains("Mandatory configuration OMS Storage Credential Name missing"))
 
     assert(intercept[java.lang.AssertionError] {
-      ValidationUtils.validateOMSConfig(OMSConfig(schemaName = Some("abc"),
+      validateOMSConfig(OMSConfig(schemaName = Some("abc"),
         locationUrl = Some("/sampleBase"),
         locationName = Some("sampleLocation"),
         storageCredentialName = Some("sampleCredential"),
         checkpointBase = Some("/checkBase"),
-        checkpointSuffix = Some("_checkSuffix_123")), false)
+        checkpointSuffix = Some("_checkSuffix_123")), isBatch = false)
     }.getMessage.contains("Mandatory configuration OMS Catalog Name missing"))
 
     assert(intercept[java.lang.AssertionError] {
-      ValidationUtils.validateOMSConfig(OMSConfig(
+      validateOMSConfig(OMSConfig(
         catalogName = Some("cat"),
         locationUrl = Some("/sampleBase"),
         locationName = Some("sampleLocation"),
         storageCredentialName = Some("sampleCredential"),
         checkpointBase = Some("/checkBase"),
-        checkpointSuffix = Some("_checkSuffix_123")), false)
+        checkpointSuffix = Some("_checkSuffix_123")), isBatch = false)
     }.getMessage.contains("Mandatory configuration OMS Schema Name missing"))
 
     assert(intercept[java.lang.AssertionError] {
-      ValidationUtils.validateOMSConfig(OMSConfig(schemaName = Some("abc"),
+      validateOMSConfig(OMSConfig(schemaName = Some("abc"),
         catalogName = Some("cat"),
         locationUrl = Some("/sampleBase"),
         locationName = Some("sampleLocation"),
         storageCredentialName = Some("sampleCredential"),
-        checkpointSuffix = Some("_checkSuffix_123")), false)
+        checkpointSuffix = Some("_checkSuffix_123")), isBatch = false)
     }.getMessage.contains("Mandatory configuration OMS Checkpoint Base Location missing"))
 
     assert(intercept[java.lang.AssertionError] {
-      ValidationUtils.validateOMSConfig(OMSConfig(schemaName = Some("abc"),
+      validateOMSConfig(OMSConfig(schemaName = Some("abc"),
         catalogName = Some("cat"),
         locationUrl = Some("/sampleBase"),
         locationName = Some("sampleLocation"),
         storageCredentialName = Some("sampleCredential"),
-        checkpointBase = Some("/checkBase")), false)
+        checkpointBase = Some("/checkBase")), isBatch = false)
     }.getMessage.contains("Mandatory configuration OMS Checkpoint Suffix missing"))
   }
 

@@ -45,7 +45,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     val configuredSources: Array[SourceConfig] = fetchSourceConfigForProcessing(config)
     // Update the OMS Path Config
     updateOMSPathConfigFromList(configuredSources.toSeq,
-      getPathConfigTablePath(config),
+      getPathConfigTableName(config),
       config.truncatePathConfig)
   }
 
@@ -58,7 +58,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     val wildCardSourcePaths = sourceConfigs
       .filter(substring(col(PATH), -2, 2) === "**")
       .selectExpr(s"substring($PATH,1,length($PATH)-2) as $PATH",
-        s"$SKIP_PROCESSING", s"$PARAMETERS").as[SourceConfig]
+        s"$SKIP_PROCESSING").as[SourceConfig]
     val wildCardSubDirectories = wildCardSourcePaths.flatMap(listSubDirectories(_, hadoopConf))
     val wildCardTablePaths = wildCardSubDirectories.repartition(32)
       .flatMap(recursiveListDeltaTablePaths(_, hadoopConf))
@@ -67,33 +67,20 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
 
   def fetchSourceConfigForProcessing(config: OMSConfig): Array[SourceConfig] = {
     val spark = SparkSession.active
-    val sourceConfigs = spark.read.format("delta").load(getSourceConfigTablePath(config))
-      .where(s"$SKIP_PROCESSING <> true").select(PATH, SKIP_PROCESSING, PARAMETERS)
-    val expandedSourceConfigs = processWildcardDirectories(sourceConfigs).collect()
-    expandedSourceConfigs.foreach(sc => assert(sc.parameters.contains(WILDCARD_LEVEL),
-      s"Source Config $sc missing Wild Card Level Parameter"))
-    expandedSourceConfigs
+    val sourceConfigs = spark.read.table(getSourceConfigTableName(config))
+      .where(s"$SKIP_PROCESSING <> true").select(PATH, SKIP_PROCESSING)
+    processWildcardDirectories(sourceConfigs).collect()
   }
 
   def updateOMSPathConfigFromList(sourceConfigs: Seq[SourceConfig],
-    pathConfigTablePath: String,
+    pathConfigTableName: String,
     truncate: Boolean = false)
   : Unit = {
-    val tablePaths: DataFrame = sourceConfigs.flatMap(validateDeltaLocation)
+    val tablePaths: DataFrame = sourceConfigs.flatMap(resolveDeltaLocation).filter(_._2.isDefined)
       .toDF(QUALIFIED_NAME, PATH, PARAMETERS)
     updatePathConfigToOMS(tablePathToPathConfig(tablePaths),
-      pathConfigTablePath,
+      pathConfigTableName,
       truncate)
-  }
-
-  def updateOMSPathConfigFromMetaStore(config: OMSConfig, truncate: Boolean = false): Unit = {
-    val metaStoreDeltaTables = fetchMetaStoreDeltaTables(config.srcDatabases,
-      config.tablePattern)
-    val tablePaths = metaStoreDeltaTables.map(mdt => (mdt.unquotedString,
-      mdt.getPath(spark).toString, Map(WILDCARD_LEVEL -> 1)))
-      .toDF(QUALIFIED_NAME, PATH, PARAMETERS)
-    updatePathConfigToOMS(tablePathToPathConfig(tablePaths),
-      getPathConfigTablePath(config), truncate)
   }
 
   def tablePathToPathConfig(tablePaths: DataFrame): Dataset[PathConfig] = {
@@ -103,17 +90,15 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       .withColumn("wildCardPath",
         deltaWildCardPath(col(s"$PATH"), col(s"${PARAMETERS}.${WILDCARD_LEVEL}")))
       .withColumn(WUID, substring(sha1($"wildCardPath"), 0, 7))
-      .withColumn("automated", lit(false))
-      .withColumn(COMMIT_VERSION, lit(0L))
       .withColumn("skipProcessing", lit(false))
       .withColumn(UPDATE_TS, lit(Instant.now())).as[PathConfig]
   }
 
   def updatePathConfigToOMS(pathConfigs: Dataset[PathConfig],
-    pathConfigTablePath: String,
+    pathConfigTableName: String,
     truncate: Boolean = false): Unit = {
     val pathConfigOMSDeltaTable = Try {
-      DeltaTable.forPath(pathConfigTablePath)
+      DeltaTable.forName(pathConfigTableName)
     }
     pathConfigOMSDeltaTable match {
       case Success(pct) =>
@@ -129,7 +114,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     }
   }
 
-  def insertRawDeltaLogs(rawActionsTablePath: String)(newDeltaLogDF: DataFrame, batchId: Long):
+  def insertRawDeltaLogs(rawActionsTableName: String)(newDeltaLogDF: DataFrame, batchId: Long):
   Unit = {
     newDeltaLogDF.cache()
 
@@ -137,9 +122,11 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       .mkString("'", "','", "'")
     val commitDates = newDeltaLogDF.select(COMMIT_DATE).distinct().as[String].collect()
       .mkString("'", "','", "'")
+
     val rawActionsTable = Try {
-      DeltaTable.forPath(rawActionsTablePath)
+      DeltaTable.forName(rawActionsTableName)
     }
+
     rawActionsTable match {
       case Success(rat) =>
         rat.as("raw_actions")
@@ -158,7 +145,6 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
   }
 
   def processDeltaLogStreams(streamTargetAndLog: (DataFrame, StreamTargetInfo),
-    rawActionsTablePath: String,
     triggerIntervalOption: Option[String],
     appendMode: Boolean = false): (String, StreamingQuery) = {
     val readStream = streamTargetAndLog._1
@@ -173,6 +159,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     val wuid = targetInfo.wuid.get
     val poolName = "pool_" + wuid
     val queryName = "query_" + wuid
+    val targetTableName = targetInfo.name
 
     spark.sparkContext.setLocalProperty("spark.scheduler.pool", poolName)
     if(!appendMode) {
@@ -180,11 +167,11 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
         .writeStream
         .format("delta")
         .queryName(queryName)
-        .foreachBatch(insertRawDeltaLogs(rawActionsTablePath) _)
+        .foreachBatch(insertRawDeltaLogs(targetTableName) _)
         .outputMode("update")
         .option("checkpointLocation", targetInfo.checkpointPath)
         .trigger(trigger)
-        .start(targetInfo.path))
+        .start())
     } else {
       (wuid, readStream
         .writeStream
@@ -194,40 +181,42 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
         .format("delta")
         .option("checkpointLocation", targetInfo.checkpointPath)
         .trigger(trigger)
-        .start(targetInfo.path))
+        .toTable(targetTableName))
     }
   }
 
   def streamingUpdateRawDeltaActionsToOMS(config: OMSConfig): Unit = {
-    val uniquePaths = if (config.consolidateWildcardPaths) {
+    val uniquePaths: Seq[(String, String)] = if (config.consolidateWildcardPaths) {
       consolidateWildCardPaths(
-        fetchPathForStreamProcessing(getPathConfigTablePath(config),
+        fetchPathForStreamProcessing(getPathConfigTableName(config),
           startingStream = config.startingStream, endingStream = config.endingStream))
     } else {
-      fetchPathForStreamProcessing(getPathConfigTablePath(config),
+      fetchPathForStreamProcessing(getPathConfigTableName(config),
         startingStream = config.startingStream, endingStream = config.endingStream)
     }
-    val logReadStreams = uniquePaths.flatMap(p =>
+
+    val logReadStreams: Seq[(DataFrame, StreamTargetInfo)] = uniquePaths.flatMap(p =>
       fetchStreamTargetAndDeltaLogForPath(p,
         config.checkpointBase.get,
         config.checkpointSuffix.get,
-        getRawActionsTablePath(config), config.useAutoloader, config.maxFilesPerTrigger))
+        getRawActionsTableName(config), config.useAutoloader, config.maxFilesPerTrigger))
+
     val logWriteStreamQueries = logReadStreams
       .map(lrs => processDeltaLogStreams(lrs,
-        getRawActionsTablePath(config),
         config.triggerInterval))
+
     spark.streams.addListener(new OMSStreamingQueryListener())
     logWriteStreamQueries.foreach(x => x._2.status.prettyJson)
     spark.streams.awaitAnyTermination()
   }
 
 
-  def fetchPathForStreamProcessing(pathConfigTablePath: String,
+  def fetchPathForStreamProcessing(pathConfigTableName: String,
     useWildCardPath: Boolean = true, startingStream: Int = 1, endingStream: Int = 50):
   Seq[(String, String)] = {
     if (useWildCardPath) {
       val wildcard_window = Window.orderBy(WUID)
-      fetchPathConfigForProcessing(pathConfigTablePath)
+      fetchPathConfigForProcessing(pathConfigTableName)
         .select(WILDCARD_PATH, WUID)
         .distinct()
         .withColumn("wildcard_row_id", row_number().over(wildcard_window))
@@ -236,7 +225,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
         .as[(String, String)].collect()
     } else {
       val path_window = Window.orderBy(PUID)
-      fetchPathConfigForProcessing(pathConfigTablePath)
+      fetchPathConfigForProcessing(pathConfigTableName)
         .select(concat(col(PATH), lit("/_delta_log/*.json")).as(PATH), col(PUID))
         .distinct()
         .withColumn("path_row_id", row_number().over(path_window))
@@ -246,13 +235,13 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     }
   }
 
-  def fetchPathConfigForProcessing(pathConfigTablePath: String): Dataset[PathConfig] = {
+  def fetchPathConfigForProcessing(pathConfigTableName: String): Dataset[PathConfig] = {
     val spark = SparkSession.active
-    spark.read.format("delta").load(pathConfigTablePath).as[PathConfig]
+    spark.read.table(pathConfigTableName).as[PathConfig]
   }
 
   def fetchStreamTargetAndDeltaLogForPath(pathInfo: (String, String),
-    checkpointBaseDir: String, checkpointSuffix: String, rawActionsTablePath: String,
+    checkpointBaseDir: String, checkpointSuffix: String, rawActionsTableName: String,
     useAutoLoader: Boolean, maxFilesPerTrigger: String):
   Option[(DataFrame, StreamTargetInfo)] = {
     val wildCardPath = pathInfo._1
@@ -264,7 +253,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       maxFilesPerTrigger)
     if(readPathStream.isDefined) {
       Some(readPathStream.get,
-        StreamTargetInfo(path = rawActionsTablePath, checkpointPath = checkpointPath,
+        StreamTargetInfo(name = rawActionsTableName, checkpointPath = checkpointPath,
           wuid = Some(wuid)))
     } else {
       None
@@ -304,16 +293,15 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       }
   }
 
-  def getCurrentRawActionsVersion(rawActionsTablePath: String): Long = {
-    spark.sql(s"describe history delta.`$rawActionsTablePath`")
+  def getCurrentRawActionsVersion(rawActionsTableName: String): Long = {
+    spark.sql(s"describe history $rawActionsTableName")
       .select(max("version").as("max_version")).as[Long].head()
   }
 
-  def getLastProcessedRawActionsVersion(processedHistoryTablePath: String,
+  def getLastProcessedRawActionsVersion(processedHistoryTableName: String,
     rawActionTable: String): Long = {
     Try {
-      spark.read.format("delta")
-        .load(processedHistoryTablePath)
+      spark.read.table(processedHistoryTableName)
         .where(s"tableName='${rawActionTable}'")
         .select("lastVersion").as[Long].head()
     }.getOrElse(0L)
@@ -327,13 +315,13 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
 
   def updateLastProcessedRawActions(latestVersion: Long,
     rawActionTable: String,
-    processedHistoryTablePath: String ): Unit = {
+    processedHistoryTableName: String ): Unit = {
     val updatedRawActionsLastProcessedVersion =
       Seq((rawActionTable, latestVersion, Instant.now()))
         .toDF("tableName", "lastVersion", "update_ts")
 
     val processedHistoryTable = Try {
-      DeltaTable.forPath(processedHistoryTablePath)
+      DeltaTable.forName(processedHistoryTableName)
     }
     processedHistoryTable match {
       case Success(pht) =>
@@ -347,33 +335,31 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     }
   }
 
-  def getUpdatedRawActions(lastProcessedVersion: Long, rawActionsTablePath: String): DataFrame = {
+  def getUpdatedRawActions(lastProcessedVersion: Long, rawActionsTableName: String): DataFrame = {
     spark.read.format("delta")
       .option("readChangeFeed", "true")
       .option("startingVersion", lastProcessedVersion + 1)
-      .load(s"$rawActionsTablePath")
+      .load(s"$rawActionsTableName")
       .filter("""_change_type IN ("insert", "update_postimage")""")
   }
 
   def processCommitInfoFromRawActions(rawActions: DataFrame,
-    commitSnapshotTablePath: String,
     commitSnapshotTableName: String): Unit = {
     val commitInfo = rawActions.where(col("commitInfo.operation").isNotNull)
       .selectExpr(COMMIT_VERSION, s"current_timestamp() as $UPDATE_TS",
         COMMIT_TS, FILE_NAME, PATH,
         PUID, COMMIT_DATE, "commitInfo.*").drop("version", "timestamp")
 
-    val commitSnapshotExists = DeltaTable.isDeltaTable(commitSnapshotTablePath)
+    val commitSnapshotExists = DeltaTable.isDeltaTable(commitSnapshotTableName)
     if (!commitSnapshotExists) {
       commitInfo.write
         .mode("overwrite")
         .format("delta")
         .partitionBy(puidCommitDatePartitions: _*)
-        .option("path", commitSnapshotTablePath)
         .saveAsTable(commitSnapshotTableName)
     } else {
       val commitInfoSnapshotTable = Try {
-        DeltaTable.forPath(commitSnapshotTablePath)
+        DeltaTable.forName(commitSnapshotTableName)
       }
       commitInfoSnapshotTable match {
         case Success(cst) =>
@@ -391,23 +377,21 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
   }
 
   def processActionSnapshotsFromRawActions(rawActions: DataFrame,
-    actionSnapshotTablePath: String,
     actionSnapshotTableName: String): Unit = {
-    val actionSnapshotExists = DeltaTable.isDeltaTable(actionSnapshotTablePath)
+    val actionSnapshotExists = DeltaTable.isDeltaTable(actionSnapshotTableName)
     val actionSnapshots = computeActionSnapshotFromRawActions(rawActions,
       actionSnapshotExists,
-      actionSnapshotTablePath)
+      actionSnapshotTableName)
     if (!actionSnapshotExists) {
       actionSnapshots.write
         .mode("overwrite")
         .format("delta")
         .partitionBy(puidCommitDatePartitions: _*)
         .option("overwriteSchema", "true")
-        .option("path", actionSnapshotTablePath)
         .saveAsTable(actionSnapshotTableName)
     } else {
       val actionSnapshotTable = Try {
-        DeltaTable.forPath(actionSnapshotTablePath)
+        DeltaTable.forName(actionSnapshotTableName)
       }
       actionSnapshotTable match {
         case Success(ast) =>
@@ -425,10 +409,10 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
   }
 
   def computeActionSnapshotFromRawActions(rawActions: org.apache.spark.sql.DataFrame,
-    snapshotExists: Boolean, actionSnapshotTablePath: String): DataFrame = {
+    snapshotExists: Boolean, actionSnapshotTableName: String): DataFrame = {
     val addRemoveFileActions = prepareAddRemoveActionsFromRawActions(rawActions)
     val cumulativeAddRemoveFiles = if (snapshotExists) {
-      val previousSnapshot = spark.read.format("delta").load(actionSnapshotTablePath)
+      val previousSnapshot = spark.read.table(actionSnapshotTableName)
       val previousSnapshotMaxCommitVersion = previousSnapshot.groupBy(PUID)
         .agg(max(COMMIT_VERSION).as(COMMIT_VERSION))
       val previousSnapshotMaxAddRemoveFileActions = previousSnapshot

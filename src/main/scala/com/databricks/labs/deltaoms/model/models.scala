@@ -27,18 +27,11 @@ case class PathConfig(path: String,
   wildCardPath: String,
   wuid: String,
   parameters: Map[String, String] = Map.empty[String, String],
-  automated: Boolean = true,
   qualifiedName: Option[String] = None,
-  commit_version: Long,
   skipProcessing: Boolean = false,
-  update_ts: Instant = Instant.now()) {
-  def getDeltaLog(spark: SparkSession): DeltaLog = {
-    DeltaLog.forTable(spark, path)
-  }
-}
+  update_ts: Instant = Instant.now())
 
-case class SourceConfig(path: String, skipProcessing: Boolean = false,
-  parameters: Map[String, String] = Map.empty[String, String])
+case class SourceConfig(path: String, skipProcessing: Boolean = false)
 
 case class ProcessedHistory(tableName: String, lastVersion: Long,
   update_ts: Instant = Instant.now())
@@ -49,12 +42,12 @@ case class TableDefinition(
   catalogName: String,
   qualifiedSchemaName: String,
   schema: StructType,
-  path: String,
   comment: Option[String] = None,
   properties: Map[String, String] = Map.empty[String, String],
   partitionColumnNames: Seq[String] = Seq.empty[String],
   version: Long = 0) {
-  assert(path.nonEmpty & tableName.nonEmpty, "Table Name and Path is required")
+  assert(schemaName.nonEmpty & tableName.nonEmpty,
+    "Schema and Table Name are required")
 }
 
 case class ExternalLocationDefinition(locationName: String,
@@ -81,5 +74,5 @@ case class SchemaDefinition(catalogName: String,
   assert(schemaName.nonEmpty, "Schema Name is required")
 }
 
-case class StreamTargetInfo(path: String, checkpointPath: String,
+case class StreamTargetInfo(name: String, checkpointPath: String,
   wuid: Option[String] = None, puid: Option[String] = None)
