@@ -50,11 +50,11 @@ trait OMSInitializer extends Serializable with Logging {
   }
 
   def createManagedOMSTables(config: OMSConfig): Unit = {
-    logInfo("Creating the EXTERNAL Source Config table on OMS Delta Lake")
+    logInfo("Creating the Source Config table on OMS Delta Lake")
     val srcConfigTableQuery = tableCreateQuery(sourceConfigDefinition(config))
     executeSQL(srcConfigTableQuery._1, srcConfigTableQuery._2)
 
-    logInfo("Creating the INTERNAL Path Config table on OMS Delta Lake")
+    logInfo("Creating the Path Config table on OMS Delta Lake")
     val pathConfigTableQuery = tableCreateQuery(pathConfigTableDefinition(config))
     executeSQL(pathConfigTableQuery._1, pathConfigTableQuery._2)
 

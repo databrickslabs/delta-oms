@@ -79,12 +79,12 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
   test("Valid External Location Creation SQL") {
     val testConfig = OMSConfig(locationName = Some("deltaoms-external-location"),
       storageCredentialName = Some("field_demos_credential"),
-      locationUrl = Some("s3://databricks-deltaoms/deltaoms"))
+      locationUrl = Some("/deltaoms/deltaoms"))
     val extLocQuery = UtilityOperations.externalLocationCreationQuery(
       omsExternalLocationDefinition(testConfig))
     assert(extLocQuery._1 ==
       """CREATE EXTERNAL LOCATION IF NOT EXISTS `deltaoms-external-location`
-         |URL 's3://databricks-deltaoms/deltaoms'
+         |URL '/deltaoms/deltaoms'
          |WITH (STORAGE CREDENTIAL `field_demos_credential`)
          |COMMENT 'DeltaOMS External Location'""".stripMargin
         .replaceAll("\n", " ")
@@ -94,11 +94,11 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
 
   test("Valid Catalog Creation SQL") {
     val testConfig = OMSConfig(catalogName = Some("deltaoms"),
-      locationUrl = Some("s3://databricks-deltaoms/deltaoms"))
+      locationUrl = Some("/deltaoms/deltaoms"))
     val catQuery = UtilityOperations.catalogCreationQuery(omsCatalogDefinition(testConfig))
     assert(catQuery._1 ==
       """CREATE CATALOG IF NOT EXISTS `deltaoms`
-        |MANAGED LOCATION 's3://databricks-deltaoms/deltaoms/deltaoms'
+        |MANAGED LOCATION '/deltaoms/deltaoms/deltaoms'
         |COMMENT 'DeltaOMS Catalog'""".stripMargin.replaceAll("\n", " ")
     )
     assert(catQuery._2 == "CATALOG")
@@ -107,13 +107,13 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
   test("Valid Schema Creation SQL") {
     val testConfig = OMSConfig(catalogName = Some("deltaoms"),
       schemaName = Some("deltaoms_test"),
-      locationUrl = Some("s3://databricks-deltaoms/deltaoms"))
+      locationUrl = Some("/deltaoms/deltaoms"))
     spark.conf.set("spark.databricks.labs.deltaoms.ucenabled", value = true)
     val schemaQuery = UtilityOperations.schemaCreationQuery(omsSchemaDefinition(testConfig,
       Some(Map("entity" -> "oms", "oms.version" -> "0.5.0"))))
     assert(schemaQuery._1 ==
       """CREATE SCHEMA IF NOT EXISTS deltaoms.`deltaoms_test`
-        |MANAGED LOCATION 's3://databricks-deltaoms/deltaoms/deltaoms/deltaoms_test'
+        |MANAGED LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test'
         |COMMENT 'DeltaOMS Schema'
         |WITH DBPROPERTIES('entity'='oms','oms.version'='0.5.0')"""
         .stripMargin.replaceAll("\n", " ")
@@ -144,13 +144,15 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
   test("Valid All Table Creation SQL") {
     val testConfig = OMSConfig(catalogName = Some("deltaoms"),
       schemaName = Some("deltaoms_test"),
-      locationUrl = Some("s3://databricks-deltaoms/deltaoms"))
+      locationUrl = Some("/deltaoms/deltaoms"))
 
     // Source Config Table
     val srcConfigTableQuery = UtilityOperations.tableCreateQuery(sourceConfigDefinition(testConfig))
     assert(srcConfigTableQuery._1 ==
       s"CREATE TABLE IF NOT EXISTS deltaoms.`deltaoms_test`" +
-        s".`sourceconfig` (${Schemas.sourceConfig.toDDL}) COMMENT 'Delta OMS Source Config Table'"
+        s".`sourceconfig` (${Schemas.sourceConfig.toDDL}) " +
+        s"LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test/sourceconfig' " +
+        s"COMMENT 'Delta OMS Source Config Table'"
     )
     assert(srcConfigTableQuery._2 == "TABLE")
     // Path Config Table
@@ -159,6 +161,7 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
     assert(pathConfigTableQuery._1 == s"CREATE TABLE IF NOT EXISTS " +
       s"${testConfig.catalogName.get}.`${testConfig.schemaName.get}`" +
       s".`${testConfig.pathConfigTable}` (${Schemas.pathConfig.toDDL}) " +
+      s"LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test/pathconfig' " +
       s"COMMENT 'Delta OMS Path Config Table'"
     )
     // Raw Actions Table
@@ -168,6 +171,7 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
       s".`${testConfig.schemaName.get}`.`${testConfig.rawActionTable}` " +
       s"(${Schemas.rawAction.toDDL}) " +
       s"PARTITIONED BY (${puidCommitDatePartitions.mkString(",")}) " +
+      s"LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test/rawactions' " +
       s"COMMENT 'Delta OMS Raw Actions Table'"
     )
     // Processing History Table
@@ -177,6 +181,7 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
       s"${testConfig.catalogName.get}" +
       s".`${testConfig.schemaName.get}`.`${testConfig.processedHistoryTable}` " +
       s"(${Schemas.processedHistory.toDDL}) " +
+      s"LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test/processedhistory' " +
       s"COMMENT 'Delta OMS Processed History Table'"
     )
   }

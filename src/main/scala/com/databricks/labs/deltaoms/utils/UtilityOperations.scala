@@ -176,10 +176,13 @@ trait UtilityOperations extends Serializable with Logging {
   def tableCreateQuery(tableDef: TableDefinition): (String, String) = {
     val tableCreateSQL =
       new StringBuilder(s"CREATE TABLE IF NOT EXISTS " +
-        s"${tableDef.qualifiedSchemaName}.`${tableDef.tableName}` " +
+        s"${tableDef.tableName} " +
         s"(${tableDef.schema.toDDL}) ")
     if(tableDef.partitionColumnNames.nonEmpty) {
       tableCreateSQL.append(s"""PARTITIONED BY (${tableDef.partitionColumnNames.mkString(",")}) """)
+    }
+    if(tableDef.locationUrl.nonEmpty) {
+      tableCreateSQL.append(s"""LOCATION '${tableDef.locationUrl}' """)
     }
     if (tableDef.comment.nonEmpty) {
       tableCreateSQL.append(s"COMMENT '${tableDef.comment.get}'")

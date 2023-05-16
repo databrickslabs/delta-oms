@@ -41,6 +41,7 @@ case class TableDefinition(
   schemaName: String,
   catalogName: String,
   qualifiedSchemaName: String,
+  locationUrl: String,
   schema: StructType,
   comment: Option[String] = None,
   properties: Map[String, String] = Map.empty[String, String],

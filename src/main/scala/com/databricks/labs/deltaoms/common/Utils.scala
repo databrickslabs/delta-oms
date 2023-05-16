@@ -35,16 +35,33 @@ trait Utils extends Serializable with Logging with Schemas {
 
   def getSourceConfigTableName(config: OMSConfig): String =
     s"${getOMSQualifiedSchemaName(config)}.`${config.sourceConfigTable}`"
+  def getSourceConfigTableUrl(config: OMSConfig): String =
+    s"${getOMSSchemaPath(config)}/${config.sourceConfigTable}"
+
   def getPathConfigTableName(config: OMSConfig): String =
     s"${getOMSQualifiedSchemaName(config)}.`${config.pathConfigTable}`"
+  def getPathConfigTableUrl(config: OMSConfig): String =
+    s"${getOMSSchemaPath(config)}/${config.pathConfigTable}"
+
   def getRawActionsTableName(config: OMSConfig): String =
     s"${getOMSQualifiedSchemaName(config)}.`${config.rawActionTable}`"
+  def getRawActionsTableUrl(config: OMSConfig): String =
+    s"${getOMSSchemaPath(config)}/${config.rawActionTable}"
+
   def getCommitSnapshotTableName(config: OMSConfig): String =
     s"${getOMSQualifiedSchemaName(config)}.`${config.commitInfoSnapshotTable}`"
+  def getCommitSnapshotTableUrl(config: OMSConfig): String =
+    s"${getOMSSchemaPath(config)}/${config.commitInfoSnapshotTable}"
+
   def getActionSnapshotTableName(config: OMSConfig): String =
     s"${getOMSQualifiedSchemaName(config)}.`${config.actionSnapshotTable}`"
+  def getActionSnapshotTableUrl(config: OMSConfig): String =
+    s"${getOMSSchemaPath(config)}/${config.actionSnapshotTable}"
+
   def getProcessedHistoryTableName(config: OMSConfig): String =
     s"${getOMSQualifiedSchemaName(config)}.`${config.processedHistoryTable}`"
+  def getProcessedHistoryTableUrl(config: OMSConfig): String =
+    s"${getOMSSchemaPath(config)}/${config.processedHistoryTable}"
 
   val puidCommitDatePartitions = Seq(PUID, COMMIT_DATE)
 
@@ -52,10 +69,11 @@ trait Utils extends Serializable with Logging with Schemas {
     Map("entity" -> s"$ENTITY_NAME", "oms.version" -> s"$OMS_VERSION")
 
   def pathConfigTableDefinition(omsConfig: OMSConfig): TableDefinition = {
-    TableDefinition(tableName = omsConfig.pathConfigTable,
+    TableDefinition(tableName = getPathConfigTableName(omsConfig),
       schemaName = getOMSSchemaName(omsConfig),
       catalogName = getOMSCatalogName(omsConfig),
       qualifiedSchemaName = getOMSQualifiedSchemaName(omsConfig),
+      locationUrl = getPathConfigTableUrl(omsConfig),
       schema = pathConfig,
       comment = Some("Delta OMS Path Config Table"),
       properties = omsProperties
@@ -63,10 +81,11 @@ trait Utils extends Serializable with Logging with Schemas {
   }
 
   def sourceConfigDefinition(omsConfig: OMSConfig): TableDefinition = {
-    TableDefinition(tableName = omsConfig.sourceConfigTable,
+    TableDefinition(tableName = getSourceConfigTableName(omsConfig),
       schemaName = getOMSSchemaName(omsConfig),
       catalogName = getOMSCatalogName(omsConfig),
       qualifiedSchemaName = getOMSQualifiedSchemaName(omsConfig),
+      locationUrl = getSourceConfigTableUrl(omsConfig),
       schema = sourceConfig,
       comment = Some("Delta OMS Source Config Table"),
       properties = omsProperties
@@ -74,10 +93,11 @@ trait Utils extends Serializable with Logging with Schemas {
   }
 
   def rawActionsTableDefinition(omsConfig: OMSConfig): TableDefinition = {
-    TableDefinition(tableName = omsConfig.rawActionTable,
+    TableDefinition(tableName = getRawActionsTableName(omsConfig),
       schemaName = getOMSSchemaName(omsConfig),
       catalogName = getOMSCatalogName(omsConfig),
       qualifiedSchemaName = getOMSQualifiedSchemaName(omsConfig),
+      locationUrl = getRawActionsTableUrl(omsConfig),
       schema = rawAction,
       comment = Some("Delta OMS Raw Actions Table"),
       properties = omsProperties,
@@ -85,10 +105,11 @@ trait Utils extends Serializable with Logging with Schemas {
   }
 
   def processedHistoryTableDefinition(omsConfig: OMSConfig): TableDefinition = {
-    TableDefinition(tableName = omsConfig.processedHistoryTable,
+    TableDefinition(tableName = getProcessedHistoryTableName(omsConfig),
       schemaName = getOMSSchemaName(omsConfig),
       catalogName = getOMSCatalogName(omsConfig),
       qualifiedSchemaName = getOMSQualifiedSchemaName(omsConfig),
+      locationUrl = getProcessedHistoryTableUrl(omsConfig),
       schema = processedHistory,
       comment = Some("Delta OMS Processed History Table"),
       properties = omsProperties
