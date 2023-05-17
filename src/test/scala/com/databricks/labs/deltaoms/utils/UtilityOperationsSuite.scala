@@ -19,7 +19,7 @@ package com.databricks.labs.deltaoms.utils
 import com.databricks.labs.deltaoms.common.{OMSInitializer, Schemas}
 import com.databricks.labs.deltaoms.common.Utils.{omsCatalogDefinition, omsExternalLocationDefinition, omsSchemaDefinition, pathConfigTableDefinition, processedHistoryTableDefinition, puidCommitDatePartitions, rawActionsTableDefinition, sourceConfigDefinition}
 import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, OMSConfig}
-import com.databricks.labs.deltaoms.model.SchemaDefinition
+import com.databricks.labs.deltaoms.model.{SchemaDefinition, SourceConfig}
 import com.databricks.labs.deltaoms.utils.UtilityOperations.{executeSQL, isUCEnabled, resolveWildCardPath}
 import org.scalatest.BeforeAndAfter
 
@@ -184,5 +184,11 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
       s"LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test/processedhistory' " +
       s"COMMENT 'Delta OMS Processed History Table'"
     )
+  }
+
+  test("resolveDeltaLocation Exception for hive_metastore") {
+    val exception = intercept[java.lang.RuntimeException](
+      UtilityOperations.resolveDeltaLocation(SourceConfig(s"hive_metastore")))
+    assert(exception.getMessage.contains("hive_metastore catalog is not supported."))
   }
 }

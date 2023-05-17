@@ -75,5 +75,5 @@ case class SchemaDefinition(catalogName: String,
   assert(schemaName.nonEmpty, "Schema Name is required")
 }
 
-case class StreamTargetInfo(name: String, checkpointPath: String,
+case class StreamTargetInfo(url: String, checkpointPath: String,
   wuid: Option[String] = None, puid: Option[String] = None)

@@ -17,6 +17,7 @@
 package com.databricks.labs.deltaoms.common
 
 
+import com.databricks.labs.deltaoms.common.OMSOperations.updateOMSPathConfigFromSourceConfig
 import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, OMSConfig}
 import org.scalatest.BeforeAndAfter
 

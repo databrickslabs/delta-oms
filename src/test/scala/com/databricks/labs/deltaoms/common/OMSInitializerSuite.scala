@@ -16,7 +16,8 @@
 
 package com.databricks.labs.deltaoms.common
 
-import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, EnvironmentResolver, OMSConfig }
+import com.databricks.labs.deltaoms.common.Utils._
+import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, EnvironmentResolver, OMSConfig}
 import org.scalatest.BeforeAndAfter
 
 import org.apache.spark.sql.QueryTest
@@ -59,6 +60,30 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
     assert(spark.catalog.tableExists(dbName, omsConfig.pathConfigTable))
     assert(spark.catalog.tableExists(dbName, omsConfig.rawActionTable))
     assert(spark.catalog.tableExists(dbName, omsConfig.processedHistoryTable))
+    assert(spark.catalog.tableExists(dbName, omsConfig.commitInfoSnapshotTable))
+    assert(spark.catalog.tableExists(dbName, omsConfig.actionSnapshotTable))
+
+    val sourceConfigSchema = spark.read.table(getSourceConfigTableName(omsConfig)).schema
+    assert(sourceConfigSchema.equals(Schemas.sourceConfig))
+    assert(sourceConfigSchema == Schemas.sourceConfig)
+
+    val pathConfigSchema = spark.read.table(getPathConfigTableName(omsConfig)).schema
+    assert(pathConfigSchema.equals(Schemas.pathConfig))
+    assert(pathConfigSchema == Schemas.pathConfig)
+
+    val rawActionsSchema =
+      spark.read.format("delta").load(getRawActionsTableUrl(omsConfig)).schema
+    assert(rawActionsSchema.fieldNames.sameElements(Schemas.rawAction.fieldNames))
+
+    val processedHistorySchema = spark.read.table(getProcessedHistoryTableName(omsConfig)).schema
+    assert(processedHistorySchema.equals(Schemas.processedHistory))
+    assert(processedHistorySchema == Schemas.processedHistory)
+
+    val commitSnapshotsSchema = spark.read.table(getCommitSnapshotsTableName(omsConfig)).schema
+    assert(commitSnapshotsSchema.fieldNames.sameElements(Schemas.commitSnapshot.fieldNames))
+
+    val actionSnapshotsSchema = spark.read.table(getActionSnapshotsTableName(omsConfig)).schema
+    assert(actionSnapshotsSchema.fieldNames.sameElements(Schemas.actionSnapshot.fieldNames))
   }
 
   test("cleanupOMS DB Path Exception") {

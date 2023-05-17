@@ -30,7 +30,7 @@ trait OMSInitializer extends Serializable with Logging {
       cleanupOMS(config)
     }
     createOMSSchema(config)
-    createManagedOMSTables(config)
+    createOMSTables(config)
   }
 
   def createOMSSchema(config: OMSConfig): Unit = {
@@ -49,7 +49,7 @@ trait OMSInitializer extends Serializable with Logging {
     executeSQL(schemaQuery._1, schemaQuery._2)
   }
 
-  def createManagedOMSTables(config: OMSConfig): Unit = {
+  def createOMSTables(config: OMSConfig): Unit = {
     logInfo("Creating the Source Config table on OMS Delta Lake")
     val srcConfigTableQuery = tableCreateQuery(sourceConfigDefinition(config))
     executeSQL(srcConfigTableQuery._1, srcConfigTableQuery._2)
@@ -65,6 +65,14 @@ trait OMSInitializer extends Serializable with Logging {
     logInfo("Creating the Processing History table on OMS Delta Lake")
     val processedHistoryTableQuery = tableCreateQuery(processedHistoryTableDefinition(config))
     executeSQL(processedHistoryTableQuery._1, processedHistoryTableQuery._2)
+
+    logInfo("Creating the ActionSnapshots table on OMS Delta Lake")
+    val actionSnapshotsTableQuery = tableCreateQuery(actionSnapshotsTableDefinition(config))
+    executeSQL(actionSnapshotsTableQuery._1, actionSnapshotsTableQuery._2)
+
+    logInfo("Creating the CommitSnapshots table on OMS Delta Lake")
+    val commitSnapshotsTableQuery = tableCreateQuery(commitSnapshotsTableDefinition(config))
+    executeSQL(commitSnapshotsTableQuery._1, commitSnapshotsTableQuery._2)
   }
 
   def cleanupOMS(config: OMSConfig): Unit = {

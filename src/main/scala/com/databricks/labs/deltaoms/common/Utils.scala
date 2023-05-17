@@ -48,14 +48,14 @@ trait Utils extends Serializable with Logging with Schemas {
   def getRawActionsTableUrl(config: OMSConfig): String =
     s"${getOMSSchemaPath(config)}/${config.rawActionTable}"
 
-  def getCommitSnapshotTableName(config: OMSConfig): String =
+  def getCommitSnapshotsTableName(config: OMSConfig): String =
     s"${getOMSQualifiedSchemaName(config)}.`${config.commitInfoSnapshotTable}`"
-  def getCommitSnapshotTableUrl(config: OMSConfig): String =
+  def getCommitSnapshotsTableUrl(config: OMSConfig): String =
     s"${getOMSSchemaPath(config)}/${config.commitInfoSnapshotTable}"
 
-  def getActionSnapshotTableName(config: OMSConfig): String =
+  def getActionSnapshotsTableName(config: OMSConfig): String =
     s"${getOMSQualifiedSchemaName(config)}.`${config.actionSnapshotTable}`"
-  def getActionSnapshotTableUrl(config: OMSConfig): String =
+  def getActionSnapshotsTableUrl(config: OMSConfig): String =
     s"${getOMSSchemaPath(config)}/${config.actionSnapshotTable}"
 
   def getProcessedHistoryTableName(config: OMSConfig): String =
@@ -113,6 +113,32 @@ trait Utils extends Serializable with Logging with Schemas {
       schema = processedHistory,
       comment = Some("Delta OMS Processed History Table"),
       properties = omsProperties
+    )
+  }
+
+  def actionSnapshotsTableDefinition(omsConfig: OMSConfig): TableDefinition = {
+    TableDefinition(tableName = getActionSnapshotsTableName(omsConfig),
+      schemaName = getOMSSchemaName(omsConfig),
+      catalogName = getOMSCatalogName(omsConfig),
+      qualifiedSchemaName = getOMSQualifiedSchemaName(omsConfig),
+      locationUrl = getActionSnapshotsTableUrl(omsConfig),
+      schema = actionSnapshot,
+      comment = Some("Delta OMS Action Snapshots Table"),
+      properties = omsProperties,
+      partitionColumnNames = puidCommitDatePartitions
+    )
+  }
+
+  def commitSnapshotsTableDefinition(omsConfig: OMSConfig): TableDefinition = {
+    TableDefinition(tableName = getCommitSnapshotsTableName(omsConfig),
+      schemaName = getOMSSchemaName(omsConfig),
+      catalogName = getOMSCatalogName(omsConfig),
+      qualifiedSchemaName = getOMSQualifiedSchemaName(omsConfig),
+      locationUrl = getCommitSnapshotsTableUrl(omsConfig),
+      schema = commitSnapshot,
+      comment = Some("Delta OMS Commit Snapshot Table"),
+      properties = omsProperties,
+      partitionColumnNames = puidCommitDatePartitions
     )
   }
 

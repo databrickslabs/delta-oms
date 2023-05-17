@@ -88,7 +88,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     tablePaths
       .withColumn(PUID, substring(sha1($"path"), 0, 7))
       .withColumn("wildCardPath",
-        deltaWildCardPath(col(s"$PATH"), col(s"${PARAMETERS}.${WILDCARD_LEVEL}")))
+        deltaWildCardPath(col(s"$PATH"), col(s"$PARAMETERS.$WILDCARD_LEVEL")))
       .withColumn(WUID, substring(sha1($"wildCardPath"), 0, 7))
       .withColumn("skipProcessing", lit(false))
       .withColumn(UPDATE_TS, lit(Instant.now())).as[PathConfig]
@@ -114,7 +114,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     }
   }
 
-  def insertRawDeltaLogs(rawActionsTableName: String)(newDeltaLogDF: DataFrame, batchId: Long):
+  def insertRawDeltaLogs(rawActionsTableUrl: String)(newDeltaLogDF: DataFrame, batchId: Long):
   Unit = {
     newDeltaLogDF.cache()
 
@@ -124,7 +124,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       .mkString("'", "','", "'")
 
     val rawActionsTable = Try {
-      DeltaTable.forName(rawActionsTableName)
+      DeltaTable.forPath(rawActionsTableUrl)
     }
 
     rawActionsTable match {
@@ -145,8 +145,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
   }
 
   def processDeltaLogStreams(streamTargetAndLog: (DataFrame, StreamTargetInfo),
-    triggerIntervalOption: Option[String],
-    appendMode: Boolean = false): (String, StreamingQuery) = {
+    triggerIntervalOption: Option[String]): (String, StreamingQuery) = {
     val readStream = streamTargetAndLog._1
     val targetInfo = streamTargetAndLog._2
     assert(targetInfo.wuid.isDefined, "OMS Readstreams should be associated with WildcardPath")
@@ -159,39 +158,27 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     val wuid = targetInfo.wuid.get
     val poolName = "pool_" + wuid
     val queryName = "query_" + wuid
-    val targetTableName = targetInfo.name
+    val targetTableUrl = targetInfo.url
 
     spark.sparkContext.setLocalProperty("spark.scheduler.pool", poolName)
-    if(!appendMode) {
-      (wuid, readStream
-        .writeStream
-        .format("delta")
-        .queryName(queryName)
-        .foreachBatch(insertRawDeltaLogs(targetTableName) _)
-        .outputMode("update")
-        .option("checkpointLocation", targetInfo.checkpointPath)
-        .trigger(trigger)
-        .start())
-    } else {
-      (wuid, readStream
-        .writeStream
-        .queryName(queryName)
-        .partitionBy(puidCommitDatePartitions: _*)
-        .outputMode("append")
-        .format("delta")
-        .option("checkpointLocation", targetInfo.checkpointPath)
-        .trigger(trigger)
-        .toTable(targetTableName))
-    }
+    (wuid, readStream
+      .writeStream
+      .format("delta")
+      .queryName(queryName)
+      .foreachBatch(insertRawDeltaLogs(targetTableUrl) _)
+      .outputMode("update")
+      .option("checkpointLocation", targetInfo.checkpointPath)
+      .trigger(trigger)
+      .start())
   }
 
   def streamingUpdateRawDeltaActionsToOMS(config: OMSConfig): Unit = {
     val uniquePaths: Seq[(String, String)] = if (config.consolidateWildcardPaths) {
       consolidateWildCardPaths(
-        fetchPathForStreamProcessing(getPathConfigTableName(config),
+        fetchPathForStreamProcessing(getPathConfigTableUrl(config),
           startingStream = config.startingStream, endingStream = config.endingStream))
     } else {
-      fetchPathForStreamProcessing(getPathConfigTableName(config),
+      fetchPathForStreamProcessing(getPathConfigTableUrl(config),
         startingStream = config.startingStream, endingStream = config.endingStream)
     }
 
@@ -199,7 +186,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       fetchStreamTargetAndDeltaLogForPath(p,
         config.checkpointBase.get,
         config.checkpointSuffix.get,
-        getRawActionsTableName(config), config.useAutoloader, config.maxFilesPerTrigger))
+        getRawActionsTableUrl(config), config.useAutoloader, config.maxFilesPerTrigger))
 
     val logWriteStreamQueries = logReadStreams
       .map(lrs => processDeltaLogStreams(lrs,
@@ -211,12 +198,12 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
   }
 
 
-  def fetchPathForStreamProcessing(pathConfigTableName: String,
+  def fetchPathForStreamProcessing(pathConfigTableUrl: String,
     useWildCardPath: Boolean = true, startingStream: Int = 1, endingStream: Int = 50):
   Seq[(String, String)] = {
     if (useWildCardPath) {
       val wildcard_window = Window.orderBy(WUID)
-      fetchPathConfigForProcessing(pathConfigTableName)
+      fetchPathConfigForProcessing(pathConfigTableUrl)
         .select(WILDCARD_PATH, WUID)
         .distinct()
         .withColumn("wildcard_row_id", row_number().over(wildcard_window))
@@ -225,7 +212,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
         .as[(String, String)].collect()
     } else {
       val path_window = Window.orderBy(PUID)
-      fetchPathConfigForProcessing(pathConfigTableName)
+      fetchPathConfigForProcessing(pathConfigTableUrl)
         .select(concat(col(PATH), lit("/_delta_log/*.json")).as(PATH), col(PUID))
         .distinct()
         .withColumn("path_row_id", row_number().over(path_window))
@@ -235,13 +222,13 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     }
   }
 
-  def fetchPathConfigForProcessing(pathConfigTableName: String): Dataset[PathConfig] = {
+  def fetchPathConfigForProcessing(pathConfigTableUrl: String): Dataset[PathConfig] = {
     val spark = SparkSession.active
-    spark.read.table(pathConfigTableName).as[PathConfig]
+    spark.read.format("delta").load(pathConfigTableUrl).as[PathConfig]
   }
 
   def fetchStreamTargetAndDeltaLogForPath(pathInfo: (String, String),
-    checkpointBaseDir: String, checkpointSuffix: String, rawActionsTableName: String,
+    checkpointBaseDir: String, checkpointSuffix: String, rawActionsTableUrl: String,
     useAutoLoader: Boolean, maxFilesPerTrigger: String):
   Option[(DataFrame, StreamTargetInfo)] = {
     val wildCardPath = pathInfo._1
@@ -253,7 +240,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       maxFilesPerTrigger)
     if(readPathStream.isDefined) {
       Some(readPathStream.get,
-        StreamTargetInfo(name = rawActionsTableName, checkpointPath = checkpointPath,
+        StreamTargetInfo(url = rawActionsTableUrl, checkpointPath = checkpointPath,
           wuid = Some(wuid)))
     } else {
       None
@@ -293,16 +280,23 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       }
   }
 
-  def getCurrentRawActionsVersion(rawActionsTableName: String): Long = {
-    spark.sql(s"describe history $rawActionsTableName")
-      .select(max("version").as("max_version")).as[Long].head()
+  def getCurrentRawActionsVersion(rawActionsTableUrl: String): Long = {
+    val rawActionsTableTry = Try {
+      DeltaTable.forPath(rawActionsTableUrl)
+    }
+    rawActionsTableTry match {
+      case Success(rat) => rat.history(1)
+        .selectExpr("version as max_version").as[Long].head()
+      case Failure(ex) => throw new RuntimeException(s"Unable to access the " +
+        s"RawActions table for getting current RawActions version. $ex")
+    }
   }
 
-  def getLastProcessedRawActionsVersion(processedHistoryTableName: String,
+  def getLastProcessedRawActionsVersion(processedHistoryTableUrl: String,
     rawActionTable: String): Long = {
     Try {
-      spark.read.table(processedHistoryTableName)
-        .where(s"tableName='${rawActionTable}'")
+      spark.read.format("delta").load(processedHistoryTableUrl)
+        .where(s"tableName='$rawActionTable'")
         .select("lastVersion").as[Long].head()
     }.getOrElse(0L)
   }
@@ -315,13 +309,13 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
 
   def updateLastProcessedRawActions(latestVersion: Long,
     rawActionTable: String,
-    processedHistoryTableName: String ): Unit = {
+    processedHistoryTableUrl: String ): Unit = {
     val updatedRawActionsLastProcessedVersion =
       Seq((rawActionTable, latestVersion, Instant.now()))
         .toDF("tableName", "lastVersion", "update_ts")
 
     val processedHistoryTable = Try {
-      DeltaTable.forName(processedHistoryTableName)
+      DeltaTable.forPath(processedHistoryTableUrl)
     }
     processedHistoryTable match {
       case Success(pht) =>
@@ -335,89 +329,77 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     }
   }
 
-  def getUpdatedRawActions(lastProcessedVersion: Long, rawActionsTableName: String): DataFrame = {
+  def getUpdatedRawActions(lastProcessedVersion: Long, rawActionsTableUrl: String): DataFrame = {
     spark.read.format("delta")
       .option("readChangeFeed", "true")
       .option("startingVersion", lastProcessedVersion + 1)
-      .load(s"$rawActionsTableName")
+      .load(s"$rawActionsTableUrl")
       .filter("""_change_type IN ("insert", "update_postimage")""")
   }
 
   def processCommitInfoFromRawActions(rawActions: DataFrame,
-    commitSnapshotTableName: String): Unit = {
+    commitSnapshotTableUrl: String): Unit = {
     val commitInfo = rawActions.where(col("commitInfo.operation").isNotNull)
-      .selectExpr(COMMIT_VERSION, s"current_timestamp() as $UPDATE_TS",
-        COMMIT_TS, FILE_NAME, PATH,
-        PUID, COMMIT_DATE, "commitInfo.*").drop("version", "timestamp")
+      .selectExpr("commitInfo.*",
+        FILE_NAME, PATH, COMMIT_VERSION, COMMIT_TS,
+        s"current_timestamp() as $UPDATE_TS", PUID, COMMIT_DATE)
 
-    val commitSnapshotExists = DeltaTable.isDeltaTable(commitSnapshotTableName)
-    if (!commitSnapshotExists) {
-      commitInfo.write
-        .mode("overwrite")
-        .format("delta")
-        .partitionBy(puidCommitDatePartitions: _*)
-        .saveAsTable(commitSnapshotTableName)
-    } else {
-      val commitInfoSnapshotTable = Try {
-        DeltaTable.forName(commitSnapshotTableName)
-      }
-      commitInfoSnapshotTable match {
-        case Success(cst) =>
-          cst.as("commitinfo_snap")
-            .merge(commitInfo.as("commitinfo_snap_updates"),
-              s"""commitinfo_snap.$PUID = commitinfo_snap_updates.$PUID and
-                 |commitinfo_snap.$COMMIT_DATE = commitinfo_snap_updates.$COMMIT_DATE and
-                 |commitinfo_snap.$COMMIT_VERSION = commitinfo_snap_updates.$COMMIT_VERSION
-                 |""".stripMargin)
-            .whenNotMatched.insertAll().execute()
-        case Failure(ex) => throw new RuntimeException(s"Unable to update the Commit Info " +
-          s"Snapshot table. $ex")
-      }
+    val commitInfoSnapshotTable = Try {
+        DeltaTable.forPath(commitSnapshotTableUrl)
+    }
+    commitInfoSnapshotTable match {
+      case Success(cst) =>
+        cst.as("commitinfo_snap")
+          .merge(commitInfo.as("commitinfo_snap_updates"),
+            s"""commitinfo_snap.$PUID = commitinfo_snap_updates.$PUID and
+               |commitinfo_snap.$COMMIT_DATE = commitinfo_snap_updates.$COMMIT_DATE and
+               |commitinfo_snap.$COMMIT_VERSION = commitinfo_snap_updates.$COMMIT_VERSION
+               |""".stripMargin)
+          .whenNotMatched.insertAll().execute()
+      case Failure(ex) => throw new RuntimeException(s"Unable to update the Commit Info " +
+        s"Snapshot table. $ex")
     }
   }
 
   def processActionSnapshotsFromRawActions(rawActions: DataFrame,
-    actionSnapshotTableName: String): Unit = {
-    val actionSnapshotExists = DeltaTable.isDeltaTable(actionSnapshotTableName)
-    val actionSnapshots = computeActionSnapshotFromRawActions(rawActions,
-      actionSnapshotExists,
-      actionSnapshotTableName)
-    if (!actionSnapshotExists) {
-      actionSnapshots.write
-        .mode("overwrite")
-        .format("delta")
-        .partitionBy(puidCommitDatePartitions: _*)
-        .option("overwriteSchema", "true")
-        .saveAsTable(actionSnapshotTableName)
-    } else {
-      val actionSnapshotTable = Try {
-        DeltaTable.forName(actionSnapshotTableName)
-      }
-      actionSnapshotTable match {
-        case Success(ast) =>
-          ast.as("action_snap")
-            .merge(actionSnapshots.as("action_snap_updates"),
-              s"""action_snap.$PUID = action_snap_updates.$PUID and
-                 |action_snap.$COMMIT_DATE = action_snap_updates.$COMMIT_DATE and
-                 |action_snap.$COMMIT_VERSION = action_snap_updates.$COMMIT_VERSION
-                 |""".stripMargin)
-            .whenNotMatched.insertAll().execute()
-        case Failure(ex) => throw new RuntimeException(s"Unable to update the " +
-          s"Action Snapshot table. $ex")
-      }
+    actionSnapshotTableUrl: String): Unit = {
+    val actionSnapshotsTableTry = Try {
+      DeltaTable.forPath(actionSnapshotTableUrl)
     }
+    val actionSnapshotEmpty = actionSnapshotsTableTry match {
+      case Success(cst) => cst.toDF.isEmpty
+      case Failure(ex) =>
+        throw new RuntimeException(s"Unable to access the ActionSnapshot Table : $ex")
+    }
+    val actionSnapshots = computeActionSnapshotFromRawActions(rawActions,
+      actionSnapshotEmpty,
+      actionSnapshotTableUrl)
+
+    actionSnapshotsTableTry match {
+      case Success(ast) =>
+        ast.as("action_snap")
+          .merge(actionSnapshots.as("action_snap_updates"),
+            s"""action_snap.$PUID = action_snap_updates.$PUID and
+               |action_snap.$COMMIT_DATE = action_snap_updates.$COMMIT_DATE and
+               |action_snap.$COMMIT_VERSION = action_snap_updates.$COMMIT_VERSION
+               |""".stripMargin)
+          .whenNotMatched.insertAll().execute()
+      case Failure(ex) => throw new RuntimeException(s"Unable to update the " +
+        s"Action Snapshot table. $ex")
+      }
   }
 
   def computeActionSnapshotFromRawActions(rawActions: org.apache.spark.sql.DataFrame,
-    snapshotExists: Boolean, actionSnapshotTableName: String): DataFrame = {
+    snapshotEmpty: Boolean, actionSnapshotTableUrl: String): DataFrame = {
     val addRemoveFileActions = prepareAddRemoveActionsFromRawActions(rawActions)
-    val cumulativeAddRemoveFiles = if (snapshotExists) {
-      val previousSnapshot = spark.read.table(actionSnapshotTableName)
+    val cumulativeAddRemoveFiles = if (!snapshotEmpty) {
+      val previousSnapshot = spark.read.format("delta")
+        .load(actionSnapshotTableUrl).drop(UPDATE_TS)
       val previousSnapshotMaxCommitVersion = previousSnapshot.groupBy(PUID)
         .agg(max(COMMIT_VERSION).as(COMMIT_VERSION))
       val previousSnapshotMaxAddRemoveFileActions = previousSnapshot
         .join(previousSnapshotMaxCommitVersion, Seq(PUID, COMMIT_VERSION))
-        .withColumn("remove_file", lit(null: StructType))
+        .withColumn(REMOVE, lit(null: StructType))
       val cumulativeAddRemoveFileActions =
         computeCumulativeFilesFromAddRemoveActions(
           addRemoveFileActions.unionByName(previousSnapshotMaxAddRemoveFileActions))
@@ -433,12 +415,12 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
   def prepareAddRemoveActionsFromRawActions(rawActions: org.apache.spark.sql.DataFrame)
   : DataFrame = {
     val addFileActions = rawActions
-      .where(col("add.path").isNotNull)
-      .selectExpr("add", "remove", PUID, s"$PATH as data_path",
+      .where(col(s"$ADD.path").isNotNull)
+      .selectExpr(ADD, REMOVE, PUID, s"$PATH as $DATA_PATH",
         COMMIT_VERSION, COMMIT_TS, COMMIT_DATE)
 
     val duplicateAddWindow =
-      Window.partitionBy(col(PUID), col("add.path"))
+      Window.partitionBy(col(PUID), col(s"$ADD.path"))
         .orderBy(col(COMMIT_VERSION).desc_nulls_last)
     // Duplicate AddFile actions could be present under rare circumstances
     val rankedAddFileActions = addFileActions
@@ -447,14 +429,13 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
       .where("rank = 1").drop("rank")
 
     val removeFileActions = rawActions
-      .where(col("remove.path").isNotNull)
-      .selectExpr("add", "remove", PUID, s"$PATH as data_path", COMMIT_VERSION,
+      .where(col(s"$REMOVE.path").isNotNull)
+      .selectExpr(ADD, REMOVE, PUID, s"$PATH as $DATA_PATH", COMMIT_VERSION,
         COMMIT_TS, COMMIT_DATE)
 
     val addRemoveFileActions = dedupedAddFileActions.unionByName(removeFileActions)
-      .select(col(PUID), col("data_path"), col(COMMIT_VERSION), col(COMMIT_TS),
-        col(COMMIT_DATE),
-        col("add").as("add_file"), col("remove").as("remove_file"))
+      .select(col(PUID), col(DATA_PATH), col(COMMIT_VERSION), col(COMMIT_TS),
+        col(COMMIT_DATE), col(ADD), col(REMOVE))
     addRemoveFileActions
   }
 
@@ -463,30 +444,31 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     val commitVersions = addRemoveActions.select(PUID, COMMIT_VERSION, COMMIT_TS, COMMIT_DATE)
       .distinct()
     val cumulativeAddRemoveFiles = addRemoveActions.as("arf")
-      .join(commitVersions.as("cv"), col("arf.puid") === col("cv.puid")
+      .join(commitVersions.as("cv"), col(s"arf.$PUID") === col(s"cv.$PUID")
         && col(s"arf.$COMMIT_VERSION") <= col(s"cv.$COMMIT_VERSION"))
       .select(col(s"cv.$COMMIT_VERSION"), col(s"cv.$COMMIT_TS"),
         col(s"cv.$COMMIT_DATE"),
-        col(s"arf.$PUID"), col("arf.data_path"),
-        col("arf.add_file"), col("arf.remove_file"))
+        col(s"arf.$PUID"), col(s"arf.$DATA_PATH"),
+        col(s"arf.$ADD"), col(s"arf.$REMOVE"))
     cumulativeAddRemoveFiles
   }
 
   def deriveActionSnapshotFromCumulativeActions(
     cumulativeAddRemoveFiles: org.apache.spark.sql.DataFrame): DataFrame = {
     val cumulativeAddFiles = cumulativeAddRemoveFiles
-      .where(col("add_file.path").isNotNull)
-      .drop("remove_file")
+      .where(col(s"$ADD.$PATH").isNotNull)
+      .drop(REMOVE)
     val cumulativeRemoveFiles = cumulativeAddRemoveFiles
-      .where(col("remove_file.path").isNotNull)
-      .drop("add_file")
+      .where(col(s"$REMOVE.$PATH").isNotNull)
+      .drop(ADD)
     val snapshotInputFiles = cumulativeAddFiles.as("ca")
       .join(cumulativeRemoveFiles.as("cr"),
         col(s"ca.$PUID") === col(s"cr.$PUID")
           && col(s"ca.$COMMIT_VERSION") === col(s"cr.$COMMIT_VERSION")
-          && col("ca.add_file.path") ===
-          col("cr.remove_file.path"), "leftanti").selectExpr("ca.*")
-    snapshotInputFiles
+          && col(s"ca.$ADD.$PATH") ===
+          col(s"cr.$REMOVE.$PATH"), "leftanti").selectExpr("ca.*")
+    snapshotInputFiles.select(ADD, DATA_PATH, COMMIT_VERSION, COMMIT_TS, PUID, COMMIT_DATE)
+      .withColumn(UPDATE_TS, current_timestamp())
   }
 
   def getDeltaLogs(schema: StructType, path: String,
