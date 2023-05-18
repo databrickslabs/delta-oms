@@ -18,8 +18,6 @@ package com.databricks.labs.deltaoms.model
 
 import java.time.Instant
 
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.delta.DeltaLog
 import org.apache.spark.sql.types.StructType
 
 case class PathConfig(path: String,

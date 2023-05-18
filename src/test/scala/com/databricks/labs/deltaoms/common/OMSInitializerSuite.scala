@@ -25,8 +25,7 @@ import org.apache.spark.sql.delta.test.DeltaTestSharedSession
 import org.apache.spark.sql.test.SharedSparkSession
 
 class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTestSharedSession
-  with BeforeAndAfter with ConfigurationSettings with OMSInitializer{
-  import testImplicits._
+  with BeforeAndAfter with ConfigurationSettings with OMSInitializer {
   // scalastyle:on funsuite
 
   test("Validate empty Configuration Settings") {

@@ -18,8 +18,8 @@ package org.apache.spark.sql.delta.test
 
 import io.delta.sql.DeltaSparkSessionExtension
 
-import org.apache.spark.sql.test.{SharedSparkSession, TestSparkSession}
 import org.apache.spark.sql.{SparkSession, SparkSessionExtensions}
+import org.apache.spark.sql.test.{SharedSparkSession, TestSparkSession}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.delta.catalog.DeltaCatalog
 import org.apache.spark.sql.internal.SQLConf
@@ -32,17 +32,18 @@ class DeltaSharedSparkSession(sparkConf: SparkConf) extends TestSparkSession(spa
   }
 }
 
-trait DeltaTestSharedSession { self: SharedSparkSession =>
-    override protected def createSparkSession: TestSparkSession = {
-      SparkSession.cleanupAnyExistingSession()
-      val session = new DeltaSharedSparkSession(sparkConf)
-      session.conf.set(SQLConf.V2_SESSION_CATALOG_IMPLEMENTATION.key, classOf[DeltaCatalog].getName)
-      // session.conf.set("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-      session.conf.set(SQLConf.DEFAULT_DATA_SOURCE_NAME.key, "delta")
-      session.conf.set(SQLConf.LEGACY_CREATE_HIVE_TABLE_BY_DEFAULT.key, value = false)
-      session.conf.set("spark.databricks.labs.deltaoms.ucenabled", value = false)
-      // session.conf.set(SQLConf.CONVERT_CTAS.key, value = true)
-      session
-    }
+trait DeltaTestSharedSession {
+  self: SharedSparkSession =>
+  override protected def createSparkSession: TestSparkSession = {
+    SparkSession.cleanupAnyExistingSession()
+    val session = new DeltaSharedSparkSession(sparkConf)
+    session.conf.set(SQLConf.V2_SESSION_CATALOG_IMPLEMENTATION.key, classOf[DeltaCatalog].getName)
+    // session.conf.set("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+    session.conf.set(SQLConf.DEFAULT_DATA_SOURCE_NAME.key, "delta")
+    session.conf.set(SQLConf.LEGACY_CREATE_HIVE_TABLE_BY_DEFAULT.key, value = false)
+    session.conf.set("spark.databricks.labs.deltaoms.ucenabled", value = false)
+    // session.conf.set(SQLConf.CONVERT_CTAS.key, value = true)
+    session
+  }
 }
 

@@ -23,48 +23,7 @@ import org.apache.spark.internal.Logging
 
 trait Utils extends Serializable with Logging with Schemas {
 
-  def getOMSCatalogName(config: OMSConfig) : String = config.catalogName.getOrElse("")
-  def getOMSSchemaName(config: OMSConfig) : String = config.schemaName.getOrElse("")
-  def getOMSCatalogPath(config: OMSConfig): String = config.catalogName
-    .fold(s"${config.locationUrl.get}") {c => s"${config.locationUrl.get}/${c}"}
-
-  def getOMSSchemaPath(config: OMSConfig): String =
-    s"${getOMSCatalogPath(config)}/${config.schemaName.get}"
-  def getOMSQualifiedSchemaName(config: OMSConfig): String = config.catalogName
-    .fold(s"${config.schemaName.get}") {c => s"$c.`${config.schemaName.get}`"}
-
-  def getSourceConfigTableName(config: OMSConfig): String =
-    s"${getOMSQualifiedSchemaName(config)}.`${config.sourceConfigTable}`"
-  def getSourceConfigTableUrl(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.sourceConfigTable}"
-
-  def getPathConfigTableName(config: OMSConfig): String =
-    s"${getOMSQualifiedSchemaName(config)}.`${config.pathConfigTable}`"
-  def getPathConfigTableUrl(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.pathConfigTable}"
-
-  def getRawActionsTableName(config: OMSConfig): String =
-    s"${getOMSQualifiedSchemaName(config)}.`${config.rawActionTable}`"
-  def getRawActionsTableUrl(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.rawActionTable}"
-
-  def getCommitSnapshotsTableName(config: OMSConfig): String =
-    s"${getOMSQualifiedSchemaName(config)}.`${config.commitInfoSnapshotTable}`"
-  def getCommitSnapshotsTableUrl(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.commitInfoSnapshotTable}"
-
-  def getActionSnapshotsTableName(config: OMSConfig): String =
-    s"${getOMSQualifiedSchemaName(config)}.`${config.actionSnapshotTable}`"
-  def getActionSnapshotsTableUrl(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.actionSnapshotTable}"
-
-  def getProcessedHistoryTableName(config: OMSConfig): String =
-    s"${getOMSQualifiedSchemaName(config)}.`${config.processedHistoryTable}`"
-  def getProcessedHistoryTableUrl(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.processedHistoryTable}"
-
   val puidCommitDatePartitions = Seq(PUID, COMMIT_DATE)
-
   private val omsProperties: Map[String, String] =
     Map("entity" -> s"$ENTITY_NAME", "oms.version" -> s"$OMS_VERSION")
 
@@ -80,6 +39,12 @@ trait Utils extends Serializable with Logging with Schemas {
     )
   }
 
+  def getPathConfigTableName(config: OMSConfig): String =
+    s"${getOMSQualifiedSchemaName(config)}.`${config.pathConfigTable}`"
+
+  def getPathConfigTableUrl(config: OMSConfig): String =
+    s"${getOMSSchemaPath(config)}/${config.pathConfigTable}"
+
   def sourceConfigDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(tableName = getSourceConfigTableName(omsConfig),
       schemaName = getOMSSchemaName(omsConfig),
@@ -91,6 +56,20 @@ trait Utils extends Serializable with Logging with Schemas {
       properties = omsProperties
     )
   }
+
+  def getOMSSchemaName(config: OMSConfig): String = config.schemaName.getOrElse("")
+
+  def getSourceConfigTableName(config: OMSConfig): String =
+    s"${getOMSQualifiedSchemaName(config)}.`${config.sourceConfigTable}`"
+
+  def getOMSQualifiedSchemaName(config: OMSConfig): String = config.catalogName
+    .fold(s"${config.schemaName.get}") { c => s"$c.`${config.schemaName.get}`" }
+
+  def getSourceConfigTableUrl(config: OMSConfig): String =
+    s"${getOMSSchemaPath(config)}/${config.sourceConfigTable}"
+
+  def getOMSSchemaPath(config: OMSConfig): String =
+    s"${getOMSCatalogPath(config)}/${config.schemaName.get}"
 
   def rawActionsTableDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(tableName = getRawActionsTableName(omsConfig),
@@ -104,6 +83,12 @@ trait Utils extends Serializable with Logging with Schemas {
       partitionColumnNames = puidCommitDatePartitions)
   }
 
+  def getRawActionsTableName(config: OMSConfig): String =
+    s"${getOMSQualifiedSchemaName(config)}.`${config.rawActionTable}`"
+
+  def getRawActionsTableUrl(config: OMSConfig): String =
+    s"${getOMSSchemaPath(config)}/${config.rawActionTable}"
+
   def processedHistoryTableDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(tableName = getProcessedHistoryTableName(omsConfig),
       schemaName = getOMSSchemaName(omsConfig),
@@ -115,6 +100,12 @@ trait Utils extends Serializable with Logging with Schemas {
       properties = omsProperties
     )
   }
+
+  def getProcessedHistoryTableName(config: OMSConfig): String =
+    s"${getOMSQualifiedSchemaName(config)}.`${config.processedHistoryTable}`"
+
+  def getProcessedHistoryTableUrl(config: OMSConfig): String =
+    s"${getOMSSchemaPath(config)}/${config.processedHistoryTable}"
 
   def actionSnapshotsTableDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(tableName = getActionSnapshotsTableName(omsConfig),
@@ -129,6 +120,12 @@ trait Utils extends Serializable with Logging with Schemas {
     )
   }
 
+  def getActionSnapshotsTableName(config: OMSConfig): String =
+    s"${getOMSQualifiedSchemaName(config)}.`${config.actionSnapshotTable}`"
+
+  def getActionSnapshotsTableUrl(config: OMSConfig): String =
+    s"${getOMSSchemaPath(config)}/${config.actionSnapshotTable}"
+
   def commitSnapshotsTableDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(tableName = getCommitSnapshotsTableName(omsConfig),
       schemaName = getOMSSchemaName(omsConfig),
@@ -141,6 +138,12 @@ trait Utils extends Serializable with Logging with Schemas {
       partitionColumnNames = puidCommitDatePartitions
     )
   }
+
+  def getCommitSnapshotsTableName(config: OMSConfig): String =
+    s"${getOMSQualifiedSchemaName(config)}.`${config.commitInfoSnapshotTable}`"
+
+  def getCommitSnapshotsTableUrl(config: OMSConfig): String =
+    s"${getOMSSchemaPath(config)}/${config.commitInfoSnapshotTable}"
 
   def omsExternalLocationDefinition(omsConfig: OMSConfig): ExternalLocationDefinition = {
     ExternalLocationDefinition(omsConfig.locationName.get,
@@ -156,6 +159,11 @@ trait Utils extends Serializable with Logging with Schemas {
       Some("DeltaOMS Catalog")
     )
   }
+
+  def getOMSCatalogName(config: OMSConfig): String = config.catalogName.getOrElse("")
+
+  def getOMSCatalogPath(config: OMSConfig): String = config.catalogName
+    .fold(s"${config.locationUrl.get}") { c => s"${config.locationUrl.get}/${c}" }
 
   def omsSchemaDefinition(omsConfig: OMSConfig,
     props: Option[Map[String, String]] = None): SchemaDefinition = {

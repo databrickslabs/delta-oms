@@ -16,8 +16,8 @@
 
 package com.databricks.labs.deltaoms.utils
 
-import com.databricks.labs.deltaoms.common.{OMSInitializer, Schemas}
-import com.databricks.labs.deltaoms.common.Utils.{omsCatalogDefinition, omsExternalLocationDefinition, omsSchemaDefinition, pathConfigTableDefinition, processedHistoryTableDefinition, puidCommitDatePartitions, rawActionsTableDefinition, sourceConfigDefinition}
+import com.databricks.labs.deltaoms.common.Schemas
+import com.databricks.labs.deltaoms.common.Utils._
 import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, OMSConfig}
 import com.databricks.labs.deltaoms.model.{SchemaDefinition, SourceConfig}
 import com.databricks.labs.deltaoms.utils.UtilityOperations.{executeSQL, isUCEnabled, resolveWildCardPath}
@@ -29,7 +29,6 @@ import org.apache.spark.sql.test.SharedSparkSession
 
 class UtilityOperationsSuite extends QueryTest with SharedSparkSession with DeltaTestSharedSession
   with BeforeAndAfter with ConfigurationSettings {
-  import testImplicits._
   // scalastyle:on funsuite
 
   test("Consolidate WildcardPaths") {
@@ -84,11 +83,11 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
       omsExternalLocationDefinition(testConfig))
     assert(extLocQuery._1 ==
       """CREATE EXTERNAL LOCATION IF NOT EXISTS `deltaoms-external-location`
-         |URL '/deltaoms/deltaoms'
-         |WITH (STORAGE CREDENTIAL `field_demos_credential`)
-         |COMMENT 'DeltaOMS External Location'""".stripMargin
+        |URL '/deltaoms/deltaoms'
+        |WITH (STORAGE CREDENTIAL `field_demos_credential`)
+        |COMMENT 'DeltaOMS External Location'""".stripMargin
         .replaceAll("\n", " ")
-      )
+    )
     assert(extLocQuery._2 == "EXTERNAL LOCATION")
   }
 

@@ -37,6 +37,7 @@ trait SparkSettings extends Serializable with ConfigurationSettings {
       spark.conf.set("spark.databricks.labs.deltaoms.version", value = Schemas.OMS_VERSION)
       spark
   }
+
   def spark: SparkSession = sparkSession
 
 }

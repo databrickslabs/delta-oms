@@ -40,6 +40,12 @@ trait ConfigurationSettings extends Serializable with Logging {
       actionSnapshotTable = "action_snapshots")
   }
 
+  def environment: Environment = EnvironmentResolver.fetchEnvironment(environmentType)
+
+  def environmentType: String =
+    sys.props.getOrElse("OMS_ENV",
+      sys.env.getOrElse("OMS_ENV", "empty")).toLowerCase(Locale.ROOT)
+
   def validateOMSConfig(omsConfig: OMSConfig, isBatch: Boolean = true): Unit = {
     assert(omsConfig.locationUrl.isDefined,
       "Mandatory configuration OMS Location URL missing")
@@ -51,19 +57,13 @@ trait ConfigurationSettings extends Serializable with Logging {
       "Mandatory configuration OMS Catalog Name missing")
     assert(omsConfig.schemaName.isDefined,
       "Mandatory configuration OMS Schema Name missing")
-    if(!isBatch) {
+    if (!isBatch) {
       assert(omsConfig.checkpointBase.isDefined,
         "Mandatory configuration OMS Checkpoint Base Location missing")
       assert(omsConfig.checkpointSuffix.isDefined,
         "Mandatory configuration OMS Checkpoint Suffix missing")
     }
   }
-
-  def environment: Environment = EnvironmentResolver.fetchEnvironment(environmentType)
-
-  def environmentType: String =
-    sys.props.getOrElse("OMS_ENV",
-      sys.env.getOrElse("OMS_ENV", "empty")).toLowerCase(Locale.ROOT)
 }
 
 object ConfigurationSettings extends ConfigurationSettings

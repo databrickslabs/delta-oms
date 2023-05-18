@@ -16,9 +16,6 @@
 
 package com.databricks.labs.deltaoms.common
 
-import java.sql.Timestamp
-import java.time.Instant
-
 import com.databricks.labs.deltaoms.model.{PathConfig, ProcessedHistory, SourceConfig}
 
 import org.apache.spark.sql.catalyst.ScalaReflection
@@ -61,26 +58,15 @@ trait Schemas {
     .add(StructField(UPDATE_TS, TimestampType))
     .add(StructField(PUID, StringType))
     .add(StructField(COMMIT_DATE, DateType))
-
-  case class ActionSnapshot(add: AddFile,
-    data_path: String,
-    commit_version: Long,
-    commit_ts: Instant,
-    update_ts: Instant,
-    puid: String,
-    commit_date: String)
-
-  final val actionSnapshot =
-    ScalaReflection.schemaFor[ActionSnapshot].dataType.asInstanceOf[StructType]
-
-  /* final val actionSnapshot = ScalaReflection.schemaFor[AddFile].dataType.asInstanceOf[StructType]
+  val addFile: StructType =
+    StructType(ScalaReflection.schemaFor[AddFile].dataType.asInstanceOf[StructType])
+  final val actionSnapshot = new StructType().add(ADD, addFile)
     .add(StructField(DATA_PATH, StringType))
     .add(StructField(COMMIT_VERSION, LongType))
     .add(StructField(COMMIT_TS, TimestampType))
     .add(StructField(UPDATE_TS, TimestampType))
     .add(StructField(PUID, StringType))
-    .add(StructField(COMMIT_DATE, DateType)) */
-
+    .add(StructField(COMMIT_DATE, DateType))
   final val pathConfig = ScalaReflection.schemaFor[PathConfig].dataType.asInstanceOf[StructType]
   final val sourceConfig = ScalaReflection.schemaFor[SourceConfig].dataType.asInstanceOf[StructType]
   final val processedHistory = ScalaReflection.schemaFor[ProcessedHistory].dataType

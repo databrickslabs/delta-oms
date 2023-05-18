@@ -18,7 +18,7 @@ package com.databricks.labs.deltaoms.configuration
 
 case class OMSConfig(locationUrl: Option[String] = None,
   locationName: Option[String] = None,
-  storageCredentialName : Option[String] = None,
+  storageCredentialName: Option[String] = None,
   catalogName: Option[String] = None,
   schemaName: Option[String] = None,
   checkpointBase: Option[String] = None,
@@ -37,6 +37,6 @@ case class OMSConfig(locationUrl: Option[String] = None,
   srcDatabases: Option[String] = None,
   tablePattern: Option[String] = None,
   triggerInterval: Option[String] = None,
-  maxFilesPerTrigger : String = "1024",
+  maxFilesPerTrigger: String = "1024",
   startingStream: Int = 1,
   endingStream: Int = 50)

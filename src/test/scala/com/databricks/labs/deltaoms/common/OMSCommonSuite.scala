@@ -17,7 +17,6 @@
 package com.databricks.labs.deltaoms.common
 
 
-import com.databricks.labs.deltaoms.common.OMSOperations.updateOMSPathConfigFromSourceConfig
 import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, OMSConfig}
 import org.scalatest.BeforeAndAfter
 
@@ -31,13 +30,13 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
   test("Test Missing Fields Exceptions") {
 
     assert(intercept[java.lang.AssertionError] {
-        validateOMSConfig(OMSConfig(schemaName = Some("abc"),
-          catalogName = Some("cat"),
-          locationName = Some("sampleLocation"),
-          storageCredentialName = Some("sampleCredential"),
-          checkpointBase = Some("/checkBase"),
-          checkpointSuffix = Some("_checkSuffix_123")), isBatch = false)
-      }.getMessage.contains("Mandatory configuration OMS Location URL missing"))
+      validateOMSConfig(OMSConfig(schemaName = Some("abc"),
+        catalogName = Some("cat"),
+        locationName = Some("sampleLocation"),
+        storageCredentialName = Some("sampleCredential"),
+        checkpointBase = Some("/checkBase"),
+        checkpointSuffix = Some("_checkSuffix_123")), isBatch = false)
+    }.getMessage.contains("Mandatory configuration OMS Location URL missing"))
 
     assert(intercept[java.lang.AssertionError] {
       validateOMSConfig(OMSConfig(schemaName = Some("abc"),
@@ -97,22 +96,22 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
 
   test("Spark Optional Configurations checks") {
     val deltaOMSOptionalSparkConfigs = Seq(
-      OMSSparkConf.RAW_ACTION_TABLE ->  "test.rawactions",
-      OMSSparkConf.SOURCE_CONFIG_TABLE ->  "test.sourceconfig",
-      OMSSparkConf.PATH_CONFIG_TABLE ->  "test.pathconfig",
-      OMSSparkConf.PROCESSED_HISTORY_TABLE ->  "test.processhistory",
-      OMSSparkConf.COMMITINFO_SNAPSHOT_TABLE ->  "test.commitinfosnapshot",
-      OMSSparkConf.ACTION_SNAPSHOT_TABLE ->  "test.actionsnapshot",
-      OMSSparkConf.CONSOLIDATE_WILDCARD_PATHS ->  "false",
-      OMSSparkConf.TRUNCATE_PATH_CONFIG ->  "true",
-      OMSSparkConf.SKIP_PATH_CONFIG ->  "false",
-      OMSSparkConf.SKIP_INITIALIZE ->  "true",
-      OMSSparkConf.SRC_DATABASES ->  "sampleBases",
-      OMSSparkConf.TABLE_PATTERN ->  "*test*",
-      OMSSparkConf.TRIGGER_INTERVAL ->  "30 sec",
-      OMSSparkConf.TRIGGER_MAX_FILES ->  "3000",
-      OMSSparkConf.STARTING_STREAM ->  "4",
-      OMSSparkConf.ENDING_STREAM ->  "10",
+      OMSSparkConf.RAW_ACTION_TABLE -> "test.rawactions",
+      OMSSparkConf.SOURCE_CONFIG_TABLE -> "test.sourceconfig",
+      OMSSparkConf.PATH_CONFIG_TABLE -> "test.pathconfig",
+      OMSSparkConf.PROCESSED_HISTORY_TABLE -> "test.processhistory",
+      OMSSparkConf.COMMITINFO_SNAPSHOT_TABLE -> "test.commitinfosnapshot",
+      OMSSparkConf.ACTION_SNAPSHOT_TABLE -> "test.actionsnapshot",
+      OMSSparkConf.CONSOLIDATE_WILDCARD_PATHS -> "false",
+      OMSSparkConf.TRUNCATE_PATH_CONFIG -> "true",
+      OMSSparkConf.SKIP_PATH_CONFIG -> "false",
+      OMSSparkConf.SKIP_INITIALIZE -> "true",
+      OMSSparkConf.SRC_DATABASES -> "sampleBases",
+      OMSSparkConf.TABLE_PATTERN -> "*test*",
+      OMSSparkConf.TRIGGER_INTERVAL -> "30 sec",
+      OMSSparkConf.TRIGGER_MAX_FILES -> "3000",
+      OMSSparkConf.STARTING_STREAM -> "4",
+      OMSSparkConf.ENDING_STREAM -> "10",
       OMSSparkConf.USE_AUTOLOADER -> "false")
 
     withSQLConf(deltaOMSOptionalSparkConfigs: _*) {
@@ -145,10 +144,10 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
   }
 
   test("Spark Config Configuration provided") {
-    val deltaOMSIngestionSparkConfigs = Seq(OMSSparkConf.LOCATION_URL ->  "/sampleBase",
-      OMSSparkConf.SCHEMA_NAME ->  "abc",
-      OMSSparkConf.CHECKPOINT_BASE ->  "/checkBase",
-      OMSSparkConf.CHECKPOINT_SUFFIX ->  "_checkSuffix_123")
+    val deltaOMSIngestionSparkConfigs = Seq(OMSSparkConf.LOCATION_URL -> "/sampleBase",
+      OMSSparkConf.SCHEMA_NAME -> "abc",
+      OMSSparkConf.CHECKPOINT_BASE -> "/checkBase",
+      OMSSparkConf.CHECKPOINT_SUFFIX -> "_checkSuffix_123")
 
     withSQLConf(deltaOMSIngestionSparkConfigs: _*) {
       val sparkOMSConfig = OMSSparkConf.consolidateOMSConfigFromSparkConf(OMSConfig())

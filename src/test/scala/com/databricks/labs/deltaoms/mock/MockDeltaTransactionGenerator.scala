@@ -16,25 +16,17 @@
 
 package com.databricks.labs.deltaoms.mock
 
-import java.nio.file.{Paths}
+import java.nio.file.Paths
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.col
 
 trait MockDeltaTransactionGenerator {
 
-  protected def spark: SparkSession
-
-  case class MockDBInfo(dbName: String, basePath: String)
-  case class MockTableInfo(db: MockDBInfo, tableName: String,
-    partitionColumns: Option[Seq[String]] = None)
-
-  def cleanupDatabase(db: MockDBInfo): Unit = {
-    val dbLocation = s"${db.basePath}/${db.dbName}"
-    // Drop Database
-    spark.sql(s"DROP DATABASE IF EXISTS ${db.dbName} CASCADE")
-    // Cleanup location
-    org.apache.spark.network.util.JavaUtils.deleteRecursively(Paths.get(dbLocation).toFile)
+  def createMockDatabaseAndTables(testTables: Seq[MockTableInfo]): Unit = {
+    val testDatabases = testTables.map(_.db).distinct
+    testDatabases.foreach(createDatabase)
+    testTables.foreach(executeTestDeltaOperations)
   }
 
   def createDatabase(db: MockDBInfo): DataFrame = {
@@ -42,6 +34,14 @@ trait MockDeltaTransactionGenerator {
     val dbLocation = s"${db.basePath}/${db.dbName}"
     // Create Database
     spark.sql(s"CREATE DATABASE IF NOT EXISTS ${db.dbName} LOCATION '$dbLocation'")
+  }
+
+  def cleanupDatabase(db: MockDBInfo): Unit = {
+    val dbLocation = s"${db.basePath}/${db.dbName}"
+    // Drop Database
+    spark.sql(s"DROP DATABASE IF EXISTS ${db.dbName} CASCADE")
+    // Cleanup location
+    org.apache.spark.network.util.JavaUtils.deleteRecursively(Paths.get(dbLocation).toFile)
   }
 
   // Generate Mock Transactions
@@ -54,10 +54,10 @@ trait MockDeltaTransactionGenerator {
     val tableLocation = s"$dbLocation/$tableName/"
 
     // Create and populate table
-    if(tableDefn.partitionColumns.isDefined) {
+    if (tableDefn.partitionColumns.isDefined) {
       val tablePartitions = tableDefn.partitionColumns.get
       spark.range(1, 1000, 1, 100)
-        .withColumn("uid", col("id")%10)
+        .withColumn("uid", col("id") % 10)
         .write
         .format("delta")
         .mode("overwrite").partitionBy(tablePartitions: _*)
@@ -75,7 +75,7 @@ trait MockDeltaTransactionGenerator {
     // spark.sql(s"SHOW TABLES IN $dbName").show()
     // spark.sql(s"DESCRIBE EXTENDED $fullTableName").show(false)
     // Insert more data
-    if(tableDefn.partitionColumns.isDefined) {
+    if (tableDefn.partitionColumns.isDefined) {
       spark.sql(s"INSERT into $fullTableName " +
         s"VALUES (1000000,100000),(1000001, 100000),(1000002, 100000)")
     } else {
@@ -87,9 +87,9 @@ trait MockDeltaTransactionGenerator {
     spark.sql(s"DELETE FROM $fullTableName WHERE id%200 = 0")
 
     // Upsert new data
-    if(tableDefn.partitionColumns.isDefined) {
+    if (tableDefn.partitionColumns.isDefined) {
       spark.range(1, 1200, 100)
-        .withColumn("uid", col("id")%10)
+        .withColumn("uid", col("id") % 10)
         .createOrReplaceTempView("TEMP_UPSERTS")
       spark.sql(
         s"""MERGE INTO $fullTableName a
@@ -111,15 +111,16 @@ trait MockDeltaTransactionGenerator {
     }
   }
 
-  def createMockDatabaseAndTables(testTables : Seq[MockTableInfo]): Unit = {
-    val testDatabases = testTables.map(_.db).distinct
-    testDatabases.foreach(createDatabase)
-    testTables.foreach(executeTestDeltaOperations)
-  }
-
-  def cleanupDatabases(testTables : Seq[MockTableInfo]): Unit = {
+  def cleanupDatabases(testTables: Seq[MockTableInfo]): Unit = {
     val testDatabases = testTables.map(_.db).distinct
     testDatabases.foreach(cleanupDatabase)
   }
+
+  protected def spark: SparkSession
+
+  case class MockDBInfo(dbName: String, basePath: String)
+
+  case class MockTableInfo(db: MockDBInfo, tableName: String,
+    partitionColumns: Option[Seq[String]] = None)
 
 }

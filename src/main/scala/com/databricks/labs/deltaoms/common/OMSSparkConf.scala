@@ -16,8 +16,8 @@
 
 package com.databricks.labs.deltaoms.common
 
-import com.databricks.labs.deltaoms.configuration.{OMSConfig, SparkSettings}
 import com.databricks.labs.deltaoms.common.OMSSparkConfUtils.{buildConfKey, getSparkConf}
+import com.databricks.labs.deltaoms.configuration.{OMSConfig, SparkSettings}
 
 private object OMSSparkConfUtils extends SparkSettings {
   def buildConfKey(key: String): String = s"spark.databricks.labs.deltaoms.$key"
@@ -117,56 +117,104 @@ trait OMSSparkConf extends Serializable with SparkSettings {
     val sparkOmsConfMap = OMSSparkConfig()
     OMSConfig(
       locationUrl = getSparkConf(sparkOmsConfMap.locationUrl.sparkConfigName)
-        .fold(config.locationUrl) {Some(_)},
+        .fold(config.locationUrl) {
+          Some(_)
+        },
       locationName = getSparkConf(sparkOmsConfMap.locationName.sparkConfigName)
-        .fold(config.locationName) {Some(_)},
+        .fold(config.locationName) {
+          Some(_)
+        },
       storageCredentialName = getSparkConf(sparkOmsConfMap.storageCredentialName.sparkConfigName)
-        .fold(config.storageCredentialName) {Some(_)},
+        .fold(config.storageCredentialName) {
+          Some(_)
+        },
       catalogName = getSparkConf(sparkOmsConfMap.catalogName.sparkConfigName)
-        .fold(config.catalogName) {Some(_)},
+        .fold(config.catalogName) {
+          Some(_)
+        },
       schemaName = getSparkConf(sparkOmsConfMap.schemaName.sparkConfigName)
-        .fold(config.schemaName) {Some(_)},
+        .fold(config.schemaName) {
+          Some(_)
+        },
       checkpointBase = getSparkConf(sparkOmsConfMap.checkpointBase.sparkConfigName)
-        .fold(config.checkpointBase) {Some(_)},
+        .fold(config.checkpointBase) {
+          Some(_)
+        },
       checkpointSuffix = getSparkConf(sparkOmsConfMap.checkpointSuffix.sparkConfigName)
-        .fold(config.checkpointSuffix) {Some(_)},
+        .fold(config.checkpointSuffix) {
+          Some(_)
+        },
       rawActionTable = getSparkConf(sparkOmsConfMap.rawActionTable.sparkConfigName)
-        .fold(config.rawActionTable) {_.toString()},
+        .fold(config.rawActionTable) {
+          _.toString()
+        },
       sourceConfigTable = getSparkConf(sparkOmsConfMap.sourceConfigTable.sparkConfigName)
-        .fold(config.sourceConfigTable) {_.toString()},
+        .fold(config.sourceConfigTable) {
+          _.toString()
+        },
       pathConfigTable = getSparkConf(sparkOmsConfMap.pathConfigTable.sparkConfigName)
-        .fold(config.pathConfigTable) {_.toString()},
+        .fold(config.pathConfigTable) {
+          _.toString()
+        },
       processedHistoryTable = getSparkConf(sparkOmsConfMap.processedHistoryTable.sparkConfigName)
-        .fold(config.processedHistoryTable) {_.toString()},
+        .fold(config.processedHistoryTable) {
+          _.toString()
+        },
       commitInfoSnapshotTable =
         getSparkConf(sparkOmsConfMap.commitInfoSnapshotTable.sparkConfigName)
-          .fold(config.commitInfoSnapshotTable) {_.toString()},
+          .fold(config.commitInfoSnapshotTable) {
+            _.toString()
+          },
       actionSnapshotTable = getSparkConf(sparkOmsConfMap.actionSnapshotTable.sparkConfigName)
-        .fold(config.actionSnapshotTable) {_.toString()},
+        .fold(config.actionSnapshotTable) {
+          _.toString()
+        },
       consolidateWildcardPaths =
         getSparkConf(sparkOmsConfMap.consolidateWildcardPaths.sparkConfigName)
-          .fold(config.consolidateWildcardPaths) {_.toBoolean},
+          .fold(config.consolidateWildcardPaths) {
+            _.toBoolean
+          },
       truncatePathConfig = getSparkConf(sparkOmsConfMap.truncatePathConfig.sparkConfigName)
-        .fold(config.truncatePathConfig) {_.toBoolean},
+        .fold(config.truncatePathConfig) {
+          _.toBoolean
+        },
       skipPathConfig = getSparkConf(sparkOmsConfMap.skipPathConfig.sparkConfigName)
-        .fold(config.skipPathConfig) {_.toBoolean},
+        .fold(config.skipPathConfig) {
+          _.toBoolean
+        },
       skipInitializeOMS = getSparkConf(sparkOmsConfMap.skipInitializeOMS.sparkConfigName)
-        .fold(config.skipInitializeOMS) {_.toBoolean},
+        .fold(config.skipInitializeOMS) {
+          _.toBoolean
+        },
       useAutoloader = getSparkConf(sparkOmsConfMap.useAutoloader.sparkConfigName)
-        .fold(config.useAutoloader) {_.toBoolean},
+        .fold(config.useAutoloader) {
+          _.toBoolean
+        },
       srcDatabases = getSparkConf(sparkOmsConfMap.srcDatabases.sparkConfigName)
-        .fold(config.srcDatabases) {Some(_)},
+        .fold(config.srcDatabases) {
+          Some(_)
+        },
       tablePattern = getSparkConf(sparkOmsConfMap.tablePattern.sparkConfigName)
-        .fold(config.tablePattern) {Some(_)},
+        .fold(config.tablePattern) {
+          Some(_)
+        },
       maxFilesPerTrigger = getSparkConf(sparkOmsConfMap.maxFilesPerTrigger.sparkConfigName)
-        .fold(config.maxFilesPerTrigger) {_.toString()},
+        .fold(config.maxFilesPerTrigger) {
+          _.toString()
+        },
       triggerInterval = getSparkConf(sparkOmsConfMap.triggerInterval.sparkConfigName)
-        .fold(config.triggerInterval) {Some(_)},
+        .fold(config.triggerInterval) {
+          Some(_)
+        },
       startingStream = getSparkConf(sparkOmsConfMap.startingStream.sparkConfigName)
-        .fold(config.startingStream) {_.toInt},
+        .fold(config.startingStream) {
+          _.toInt
+        },
       endingStream = getSparkConf(sparkOmsConfMap.endingStream.sparkConfigName)
-        .fold(config.endingStream) {_.toInt})
-      }
+        .fold(config.endingStream) {
+          _.toInt
+        })
+  }
 }
 
 object OMSSparkConf extends OMSSparkConf

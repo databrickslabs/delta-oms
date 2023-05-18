@@ -16,15 +16,15 @@
 
 package com.databricks.labs.deltaoms.common
 
-import com.databricks.labs.deltaoms.configuration.{OMSConfig, SparkSettings}
-
-import org.apache.spark.internal.Logging
-import org.apache.http.impl.client.HttpClients
-import org.apache.http.client.methods.{CloseableHttpResponse, HttpGet}
-import org.apache.http.util.EntityUtils
-import org.apache.http.client.config.RequestConfig
 import com.databricks.dbutils_v1.DBUtilsHolder.dbutils
 import com.databricks.labs.deltaoms.common.OMSSparkConf.consolidateOMSConfigFromSparkConf
+import com.databricks.labs.deltaoms.configuration.{OMSConfig, SparkSettings}
+import org.apache.http.client.config.RequestConfig
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.util.EntityUtils
+
+import org.apache.spark.internal.Logging
 
 trait OMSRunner extends Serializable
   with SparkSettings
@@ -66,11 +66,13 @@ trait OMSRunner extends Serializable
     logInfo(EntityUtils.toString(response.getEntity, "UTF-8"))
   }
 
-  scala.util.control.Exception.ignoring(classOf[Throwable]) { setTrackingHeader() }
+  scala.util.control.Exception.ignoring(classOf[Throwable]) {
+    setTrackingHeader()
+  }
 
   def getValidatedOMSConfig(config: OMSConfig): OMSConfig
 
-  def consolidateOMSConfig() : OMSConfig = {
+  def consolidateOMSConfig(): OMSConfig = {
     val sparkOMSConfig = consolidateOMSConfigFromSparkConf(omsConfig)
     getValidatedOMSConfig(sparkOMSConfig)
   }

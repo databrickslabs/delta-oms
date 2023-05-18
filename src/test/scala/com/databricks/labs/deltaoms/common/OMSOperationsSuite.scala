@@ -18,20 +18,18 @@ package com.databricks.labs.deltaoms.common
 
 import java.util.UUID
 
+import com.databricks.labs.deltaoms.common.OMSOperations._
+import com.databricks.labs.deltaoms.common.Utils._
 import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, OMSConfig}
 import com.databricks.labs.deltaoms.mock.MockDeltaTransactionGenerator
-import Utils._
-
-import org.apache.spark.sql.{QueryTest, Row}
-import org.apache.spark.sql.delta.test.DeltaTestSharedSession
-import org.apache.spark.sql.test.SharedSparkSession
-import com.databricks.labs.deltaoms.common.OMSOperations._
-import com.databricks.labs.deltaoms.common.Utils.getPathConfigTableName
 import com.databricks.labs.deltaoms.model.{PathConfig, SourceConfig}
 import com.databricks.labs.deltaoms.utils.UtilityOperations
 import com.databricks.labs.deltaoms.utils.UtilityOperations.listSubDirectories
 
+import org.apache.spark.sql.{QueryTest, Row}
+import org.apache.spark.sql.delta.test.DeltaTestSharedSession
 import org.apache.spark.sql.streaming.StreamTest
+import org.apache.spark.sql.test.SharedSparkSession
 import org.apache.spark.util.SerializableConfiguration
 
 class OMSOperationsSuite extends QueryTest
@@ -95,8 +93,8 @@ class OMSOperationsSuite extends QueryTest
     assert(srcConfigs.nonEmpty)
     val paths = srcConfigs.map(_.path)
     assert(Array(s"file:$baseMockDir/$db1Name/$table1Name",
-        s"file:$baseMockDir/$db1Name/$table3Name",
-        s"file:$baseMockDir/$db2Name/$table2Name").forall(paths.contains))
+      s"file:$baseMockDir/$db1Name/$table3Name",
+      s"file:$baseMockDir/$db2Name/$table2Name").forall(paths.contains))
   }
 
   test("updateOMSPathConfigFromSourceConfig") {
@@ -177,7 +175,7 @@ class OMSOperationsSuite extends QueryTest
       Row(15))
   }
 
- test("processActionSnapshotsFromRawActions Initial") {
+  test("processActionSnapshotsFromRawActions Initial") {
     val rawActions = spark.read.format("delta")
       .load(s"${getRawActionsTableUrl(omsConfig)}")
     processActionSnapshotsFromRawActions(rawActions,
@@ -264,7 +262,7 @@ class OMSOperationsSuite extends QueryTest
       .load(s"${getRawActionsTableUrl(omsConfig)}")
     val exception = intercept[java.lang.RuntimeException](
       processCommitInfoFromRawActions(rawActions,
-      s"${getCommitSnapshotsTableUrl(omsConfig)}xtra"))
+        s"${getCommitSnapshotsTableUrl(omsConfig)}xtra"))
     assert(exception.getMessage.contains("Unable to update the Commit Info " +
       "Snapshot table."))
   }
@@ -274,7 +272,7 @@ class OMSOperationsSuite extends QueryTest
       .load(s"${getRawActionsTableUrl(omsConfig)}")
     val exception = intercept[java.lang.RuntimeException](
       processActionSnapshotsFromRawActions(rawActions,
-      s"${getActionSnapshotsTableUrl(omsConfig)}xtra"))
+        s"${getActionSnapshotsTableUrl(omsConfig)}xtra"))
     assert(exception.getMessage.contains("Unable to access the ActionSnapshot Table"))
   }
 

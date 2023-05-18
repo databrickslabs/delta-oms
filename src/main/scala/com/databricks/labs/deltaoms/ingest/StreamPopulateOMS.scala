@@ -24,7 +24,7 @@ object StreamPopulateOMS extends StreamOMSRunner {
     spark.conf.set("spark.databricks.labs.deltaoms.class", value = getClass.getCanonicalName)
     val consolidatedOMSConfig = consolidateOMSConfig()
     // Update the OMS Path Config from Table Config
-    if(!consolidatedOMSConfig.skipPathConfig) {
+    if (!consolidatedOMSConfig.skipPathConfig) {
       updateOMSPathConfigFromSourceConfig(consolidatedOMSConfig)
     }
     logInfo(s"Starting Streaming OMS with Configuration : $consolidatedOMSConfig")
