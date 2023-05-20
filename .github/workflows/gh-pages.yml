@@ -3,10 +3,15 @@ name: Publish Github Pages
 on:
   push:
     branches:
-      - master
+      - dev
+  release:
+    types:
+      - created
+
 defaults:
   run:
     working-directory: ./docs
+
 jobs:
   deploy:
     runs-on: ubuntu-20.04
@@ -18,19 +23,42 @@ jobs:
           submodules: true  # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
 
+      - name: Fetch Latest Release Version
+        id: get_latest_release
+        if: github.event_name == 'release'
+        run: |
+          echo "::set-output name=release::${{ github.event.release.tag_name }}"
+
+      - name: Fetch Last Available Release Version
+        id: get_last_release
+        if: github.event_name == 'push' || !steps.get_latest_release.outputs.release
+        run: |
+          echo "::set-output name=release::$(git describe --tags --abbrev=0)"
+
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
         with:
           hugo-version: '0.87.0'
           extended: true
 
-      - name: Build
-        run: hugo --minify
+      - name: Build Documentation - Versioned
+        run: hugo --minify --baseUrl https://databrickslabs.github.io/delta-oms/${{ steps.get_last_release.outputs.release }}/
 
-      - name: Deploy
+      - name: Deploy Documentation - Versioned
         uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/public
           publish_branch: public_docs
+          destination_dir: ${{ steps.get_last_release.outputs.release }}
+
+      - name: Build Documentation - Latest
+        run: hugo --minify --baseUrl https://databrickslabs.github.io/delta-oms/latest/
+
+      - name: Deploy Documentation - Latest
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/public
+          publish_branch: public_docs
+          destination_dir: latest

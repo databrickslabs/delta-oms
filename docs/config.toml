@@ -4,6 +4,7 @@ theme= "hugo-theme-learn"
 
 pluralizeListTitles = false
 canonifyURLs = true
+relativeURLs = true
 
 [params]
     description = "DeltaOMS Documentation"
