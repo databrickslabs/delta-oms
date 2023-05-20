@@ -1,0 +1,212 @@
+<!doctype html><html lang=en class="js csstransforms3d">
+<head>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=generator content="Hugo 0.87.0">
+<meta name=description content="DeltaOMS Documentation">
+<meta name=author content="Himanish Kushary (Databricks)">
+<link rel=icon href=https://databrickslabs.github.io/delta-oms/v0.4.0/images/favicon.png type=image/png>
+<title>Developer Guide :: Delta Operational Metrics Store (DeltaOMS)</title>
+<link href=https://databrickslabs.github.io/delta-oms/v0.4.0/css/nucleus.css?1684606913 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/v0.4.0/css/fontawesome-all.min.css?1684606913 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/v0.4.0/css/hybrid.css?1684606913 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/v0.4.0/css/featherlight.min.css?1684606913 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/v0.4.0/css/perfect-scrollbar.min.css?1684606913 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/v0.4.0/css/auto-complete.css?1684606913 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/v0.4.0/css/atom-one-dark-reasonable.css?1684606913 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/v0.4.0/css/theme.css?1684606913 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/v0.4.0/css/tabs.css?1684606913 rel=stylesheet>
+<link href=https://databrickslabs.github.io/delta-oms/v0.4.0/css/hugo-theme.css?1684606913 rel=stylesheet>
+<script src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/jquery-3.3.1.min.js?1684606913></script>
+<style>:root #header+#content>#left>#rlblock_left{display:none!important}</style>
+<script async defer src=https://buttons.github.io/buttons.js></script>
+</head>
+<body data-url=https://databrickslabs.github.io/delta-oms/v0.4.0/developer_guide/>
+<nav id=sidebar>
+<div id=header-wrapper>
+<div id=header>
+<a id=logo href=https://databrickslabs.github.io/delta-oms/v0.4.0/>
+<img src=https://databrickslabs.github.io/delta-oms/v0.4.0/images/DeltaOMS.png , width=85%>
+</a>
+</div>
+<div class=searchbox>
+<label for=search-by><i class="fas fa-search"></i></label>
+<input data-search-input id=search-by type=search placeholder=Search...>
+<span data-search-clear><i class="fas fa-times"></i></span>
+</div>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/lunr.min.js?1684606913></script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/auto-complete.js?1684606913></script>
+<script type=text/javascript>var baseurl="https://databrickslabs.github.io/delta-oms/v0.4.0/"</script>
+<script type=text/javascript src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/search.js?1684606913></script>
+</div>
+<section id=homelinks>
+<ul>
+<li>
+<a class=padding href=https://databrickslabs.github.io/delta-oms/v0.4.0/><i class="fas fa-home"></i> Home</a>
+</li>
+</ul>
+</section>
+<div class=highlightable>
+<ul class=topics>
+<li data-nav-id=/getting_started/ title="Getting Started" class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/getting_started/>
+Getting Started
+</a>
+<ul>
+<li data-nav-id=/getting_started/prerequisites/ title=Pre-Requisites class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/getting_started/prerequisites/>
+Pre-Requisites
+</a>
+</li>
+<li data-nav-id=/getting_started/setup/ title=Setup class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/getting_started/setup/>
+Setup
+</a>
+</li>
+<li data-nav-id=/getting_started/execute/ title=Execute class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/getting_started/execute/>
+Execute
+</a>
+</li>
+<li data-nav-id=/getting_started/analyze/ title=Analyze class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/getting_started/analyze/>
+Analyze
+</a>
+</li>
+<li data-nav-id=/getting_started/additionalconfigurations/ title="Additional Configuration" class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/getting_started/additionalconfigurations/>
+Additional Configuration
+</a>
+</li>
+</ul>
+</li>
+<li data-nav-id=/developer_guide/ title="Developer Guide" class="dd-item
+parent
+active">
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/developer_guide/>
+Developer Guide
+</a>
+<ul>
+<li data-nav-id=/developer_guide/configurationtables/ title="Configuration Tables" class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/developer_guide/configurationtables/>
+Configuration Tables
+</a>
+</li>
+<li data-nav-id=/developer_guide/datatables/ title="Data Tables" class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/developer_guide/datatables/>
+Data Tables
+</a>
+</li>
+<li data-nav-id=/developer_guide/datamodels/ title="Data Model" class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/developer_guide/datamodels/>
+Data Model
+</a>
+</li>
+<li data-nav-id=/developer_guide/components/ title="Key Components" class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/developer_guide/components/>
+Key Components
+</a>
+</li>
+</ul>
+</li>
+<li data-nav-id=/faq/ title="Frequently Asked Questions (FAQs)" class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/faq/>
+Frequently Asked Questions (FAQs)
+</a>
+<ul>
+<li data-nav-id=/faq/general/ title=General class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/faq/general/>
+General
+</a>
+</li>
+<li data-nav-id=/faq/execution/ title=Execution class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/faq/execution/>
+Execution
+</a>
+</li>
+<li data-nav-id=/faq/security/ title=Security class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/faq/security/>
+Security
+</a>
+</li>
+</ul>
+</li>
+<li data-nav-id=/contributing/ title=Contributing class=dd-item>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/contributing/>
+Contributing
+</a>
+</li>
+</ul>
+<section id=footer>
+<center>
+<a class=github-button href=https://github.com/databrickslabs/delta-oms/subscription data-icon=octicon-eye data-show-count=true aria-label="DeltaOMS on GitHub">Watch</a>
+<a class=github-button href=https://github.com/databrickslabs/delta-oms data-icon=octicon-star data-show-count=true aria-label="Star databrickslabs/delta-oms on GitHub">Star</a>
+<a class=github-button href=https://github.com/databrickslabs/delta-oms/fork data-icon=octicon-repo-forked data-show-count=true aria-label="Fork DeltaOMS on GitHub">Fork</a>
+<p>A <a href=https://github.com/databrickslabs>Databricks Labs</a> project.</p>
+</center>
+<script async defer src=https://buttons.github.io/buttons.js></script>
+</section>
+</div>
+</nav>
+<section id=body>
+<div id=overlay></div>
+<div class="padding highlightable">
+<div>
+<div id=top-bar>
+<div id=breadcrumbs itemscope itemtype=http://data-vocabulary.org/Breadcrumb>
+<span id=sidebar-toggle-span>
+<a href=# id=sidebar-toggle data-sidebar-toggle>
+<i class="fas fa-bars"></i>
+</a>
+</span>
+<span id=toc-menu><i class="fas fa-list-alt"></i></span>
+<span class=links>
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/>Delta Operational Metrics Store (DeltaOMS)</a> > Developer Guide
+</span>
+</div>
+<div class=progress>
+<div class=wrapper>
+<nav id=TableOfContents></nav>
+</div>
+</div>
+</div>
+</div>
+<div id=head-tags>
+</div>
+<div id=body-inner>
+<h1>
+Developer Guide
+</h1>
+<p>Delta Operational Metrics Store (DeltaOMS) is a solution that helps to build a
+centralized repository of operational metrics/statistics for your <a href=http://cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf>Lakehouse</a>
+built on <a href=https://github.com/delta-io/delta>Delta Lake</a>.
+This developer guide assumes you have already completed the tutorial from the
+<a href=https://databrickslabs.github.io/delta-oms/v0.4.0/getting_started/>Getting Started Guide</a>.</p>
+<p>Once you have completed the getting started , this guide will help with understanding
+inner workings of DeltaOMS</p>
+<footer class=footline>
+</footer>
+</div>
+</div>
+<div id=navigation>
+<a class="nav nav-prev" href=https://databrickslabs.github.io/delta-oms/v0.4.0/getting_started/additionalconfigurations/ title="Additional Configuration"> <i class="fa fa-chevron-left"></i></a>
+<a class="nav nav-next" href=https://databrickslabs.github.io/delta-oms/v0.4.0/developer_guide/configurationtables/ title="Configuration Tables" style=margin-right:0><i class="fa fa-chevron-right"></i></a>
+</div>
+</section>
+<div style=left:-1000px;overflow:scroll;position:absolute;top:-1000px;border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px>
+<div style=border:none;box-sizing:content-box;height:200px;margin:0;padding:0;width:200px></div>
+</div>
+<script src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/clipboard.min.js?1684606913></script>
+<script src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/perfect-scrollbar.min.js?1684606913></script>
+<script src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/perfect-scrollbar.jquery.min.js?1684606913></script>
+<script src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/jquery.sticky.js?1684606913></script>
+<script src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/featherlight.min.js?1684606913></script>
+<script src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/highlight.pack.js?1684606913></script>
+<script>hljs.initHighlightingOnLoad()</script>
+<script src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/modernizr.custom-3.6.0.js?1684606913></script>
+<script src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/learn.js?1684606913></script>
+<script src=https://databrickslabs.github.io/delta-oms/v0.4.0/js/hugo-learn.js?1684606913></script>
+<script src=https://databrickslabs.github.io/delta-oms/v0.4.0/mermaid/mermaid.js?1684606913></script>
+<script>mermaid.initialize({startOnLoad:!0})</script>
+</body>
+</html>
