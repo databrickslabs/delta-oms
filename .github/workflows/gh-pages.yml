@@ -51,3 +51,12 @@ jobs:
           publish_dir: ./docs/public
           publish_branch: public_docs
           destination_dir: ${{ steps.get_last_release.outputs.release }}
+          
+      - name: Deploy Documentation - Latest
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/public
+          publish_branch: public_docs
+          destination_dir: latest
+          
