@@ -41,7 +41,7 @@ jobs:
            hugo-version: '0.87.0'
            extended: true
 
-      - name: Build
+      - name: Build Documentation - Versioned
         run: hugo --minify --baseUrl https://databrickslabs.github.io/delta-oms/${{ steps.get_last_release.outputs.release }}/
 
       - name: Deploy Documentation - Versioned
@@ -51,6 +51,9 @@ jobs:
           publish_dir: ./docs/public
           publish_branch: public_docs
           destination_dir: ${{ steps.get_last_release.outputs.release }}
+          
+      - name: Build Documentation - Latest
+        run: hugo --minify --baseUrl https://databrickslabs.github.io/delta-oms/latest/
           
       - name: Deploy Documentation - Latest
         uses: peaceiris/actions-gh-pages@v3
