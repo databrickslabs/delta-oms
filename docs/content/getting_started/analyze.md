@@ -8,9 +8,9 @@ draft: false
 ### Run analytics using sample notebooks
 
 You can run some sample analytics on the data from the OMS database 
-using the provided [notebook](/assets/DeltaOMS_SQL_Analytics.sql)
+using the provided [notebook](/assets/demo/02.OMS_Analytics.sql) with appropriate modification for your use-case/environment
 
-Modify the queries to reflect your configuration for 
+Modify the queries to reflect your configuration for the `OMS Catalog Name` ,
 `OMS DB Name` and other table names (if applicable).
 
 Executing this notebook will give you an idea on the type of analysis and data structure that can 

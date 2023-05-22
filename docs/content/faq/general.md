@@ -8,28 +8,28 @@ draft: false
 **Q. What is Delta Operational Metrics Store ?**
 
 Delta Operational metrics store (DeltaOMS) is a solution/framework for automated collection 
-and tracking of Delta commit logs and other future operational metrics from Delta Lake, 
+and tracking of Delta commit/transaction logs and associated operational metrics from Delta Lake, 
 build a centralized repository for Delta Lake operational statistics and simplify analysis 
 across the entire data lake.
 
 The solution can be easily enabled and configured to start capturing the operational metrics into a 
-centralized repository on the data lake. Once the data is collated , it would unlock the 
-possibilities for gaining operational insights, creating dashboards for traceability of operations 
-across the data lake through a single pane of glass and other analytical use cases.
+centralized repository on the data lake. Once the transaction logs are collected in a 
+centralized database , it enables gaining operational insights, creating dashboards for traceability of operations 
+across the data lake through a single pane of glass and also other analytical use cases.
 
 **Q. What are the benefits of using DeltaOMS ?**
 
-Tracking and analyzing Delta Lake operational metrics across multiple database objects requires 
-building a custom solution on the Delta Lakehouse.DeltaOMS helps to automate the collection of 
-operational logs from multiple Delta Lake objects, collate those into a central repository on 
-the lakehouse , allow for more holistic analysis and allow presenting them through 
-a single pane of glass dashboard for typical operational analytics. 
+Tracking and analyzing Delta Lake transaction logs and operational metrics across multiple 
+database objects requires building a custom solution on the Delta Lakehouse.
+DeltaOMS helps to automate the collection of Delta transaction logs from multiple Delta Lake databases/tables 
+into a central repository on the lakehouse. This allows execution of more holistic analysis and 
+presentation through a single pane of glass dashboard for typical operational analytics. 
 This simplifies the process for users looking to gain insights into their Delta Lakehouse table operations.
 
 **Q. What typical operational insights would I get from the solution ?**
 
 DeltaOMS centralized repository provides interfaces for custom analysis on the Delta Lake 
-operational metrics using tools like Apache Spark, Databricks SQL etc. 
+transaction logs and operational metrics using tools like Apache Spark, Databricks SQL etc. 
 
 For example, it could answer questions like :
 
@@ -53,6 +53,12 @@ manage and use this feature for operational insights on the Delta Lake.
 **Q Can I run this solution on non-Databricks environment ?**
 
 This project is distributed under Databricks license and cannot be used outside of Databricks environment
+
+**Q. Does it support Unity Catalog on Databricks ?**
+The latest version of DeltaOMS supports Unity Catalog by allowing specifying Unity catalog databases and tables 
+as Source tables to be monitored. These configuration can be executed through a Unity Ctaalog enabled cluster.
+For subsequent processing of the Delta transaction logs , DeltaOMS needs to run the ingestion and processing jobs 
+on non Unity Catalog cluster and depends on the instance profile associated with a Databricks cluster to function.
 
 **Q. How will I be charged ?**
 

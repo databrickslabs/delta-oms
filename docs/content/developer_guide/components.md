@@ -8,7 +8,8 @@ draft: false
 ### Initialization
 
 DeltaOMS provides the component `com.databricks.labs.deltaoms.init.InitializeOMS` for initializing  
-the centralized OMS database. The component creates the OMS DB at the location specified by the configuration settings.
+the centralized OMS schema and tables on the OMS catalog. 
+The component creates the OMS schema at the EXTERNAL LOCATION specified by the configuration settings.
 Note: This process will delete all existing data in the specified location.
 
 Refer to [Additional Configurations]({{%relref "getting_started/additionalconfigurations.md" %}}/) for full configuration settings.

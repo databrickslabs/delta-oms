@@ -6,8 +6,8 @@ draft: false
 ---
 
 ### Execute the DeltaOMS Jobs
-You can run the jobs created in the above step to ingest and process the delta transaction 
-information for the configured tables into the centralized DeltaOMS database.
+You can run the jobs created in the previous step to ingest and process the delta transaction 
+information for the configured tables into the centralized DeltaOMS schema.
 
 For example, the `OMSIngestion_*` job(s) bring in the raw delta logs from the configured 
 databases/tables and the `OMSProcessing_*` job processes the raw delta logs to format and 

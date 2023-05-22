@@ -31,10 +31,11 @@ Few examples of how you could use the centralized operational metrics/statistics
 
 
 ## How does DeltaOMS work
-DeltaOMS subscribes to the delta logs of the configured databases/tables and pulls all the 
+DeltaOMS subscribes to the delta logs of the configured databases/tables and ingests all the Delta 
+transactional logs (under _delta_log/*.json) in a streaming manner along with the associated
 [operational metrics](https://docs.databricks.com/delta/delta-utility.html#operation-metrics-keys) 
-written out during Delta table writes. These metrics are enriched with additional information 
-( like path, file name, commit timestamp etc.), processed to build snapshots over time and 
+written out during Delta table writes. These logs are enriched with additional information 
+( like path, file name, commit timestamp etc.), parsed and processed to build snapshots over time and 
 persisted into different tables as actions and commit information. Refer to the 
 [Delta Transaction Log Protocol](https://github.com/delta-io/delta/blob/master/PROTOCOL.md#actions) 
 for more details on Actions and CommitInfo.
@@ -46,8 +47,8 @@ for more details on Actions and CommitInfo.
 ## How is the DeltaOMS executed
 DeltaOMS provides a jar and sample notebooks to help you setup , configure and 
 create the required databases, tables and Databricks Jobs.These notebooks and jobs run on 
-your environment to create a centralized operational metrics database, capture metrics and 
-make it available for analytics.
+your environment to create a centralized database, centrally capture the transaction logs with metrics and 
+make it available for centralized analytics.
 
 ## How much does it cost ?
 DeltaOMS does not have any **direct cost** associated with it other than the cost to run the jobs 
@@ -81,7 +82,7 @@ The following Databricks notebooks also provides an end to end demonstration of 
  - [Setup and Process Flow](/assets/demo/01.OMS_ProcessFlow.scala)
  - [Analytics](/assets/demo/02.OMS_Analytics.sql)
  
- These three notebooks can be put in the same folder and executed on a Databricks cluster.
+ These notebooks can be put in the same folder and executed on a Databricks cluster.
 
 ## Releasing the Project
 DeltaOMS is released as a `jar` (through Maven) and `notebooks` (through Github [Repo](https://github.com/databrickslabs/delta-oms)) for setting up Databricks jobs. 

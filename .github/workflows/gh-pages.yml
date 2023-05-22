@@ -1,9 +1,6 @@
 name: Publish Github Pages
 
 on:
-  push:
-    branches:
-      - dev
   release:
     types:
       - created

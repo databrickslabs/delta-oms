@@ -10,7 +10,7 @@ draft: false
 DeltaOMS processes the [Delta transaction logs](https://databricks.com/blog/2019/08/21/diving-into-delta-lake-unpacking-the-transaction-log.html)
 implementing the [Delta protocol](https://github.com/delta-io/delta/blob/master/PROTOCOL.md) to capture the different operational metrics. 
 These logs are stored under the folder `_delta_log` alongside your data files.
-DeltaOMS only requires access to this `_delta_log` folder for the tracked data locations.
+DeltaOMS only requires access to this `_delta_log` folder for the tracked data locations on a non-UC enabled cluster through Instance Profile
 
 For more details on how DeltaOMS works please refer to the [Developer Guide]({{%relref "developer_guide/_index.md" %}})
 
