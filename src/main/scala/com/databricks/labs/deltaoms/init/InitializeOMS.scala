@@ -25,7 +25,9 @@ object InitializeOMS extends BatchOMSRunner {
     val consolidatedOMSConfig = consolidateOMSConfig()
     logInfo(s"Initializing Delta OMS Database and tables with Configuration " +
       s": $consolidatedOMSConfig")
+    val resetOms = spark.conf.getOption("spark.databricks.labs.deltaoms.resetoms")
+      .fold(false)(_.toBoolean)
     // Create the OMS Database and Table Structures , if needed
-    initializeOMS(consolidatedOMSConfig, dropAndRecreate = true)
+    initializeOMS(consolidatedOMSConfig, dropAndRecreate = resetOms)
   }
 }

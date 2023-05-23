@@ -119,7 +119,7 @@ display(spark.sql(s"describe extended $omsCatalogName.$omsSchemaName.actionsnaps
 // COMMAND ----------
 
 spark.sql(s"DELETE FROM $omsCatalogName.$omsSchemaName.sourceconfig");
-spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES ('${omsTestCatalogName}.`${omsTestSchemaName}`',false)");
+spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES ('${omsTestCatalogName}.${omsTestSchemaName}',false)");
 spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES ('samples.tpch.orders',false)");
 
 // spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>,false)");
