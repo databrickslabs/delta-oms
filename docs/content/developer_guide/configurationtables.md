@@ -18,7 +18,12 @@ Table used for adding databases/paths/individual table to be tracked by DeltaOMS
 
 Typical usage for adding input source configuration :
 ```$sql
--- Adding a Database. OMS will discover all Delta tables in the database. 
+-- Adding a Catalog or Catalogs by Pattern
+INSERT INTO <OMSCATALOGNAME>.<OMSDBNAME>.sourceconfig values('<Catalog Name>', false)
+INSERT INTO <OMSCATALOGNAME>.<OMSDBNAME>.sourceconfig values('<Catalog Pattern A>*', false)
+INSERT INTO <OMSCATALOGNAME>.<OMSDBNAME>.sourceconfig values('<Catalog Pattern A>*|<Catalog Pattern B>*', false)
+
+-- Adding a Database/Schema. OMS will discover all Delta tables in the schema/database. 
 -- ConfigurePaths process could take longer depending on number of tables in the database.
 INSERT INTO <OMSDBNAME>.sourceconfig values('<Catalog Name>.<Schema Name>', false)
 

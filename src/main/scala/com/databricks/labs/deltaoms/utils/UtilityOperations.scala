@@ -37,22 +37,39 @@ trait UtilityOperations extends Serializable with Logging {
     import spark.implicits._
 
     if (!sourceConfig.path.contains("/") && !sourceConfig.path.contains(".")) {
-      // CATALOG
-      if (sourceConfig.path.equalsIgnoreCase("hive_metastore")) {
-        throw new RuntimeException(s"${sourceConfig.path} catalog is not supported. " +
-          s"Configure databases from ${sourceConfig.path} catalog instead")
-      }
-      val tableList = spark.sql(s"SELECT (table_catalog || '.`' || " +
-        s"table_schema || '`.`' || table_name || '`' ) as qualifiedName " +
-        s"FROM ${sourceConfig.path}.information_schema.tables " +
-        s"WHERE table_schema <> 'information_schema' " +
-        s"AND table_type <> 'VIEW' " +
-        s"AND (data_source_format = 'DELTA' OR data_source_format = 'delta')").as[String].collect
 
-      tableList.map { tl =>
-        getTableLocation(tl) match {
-          case (t, l) => (t, l, Map("wildCardLevel" -> "1"))
+      val catalogs: Array[String] =
+      // PATTERN MATCHED CATALOGS
+        if (sourceConfig.path.contains("*") || sourceConfig.path.contains("|")) {
+          val catalogPattern = sourceConfig.path
+          spark.sql(s"SHOW CATALOGS LIKE '${catalogPattern}'")
+            .as[String].collect.filterNot(_ == "hive_metastore").filterNot(_.startsWith("_"))
+      } else {
+        // SINGLE CATALOG
+        if (sourceConfig.path.equalsIgnoreCase("hive_metastore")) {
+          throw new RuntimeException(s"${sourceConfig.path} catalog is not supported. " +
+            s"Configure individual schemas/databases from ${sourceConfig.path} catalog instead")
         }
+        Array(sourceConfig.path)
+      }
+      val tableList = catalogs.flatMap(cat => {
+        val catalogTablesTry = Try { spark.sql(s"SELECT ('`' || table_catalog || '`.`' || " +
+          s"table_schema || '`.`' || table_name || '`' ) as qualifiedName " +
+          s"FROM `${cat}`.information_schema.tables " +
+          s"WHERE table_schema <> 'information_schema' " +
+          s"AND table_type <> 'VIEW' " +
+          s"AND (data_source_format = 'DELTA' OR data_source_format = 'delta')").as[String].collect
+        }
+        catalogTablesTry match {
+          case Success(tabs) => tabs
+          case Failure(ex) => logError(s"Error while accessing catalog ${cat} : $ex")
+            Array.empty[String]
+        }
+      })
+      tableList.map { tl =>
+          getTableLocation(tl) match {
+            case (t, l) => (t, l, Map("wildCardLevel" -> "1"))
+          }
       }
     } else if (!sourceConfig.path.contains("/")
       && sourceConfig.path.count(_ == '.') == 1) {
@@ -70,9 +87,9 @@ trait UtilityOperations extends Serializable with Logging {
             lit("`.`"), col("tableName"),
             lit("`")).as("qualifiedName")).as[String].collect()
       } else {
-        spark.sql(s"SELECT (table_catalog || '.`' " +
+        spark.sql(s"SELECT ('`' || table_catalog || '`.`' " +
           s"|| table_schema || '`.`' || table_name || '`' ) as qualifiedName " +
-          s"FROM ${catalogName}.information_schema.tables " +
+          s"FROM `${catalogName}`.information_schema.tables " +
           s"WHERE table_schema = '${schemaName}' AND table_type <> 'VIEW' " +
           s"AND (data_source_format = 'DELTA' OR data_source_format = 'delta')").as[String].collect
       }

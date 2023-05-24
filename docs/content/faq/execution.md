@@ -16,7 +16,7 @@ using simple SQL `INSERT` statement.
 
 Example:
 
-`INSERT INTO <omsDBName>.sourceconfig VALUES('<Database Name>',false, Map('wildCardLevel','0'))`
+`INSERT INTO <omsCatalogName>.<omsDBName>.sourceconfig VALUES('<Database Name>',false)`
 
 For more details on the configurations and parameters, refer to [Getting Started]({{%relref "getting_started/_index.md" %}})
 and [Developer Guide]({{%relref "developer_guide/_index.md" %}})
