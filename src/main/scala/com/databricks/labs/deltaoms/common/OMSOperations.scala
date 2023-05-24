@@ -51,7 +51,7 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
 
   def fetchSourceConfigForProcessing(config: OMSConfig): Array[SourceConfig] = {
     val sourceConfigs = spark.read.table(getSourceConfigTableName(config))
-      .where(s"$SKIP_PROCESSING <> true").select(PATH, SKIP_PROCESSING)
+      .where(s"$SKIP_PROCESSING <> true").select(PATH, SKIP_PROCESSING).distinct()
     processWildcardDirectories(sourceConfigs).collect()
   }
 
@@ -106,7 +106,6 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
             s"""pathconfig.$PUID = pathconfig_updates.$PUID and
                |pathconfig.$WUID = pathconfig_updates.$WUID
                |""".stripMargin)
-          .whenMatched.updateExpr(Map(s"$UPDATE_TS" -> s"pathconfig_updates.$UPDATE_TS"))
           .whenNotMatched.insertAll().execute()
       case Failure(ex) => throw new RuntimeException(s"Unable to update the Path Config table. $ex")
     }
