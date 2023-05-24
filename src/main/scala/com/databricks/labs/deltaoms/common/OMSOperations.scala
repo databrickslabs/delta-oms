@@ -26,7 +26,7 @@ import com.databricks.labs.deltaoms.utils.UtilityOperations._
 import io.delta.tables._
 
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.catalyst.ScalaReflection
 import org.apache.spark.sql.delta.actions.SingleAction
 import org.apache.spark.sql.expressions.Window
@@ -50,14 +50,12 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
   }
 
   def fetchSourceConfigForProcessing(config: OMSConfig): Array[SourceConfig] = {
-    val spark = SparkSession.active
     val sourceConfigs = spark.read.table(getSourceConfigTableName(config))
       .where(s"$SKIP_PROCESSING <> true").select(PATH, SKIP_PROCESSING)
     processWildcardDirectories(sourceConfigs).collect()
   }
 
   def processWildcardDirectories(sourceConfigs: DataFrame): Dataset[SourceConfig] = {
-    val spark = SparkSession.active
     val hadoopConf = new SerializableConfiguration(spark.sessionState.newHadoopConf())
 
     val nonWildCardSourcePaths = sourceConfigs
@@ -222,7 +220,6 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
   }
 
   def fetchPathConfigForProcessing(pathConfigTableUrl: String): Dataset[PathConfig] = {
-    val spark = SparkSession.active
     spark.read.format("delta").load(pathConfigTableUrl).as[PathConfig]
   }
 

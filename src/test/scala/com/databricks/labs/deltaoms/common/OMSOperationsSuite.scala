@@ -278,6 +278,6 @@ class OMSOperationsSuite extends QueryTest
 
   test("getLatestRawActionsVersion commit version") {
     val rawActions = getUpdatedRawActions(0, getRawActionsTableUrl(omsConfig))
-    assert(getLatestRawActionsVersion(rawActions) == 0)
+    assert(getLatestRawActionsVersion(rawActions) == 2)
   }
 }

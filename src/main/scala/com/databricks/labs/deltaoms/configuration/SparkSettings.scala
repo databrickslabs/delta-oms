@@ -28,14 +28,10 @@ trait SparkSettings extends Serializable with ConfigurationSettings {
       .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
       .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
       .appName("DELTA_OMS_INBUILT").getOrCreate()
-    case _ => val spark = SparkSession.builder().appName("Delta OMS").getOrCreate()
-      spark.conf.set("spark.databricks.delta.properties.defaults.enableChangeDataFeed",
-        value = true)
-      spark.conf.set("spark.databricks.delta.optimizeWrite.enabled", value = true)
-      spark.conf.set("spark.databricks.delta.autoCompact.enabled", value = true)
-      spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", value = true)
-      spark.conf.set("spark.databricks.labs.deltaoms.version", value = Schemas.OMS_VERSION)
-      spark
+    case _ => val currentSparkSession = SparkSession.active
+      currentSparkSession.conf
+        .set("spark.databricks.labs.deltaoms.version", value = Schemas.OMS_VERSION)
+      currentSparkSession
   }
 
   def spark: SparkSession = sparkSession

@@ -42,6 +42,7 @@ trait DeltaTestSharedSession {
     session.conf.set(SQLConf.DEFAULT_DATA_SOURCE_NAME.key, "delta")
     session.conf.set(SQLConf.LEGACY_CREATE_HIVE_TABLE_BY_DEFAULT.key, value = false)
     session.conf.set("spark.databricks.labs.deltaoms.ucenabled", value = false)
+    session.conf.set("spark.databricks.delta.allowArbitraryProperties.enabled", value = true)
     // session.conf.set(SQLConf.CONVERT_CTAS.key, value = true)
     session
   }

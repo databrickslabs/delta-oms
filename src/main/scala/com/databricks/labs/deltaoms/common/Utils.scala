@@ -26,6 +26,8 @@ trait Utils extends Serializable with Logging with Schemas {
   val puidCommitDatePartitions = Seq(PUID, COMMIT_DATE)
   private val omsProperties: Map[String, String] =
     Map("entity" -> s"$ENTITY_NAME", "oms.version" -> s"$OMS_VERSION")
+  private val tableProperties = Map("delta.autoOptimize.autoCompact" -> "auto",
+      "delta.autoOptimize.optimizeWrite" -> "true", "delta.enableChangeDataFeed" -> "true")
 
   def pathConfigTableDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(tableName = getPathConfigTableName(omsConfig),
@@ -35,7 +37,7 @@ trait Utils extends Serializable with Logging with Schemas {
       locationUrl = getPathConfigTableUrl(omsConfig),
       schema = pathConfig,
       comment = Some("Delta OMS Path Config Table"),
-      properties = omsProperties
+      properties = omsProperties ++ tableProperties
     )
   }
 
@@ -53,7 +55,7 @@ trait Utils extends Serializable with Logging with Schemas {
       locationUrl = getSourceConfigTableUrl(omsConfig),
       schema = sourceConfig,
       comment = Some("Delta OMS Source Config Table"),
-      properties = omsProperties
+      properties = omsProperties ++ tableProperties
     )
   }
 
@@ -79,7 +81,7 @@ trait Utils extends Serializable with Logging with Schemas {
       locationUrl = getRawActionsTableUrl(omsConfig),
       schema = rawAction,
       comment = Some("Delta OMS Raw Actions Table"),
-      properties = omsProperties,
+      properties = omsProperties ++ tableProperties,
       partitionColumnNames = puidCommitDatePartitions)
   }
 
@@ -97,7 +99,7 @@ trait Utils extends Serializable with Logging with Schemas {
       locationUrl = getProcessedHistoryTableUrl(omsConfig),
       schema = processedHistory,
       comment = Some("Delta OMS Processed History Table"),
-      properties = omsProperties
+      properties = omsProperties ++ tableProperties
     )
   }
 
@@ -115,7 +117,7 @@ trait Utils extends Serializable with Logging with Schemas {
       locationUrl = getActionSnapshotsTableUrl(omsConfig),
       schema = actionSnapshot,
       comment = Some("Delta OMS Action Snapshots Table"),
-      properties = omsProperties,
+      properties = omsProperties ++ tableProperties,
       partitionColumnNames = puidCommitDatePartitions
     )
   }
@@ -134,7 +136,7 @@ trait Utils extends Serializable with Logging with Schemas {
       locationUrl = getCommitSnapshotsTableUrl(omsConfig),
       schema = commitSnapshot,
       comment = Some("Delta OMS Commit Snapshot Table"),
-      properties = omsProperties,
+      properties = omsProperties ++ tableProperties,
       partitionColumnNames = puidCommitDatePartitions
     )
   }

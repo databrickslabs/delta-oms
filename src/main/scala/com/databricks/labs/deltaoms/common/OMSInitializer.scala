@@ -77,19 +77,19 @@ trait OMSInitializer extends Serializable with Logging {
 
   def cleanupOMS(config: OMSConfig): Unit = {
     if (!isUCEnabled) {
-      val delSchemaPath = getOMSSchemaPath(config)
-      val deleteSchemaPath = Try {
-        deleteDirectory(delSchemaPath)
-      }
-      deleteSchemaPath match {
-        case Success(value) =>
-          logInfo(s"Successfully deleted the directory ${getOMSSchemaPath(config)}")
-        case Failure(exception) =>
-          throw new RuntimeException(s"Unable to delete  $delSchemaPath : $exception")
-      }
       dropDatabase(config.schemaName.get)
     } else {
       dropCatalog(config.catalogName.get)
+    }
+    val delSchemaPath = getOMSSchemaPath(config)
+    val deleteSchemaPath = Try {
+      deleteDirectory(delSchemaPath)
+    }
+    deleteSchemaPath match {
+      case Success(value) =>
+        logInfo(s"Successfully deleted the directory ${getOMSSchemaPath(config)}")
+      case Failure(exception) =>
+        throw new RuntimeException(s"Unable to delete  $delSchemaPath : $exception")
     }
   }
 }

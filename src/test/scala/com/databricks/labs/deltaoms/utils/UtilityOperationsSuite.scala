@@ -151,9 +151,14 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
       s"CREATE TABLE IF NOT EXISTS deltaoms.`deltaoms_test`" +
         s".`sourceconfig` (${Schemas.sourceConfig.toDDL}) " +
         s"LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test/sourceconfig' " +
+        s"TBLPROPERTIES('delta.enableChangeDataFeed'='true'," +
+        s"'delta.autoOptimize.autoCompact'='auto'," +
+        s"'entity'='${Schemas.ENTITY_NAME}','oms.version'='${Schemas.OMS_VERSION}'," +
+        s"'delta.autoOptimize.optimizeWrite'='true') " +
         s"COMMENT 'Delta OMS Source Config Table'"
     )
     assert(srcConfigTableQuery._2 == "TABLE")
+
     // Path Config Table
     val pathConfigTableQuery = UtilityOperations
       .tableCreateQuery(pathConfigTableDefinition(testConfig))
@@ -161,8 +166,13 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
       s"${testConfig.catalogName.get}.`${testConfig.schemaName.get}`" +
       s".`${testConfig.pathConfigTable}` (${Schemas.pathConfig.toDDL}) " +
       s"LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test/pathconfig' " +
+      s"TBLPROPERTIES('delta.enableChangeDataFeed'='true'," +
+      s"'delta.autoOptimize.autoCompact'='auto'," +
+      s"'entity'='${Schemas.ENTITY_NAME}','oms.version'='${Schemas.OMS_VERSION}'," +
+      s"'delta.autoOptimize.optimizeWrite'='true') " +
       s"COMMENT 'Delta OMS Path Config Table'"
     )
+
     // Raw Actions Table
     val rawActionsTableQuery = UtilityOperations
       .tableCreateQuery(rawActionsTableDefinition(testConfig))
@@ -171,8 +181,13 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
       s"(${Schemas.rawAction.toDDL}) " +
       s"PARTITIONED BY (${puidCommitDatePartitions.mkString(",")}) " +
       s"LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test/rawactions' " +
+      s"TBLPROPERTIES('delta.enableChangeDataFeed'='true'," +
+      s"'delta.autoOptimize.autoCompact'='auto'," +
+      s"'entity'='${Schemas.ENTITY_NAME}','oms.version'='${Schemas.OMS_VERSION}'," +
+      s"'delta.autoOptimize.optimizeWrite'='true') " +
       s"COMMENT 'Delta OMS Raw Actions Table'"
     )
+
     // Processing History Table
     val processingHistoryTableQuery = UtilityOperations
       .tableCreateQuery(processedHistoryTableDefinition(testConfig))
@@ -181,7 +196,43 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
       s".`${testConfig.schemaName.get}`.`${testConfig.processedHistoryTable}` " +
       s"(${Schemas.processedHistory.toDDL}) " +
       s"LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test/processedhistory' " +
+      s"TBLPROPERTIES('delta.enableChangeDataFeed'='true'," +
+      s"'delta.autoOptimize.autoCompact'='auto'," +
+      s"'entity'='${Schemas.ENTITY_NAME}','oms.version'='${Schemas.OMS_VERSION}'," +
+      s"'delta.autoOptimize.optimizeWrite'='true') " +
       s"COMMENT 'Delta OMS Processed History Table'"
+    )
+
+    // Commit Snapshot Table
+    val commitSnapshotTableQuery = UtilityOperations
+      .tableCreateQuery(commitSnapshotsTableDefinition(testConfig))
+    assert(commitSnapshotTableQuery._1 == s"CREATE TABLE IF NOT EXISTS " +
+      s"${testConfig.catalogName.get}" +
+      s".`${testConfig.schemaName.get}`.`${testConfig.commitInfoSnapshotTable}` " +
+      s"(${Schemas.commitSnapshot.toDDL}) " +
+      s"PARTITIONED BY (${puidCommitDatePartitions.mkString(",")}) " +
+      s"LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test/commitinfosnapshots' " +
+      s"TBLPROPERTIES('delta.enableChangeDataFeed'='true'," +
+      s"'delta.autoOptimize.autoCompact'='auto'," +
+      s"'entity'='${Schemas.ENTITY_NAME}','oms.version'='${Schemas.OMS_VERSION}'," +
+      s"'delta.autoOptimize.optimizeWrite'='true') " +
+      s"COMMENT 'Delta OMS Commit Snapshot Table'"
+    )
+
+    // Action Snapshot Table
+    val actionSnapshotsTableQuery = UtilityOperations
+      .tableCreateQuery(actionSnapshotsTableDefinition(testConfig))
+    assert(actionSnapshotsTableQuery._1 == s"CREATE TABLE IF NOT EXISTS " +
+      s"${testConfig.catalogName.get}" +
+      s".`${testConfig.schemaName.get}`.`${testConfig.actionSnapshotTable}` " +
+      s"(${Schemas.actionSnapshot.toDDL}) " +
+      s"PARTITIONED BY (${puidCommitDatePartitions.mkString(",")}) " +
+      s"LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test/actionsnapshots' " +
+      s"TBLPROPERTIES('delta.enableChangeDataFeed'='true'," +
+      s"'delta.autoOptimize.autoCompact'='auto'," +
+      s"'entity'='${Schemas.ENTITY_NAME}','oms.version'='${Schemas.OMS_VERSION}'," +
+      s"'delta.autoOptimize.optimizeWrite'='true') " +
+      s"COMMENT 'Delta OMS Action Snapshots Table'"
     )
   }
 

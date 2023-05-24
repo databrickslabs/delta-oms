@@ -191,6 +191,11 @@ trait UtilityOperations extends Serializable with Logging {
     if (tableDef.locationUrl.nonEmpty) {
       tableCreateSQL.append(s"""LOCATION '${tableDef.locationUrl}' """)
     }
+    if (tableDef.properties.nonEmpty) {
+      val tableProperties = tableDef.properties.map(_.productIterator.mkString("'", "'='", "'"))
+        .mkString(",")
+      tableCreateSQL.append(s"TBLPROPERTIES($tableProperties) ")
+    }
     if (tableDef.comment.nonEmpty) {
       tableCreateSQL.append(s"COMMENT '${tableDef.comment.get}'")
     }
