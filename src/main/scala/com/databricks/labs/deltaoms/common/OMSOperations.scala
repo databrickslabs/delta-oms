@@ -253,6 +253,8 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
         .option("cloudFiles.format", "json")
         .option("cloudFiles.maxFilesPerTrigger", maxFilesPerTrigger)
         .option("cloudFiles.useIncrementalListing", "true")
+        .option("ignoreCorruptFiles", "true")
+        .option("ignoreMissingFiles", "true")
         .schema(actionSchema)
         .load(path).select("*", "_metadata"))
     } else {
