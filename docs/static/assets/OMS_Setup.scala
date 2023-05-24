@@ -72,7 +72,7 @@ display(spark.sql(s"describe extended $omsCatalogName.$omsSchemaName.commitinfos
 
 spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES ('samples.tpch.orders',false)");
 // spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>*,false)");
-// spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME_1>*|<CATALOG_NAME_2>,false)");
+// spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME_1>*|<CATALOG_NAME_2>*,false)");
 // spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>,false)");
 // spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>.<SCHEMA_NAME>,false)");
 // spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>.<SCHEMA_NAME>.<TABLE_NAME>,false)");
