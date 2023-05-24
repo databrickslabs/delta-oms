@@ -55,6 +55,7 @@ manage and use this feature for operational insights on the Delta Lake.
 This project is distributed under Databricks license and cannot be used outside of Databricks environment
 
 **Q. Does it support Unity Catalog on Databricks ?**
+
 The latest version of DeltaOMS supports Unity Catalog by allowing specifying Unity catalog databases and tables 
 as Source tables to be monitored. These configuration can be executed through a Unity Ctaalog enabled cluster.
 For subsequent processing of the Delta transaction logs , DeltaOMS needs to run the ingestion and processing jobs 

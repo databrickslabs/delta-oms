@@ -61,7 +61,18 @@ display(spark.sql(s"describe extended $omsCatalogName.$omsSchemaName.commitinfos
 
 // COMMAND ----------
 
+// MAGIC %md
+// MAGIC #### USE CAUTION : Uncomment below cell to delete all entries in the `sourceconfig` DeltaOMS table . Useful for cleanup during testing
+
+// COMMAND ----------
+
+// spark.sql(s"DELETE FROM $omsCatalogName.$omsSchemaName.sourceconfig");
+
+// COMMAND ----------
+
 spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES ('samples.tpch.orders',false)");
+// spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>*,false)");
+// spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME_1>*|<CATALOG_NAME_2>,false)");
 // spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>,false)");
 // spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>.<SCHEMA_NAME>,false)");
 // spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>.<SCHEMA_NAME>.<TABLE_NAME>,false)");
@@ -85,6 +96,15 @@ com.databricks.labs.deltaoms.init.ConfigurePaths.main(args)
 // COMMAND ----------
 
 display(spark.sql(s"select * from $omsCatalogName.$omsSchemaName.pathconfig"))
+
+// COMMAND ----------
+
+// MAGIC %md
+// MAGIC ## Grant access to the following paths for the DeltaOMS Ingestion and Processing Job
+
+// COMMAND ----------
+
+display(spark.sql(s"select distinct wildCardPath from $omsCatalogName.$omsSchemaName.pathconfig"))
 
 // COMMAND ----------
 

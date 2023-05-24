@@ -9,7 +9,7 @@ draft: false
 
 Please refer to the [Getting Started]({{%relref "getting_started/_index.md" %}}) guide
 
-**Q. How do I add databases to be monitored by DeltaOMS ?**
+**Q. How do I add databases and catalogs to be monitored by DeltaOMS ?**
 
 You can add a database name to the DeltaOMS configuration table (by default called `sourceconfig`) 
 using simple SQL `INSERT` statement.
@@ -17,6 +17,11 @@ using simple SQL `INSERT` statement.
 Example:
 
 `INSERT INTO <omsCatalogName>.<omsDBName>.sourceconfig VALUES('<Database Name>',false)`
+
+You can add a single catalog or a pattern of catalogs to be monitored by DeltaOMS
+
+`INSERT INTO <omsCatalogName>.<omsDBName>.sourceconfig VALUES('demo',false)`
+`INSERT INTO <omsCatalogName>.<omsDBName>.sourceconfig VALUES('bu1*|bu2*',false)`
 
 For more details on the configurations and parameters, refer to [Getting Started]({{%relref "getting_started/_index.md" %}})
 and [Developer Guide]({{%relref "developer_guide/_index.md" %}})
