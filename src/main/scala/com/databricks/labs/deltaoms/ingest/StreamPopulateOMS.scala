@@ -23,11 +23,7 @@ object StreamPopulateOMS extends StreamOMSRunner {
   def main(args: Array[String]): Unit = {
     spark.conf.set("spark.databricks.labs.deltaoms.class", value = getClass.getCanonicalName)
     val consolidatedOMSConfig = consolidateOMSConfig()
-    // Update the OMS Path Config from Table Config
-    if (!consolidatedOMSConfig.skipPathConfig) {
-      updateOMSPathConfigFromSourceConfig(consolidatedOMSConfig)
-    }
-    logInfo(s"Starting Streaming OMS with Configuration : $consolidatedOMSConfig")
+    logInfo(s"Starting DeltaOMS Streaming with Configuration : $consolidatedOMSConfig")
     // Streaming Ingest the Raw Actions for configured Delta tables
     streamingUpdateRawDeltaActionsToOMS(consolidatedOMSConfig)
   }

@@ -178,25 +178,9 @@ trait OMSSparkConf extends Serializable with SparkSettings {
         .fold(config.truncatePathConfig) {
           _.toBoolean
         },
-      skipPathConfig = getSparkConf(sparkOmsConfMap.skipPathConfig.sparkConfigName)
-        .fold(config.skipPathConfig) {
-          _.toBoolean
-        },
-      skipInitializeOMS = getSparkConf(sparkOmsConfMap.skipInitializeOMS.sparkConfigName)
-        .fold(config.skipInitializeOMS) {
-          _.toBoolean
-        },
       useAutoloader = getSparkConf(sparkOmsConfMap.useAutoloader.sparkConfigName)
         .fold(config.useAutoloader) {
           _.toBoolean
-        },
-      srcDatabases = getSparkConf(sparkOmsConfMap.srcDatabases.sparkConfigName)
-        .fold(config.srcDatabases) {
-          Some(_)
-        },
-      tablePattern = getSparkConf(sparkOmsConfMap.tablePattern.sparkConfigName)
-        .fold(config.tablePattern) {
-          Some(_)
         },
       maxFilesPerTrigger = getSparkConf(sparkOmsConfMap.maxFilesPerTrigger.sparkConfigName)
         .fold(config.maxFilesPerTrigger) {
