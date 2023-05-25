@@ -32,6 +32,7 @@ public document website are in the `content` folder
 ### Step-3  : Update the documentation branch
 
 - Delete the `public` folder under `docs` (if exists)
+- Run `git worktree prune` to cleanup any prior worktree references
 - Checkout the `public_docs` branch as a worktree `git worktree add -B public_docs public origin/public_docs`
 - Generate the site using `hugo`. This will create the static site under `public` directory
 - Change to the `public` directory and push changes to the `public_docs` branch 

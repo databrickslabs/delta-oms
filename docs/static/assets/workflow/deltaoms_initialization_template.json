@@ -17,8 +17,7 @@
       "libraries": [
         {
           "maven": {
-            "coordinates": "com.databricks.labs:delta-oms_2.12:0.5.0-17+27bd16c4-SNAPSHOT",
-            "repo": "https://oss.sonatype.org/content/repositories/snapshots"
+            "coordinates": "com.databricks.labs:delta-oms_2.12:0.7.0-rc1"
           }
         }
       ],
