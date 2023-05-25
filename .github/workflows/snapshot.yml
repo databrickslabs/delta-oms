@@ -1,7 +1,7 @@
 name: Snapshot
 on:
   push:
-    branches: [uc_support_dev]
+    branches: [dev]
 jobs:
   publish-snapshot:
     runs-on: ubuntu-latest
