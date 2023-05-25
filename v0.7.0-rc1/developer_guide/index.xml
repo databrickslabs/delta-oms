@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Developer Guide on Delta Operational Metrics Store (DeltaOMS)</title>
+    <link>https://databrickslabs.github.io/delta-oms/developer_guide/</link>
+    <description>Recent content in Developer Guide on Delta Operational Metrics Store (DeltaOMS)</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Wed, 04 Aug 2021 14:50:11 -0400</lastBuildDate><atom:link href="https://databrickslabs.github.io/delta-oms/developer_guide/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Configuration Tables</title>
+      <link>https://databrickslabs.github.io/delta-oms/developer_guide/configurationtables/</link>
+      <pubDate>Wed, 04 Aug 2021 14:27:39 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/developer_guide/configurationtables/</guid>
+      <description>Source Config Default Name : sourceconfig
+Table used for adding databases/paths/individual table to be tracked by DeltaOMS
+Column Type Description path String Path to the Delta object to be tracked by DeltaOMS. Could be a database (all tables will be included), directory, individual table or specific path skipProcessing Boolean Flag to exclude processing a row Typical usage for adding input source configuration :
+-- Adding a Catalog or Catalogs by Pattern INSERT INTO &amp;lt;OMSCATALOGNAME&amp;gt;.</description>
+    </item>
+    
+    <item>
+      <title>Data Tables</title>
+      <link>https://databrickslabs.github.io/delta-oms/developer_guide/datatables/</link>
+      <pubDate>Wed, 04 Aug 2021 14:27:39 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/developer_guide/datatables/</guid>
+      <description>Raw Actions Default Name : rawactions
+Stores the raw actions captured through the ingestion of the _delta_log json files for all tracked tables. The schema has the columns matching the Actions from here(https://github.com/delta-io/delta/blob/master/core/src/main/scala/org/apache/spark/sql/delta/actions/actions.scala#L515) and the Delta Log Protocol with the following additional fields :
+Column Type Description file_name String Name of the Delta log transaction json file. Eg. - dbfs:/user/hive/warehouse/sample.db/table1/_delta_log/00000000000000000025.json path String Path to the Delta table. Eg. - dbfs:/user/hive/warehouse/sample.db/table1 puid String Path Unique Identifier (Partition column) commit_version Long Transaction Commit Version of the data.</description>
+    </item>
+    
+    <item>
+      <title>Data Model</title>
+      <link>https://databrickslabs.github.io/delta-oms/developer_guide/datamodels/</link>
+      <pubDate>Wed, 04 Aug 2021 14:27:39 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/developer_guide/datamodels/</guid>
+      <description>DeltaOMS collects and processes the operational metrics provided by Databricks Delta operations
+DeltaOMS centralizes and organizes the data according to the following Data Model.</description>
+    </item>
+    
+    <item>
+      <title>Key Components</title>
+      <link>https://databrickslabs.github.io/delta-oms/developer_guide/components/</link>
+      <pubDate>Wed, 04 Aug 2021 14:27:39 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/developer_guide/components/</guid>
+      <description>Initialization DeltaOMS provides the component com.databricks.labs.deltaoms.init.InitializeOMS for initializing
+the centralized OMS schema and tables on the OMS catalog. The component creates the OMS schema at the EXTERNAL LOCATION specified by the configuration settings. Note: This process will delete all existing data in the specified location.
+Refer to Additional Configurations for full configuration settings.
+Configuration Once DeltaOMS has been initialized, and the input sources configured Source Config, the component provided by com.</description>
+    </item>
+    
+  </channel>
+</rss>

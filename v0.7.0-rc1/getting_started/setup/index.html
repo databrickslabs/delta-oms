@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en" class="js csstransforms3d">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="description" content="DeltaOMS Documentation">
+<meta name="author" content="Himanish Kushary (Databricks)">
+
+    <link rel="icon" href="../../images/favicon.png" type="image/png">
+
+    <title>Setup :: Delta Operational Metrics Store (DeltaOMS)</title>
+
+    
+    <link href="../../css/nucleus.css?1685021285" rel="stylesheet">
+    <link href="../../css/fontawesome-all.min.css?1685021285" rel="stylesheet">
+    <link href="../../css/hybrid.css?1685021285" rel="stylesheet">
+    <link href="../../css/featherlight.min.css?1685021285" rel="stylesheet">
+    <link href="../../css/perfect-scrollbar.min.css?1685021285" rel="stylesheet">
+    <link href="../../css/auto-complete.css?1685021285" rel="stylesheet">
+    <link href="../../css/atom-one-dark-reasonable.css?1685021285" rel="stylesheet">
+    <link href="../../css/theme.css?1685021285" rel="stylesheet">
+    <link href="../../css/tabs.css?1685021285" rel="stylesheet">
+    <link href="../../css/hugo-theme.css?1685021285" rel="stylesheet">
+    
+    
+
+    <script src="../../js/jquery-3.3.1.min.js?1685021285"></script>
+
+    <style>
+      :root #header + #content > #left > #rlblock_left{
+          display:none !important;
+      }
+      
+    </style>
+    
+
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+  </head>
+  <body class="" data-url="../../getting_started/setup/">
+    <nav id="sidebar" class="">
+
+
+
+  <div id="header-wrapper">
+    <div id="header">
+      <a id="logo" href="https://databrickslabs.github.io/delta-oms/">
+    <img src="../../images/DeltaOMS.png", width="85%">
+</a>
+    </div>
+    
+        <div class="searchbox">
+    <label for="search-by"><i class="fas fa-search"></i></label>
+    <input data-search-input id="search-by" type="search" placeholder="Search...">
+    <span data-search-clear=""><i class="fas fa-times"></i></span>
+</div>
+
+<script type="text/javascript" src="../../js/lunr.min.js?1685021285"></script>
+<script type="text/javascript" src="../../js/auto-complete.js?1685021285"></script>
+<script type="text/javascript">
+    
+        var baseurl = "https:\/\/databrickslabs.github.io\/delta-oms\/";
+    
+</script>
+<script type="text/javascript" src="../../js/search.js?1685021285"></script>
+
+    
+  </div>
+  
+    <section id="homelinks">
+      <ul>
+        <li>
+            <a class="padding" href='../../'><i class='fas fa-home'></i> Home</a>
+        </li>
+      </ul>
+    </section>
+  
+
+    <div class="highlightable">
+    <ul class="topics">
+
+        
+          
+          
+
+
+
+
+ 
+  
+    
+    <li data-nav-id="/getting_started/" title="Getting Started" class="dd-item
+        parent
+        
+        
+        ">
+      <a href="../../getting_started/">
+          Getting Started
+          
+      </a>
+      
+      
+        <ul>
+          
+          
+          
+
+        
+          
+            
+            
+
+
+
+
+ 
+  
+    
+      <li data-nav-id="/getting_started/prerequisites/" title="Pre-Requisites" class="dd-item ">
+        <a href="../../getting_started/prerequisites/">
+        Pre-Requisites
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+            
+            
+
+
+
+
+ 
+  
+    
+      <li data-nav-id="/getting_started/setup/" title="Setup" class="dd-item active">
+        <a href="../../getting_started/setup/">
+        Setup
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+            
+            
+
+
+
+
+ 
+  
+    
+      <li data-nav-id="/getting_started/execute/" title="Execute" class="dd-item ">
+        <a href="../../getting_started/execute/">
+        Execute
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+            
+            
+
+
+
+
+ 
+  
+    
+      <li data-nav-id="/getting_started/analyze/" title="Analyze" class="dd-item ">
+        <a href="../../getting_started/analyze/">
+        Analyze
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+            
+            
+
+
+
+
+ 
+  
+    
+      <li data-nav-id="/getting_started/additionalconfigurations/" title="Additional Configuration" class="dd-item ">
+        <a href="../../getting_started/additionalconfigurations/">
+        Additional Configuration
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+        
+        </ul>
+      
+    </li>
+  
+ 
+
+          
+          
+
+
+
+
+ 
+  
+    
+    <li data-nav-id="/developer_guide/" title="Developer Guide" class="dd-item
+        
+        
+        
+        ">
+      <a href="../../developer_guide/">
+          Developer Guide
+          
+      </a>
+      
+      
+        <ul>
+          
+          
+          
+
+        
+          
+            
+            
+
+
+
+
+ 
+  
+    
+      <li data-nav-id="/developer_guide/configurationtables/" title="Configuration Tables" class="dd-item ">
+        <a href="../../developer_guide/configurationtables/">
+        Configuration Tables
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+            
+            
+
+
+
+
+ 
+  
+    
+      <li data-nav-id="/developer_guide/datatables/" title="Data Tables" class="dd-item ">
+        <a href="../../developer_guide/datatables/">
+        Data Tables
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+            
+            
+
+
+
+
+ 
+  
+    
+      <li data-nav-id="/developer_guide/datamodels/" title="Data Model" class="dd-item ">
+        <a href="../../developer_guide/datamodels/">
+        Data Model
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+            
+            
+
+
+
+
+ 
+  
+    
+      <li data-nav-id="/developer_guide/components/" title="Key Components" class="dd-item ">
+        <a href="../../developer_guide/components/">
+        Key Components
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+        
+        </ul>
+      
+    </li>
+  
+ 
+
+          
+          
+
+
+
+
+ 
+  
+    
+    <li data-nav-id="/faq/" title="Frequently Asked Questions (FAQs)" class="dd-item
+        
+        
+        
+        ">
+      <a href="../../faq/">
+          Frequently Asked Questions (FAQs)
+          
+      </a>
+      
+      
+        <ul>
+          
+          
+          
+
+        
+          
+            
+            
+
+
+
+
+ 
+  
+    
+      <li data-nav-id="/faq/general/" title="General" class="dd-item ">
+        <a href="../../faq/general/">
+        General
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+            
+            
+
+
+
+
+ 
+  
+    
+      <li data-nav-id="/faq/execution/" title="Execution" class="dd-item ">
+        <a href="../../faq/execution/">
+        Execution
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+            
+            
+
+
+
+
+ 
+  
+    
+      <li data-nav-id="/faq/security/" title="Security" class="dd-item ">
+        <a href="../../faq/security/">
+        Security
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+        
+        </ul>
+      
+    </li>
+  
+ 
+
+          
+          
+
+
+
+
+ 
+  
+    
+    <li data-nav-id="/contributing/" title="Contributing" class="dd-item
+        
+        
+        
+        ">
+      <a href="../../contributing/">
+          Contributing
+          
+      </a>
+      
+      
+    </li>
+  
+ 
+
+          
+        
+    </ul>
+
+    
+    
+
+    
+    <section id="footer">
+      <center>
+
+    
+    <a class="github-button" href="https://github.com/databrickslabs/delta-oms/subscription"
+       data-icon="octicon-eye" data-show-count="true" aria-label="DeltaOMS on GitHub">Watch</a>
+
+    
+    <a class="github-button" href="https://github.com/databrickslabs/delta-oms" data-icon="octicon-star" data-show-count="true" aria-label="Star databrickslabs/delta-oms on GitHub">Star</a>
+
+    
+    <a class="github-button" href="https://github.com/databrickslabs/delta-oms/fork"
+       data-icon="octicon-repo-forked" data-show-count="true" aria-label="Fork DeltaOMS on GitHub">Fork</a>
+
+    <p>A <a href="https://github.com/databrickslabs">Databricks Labs</a> project.</p>
+</center>
+
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+    </section>
+  </div>
+</nav>
+
+
+
+
+        <section id="body">
+        <div id="overlay"></div>
+        <div class="padding highlightable">
+              
+              <div>
+                <div id="top-bar">
+                
+                
+                <div id="breadcrumbs" itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb">
+                    <span id="sidebar-toggle-span">
+                        <a href="#" id="sidebar-toggle" data-sidebar-toggle="">
+                          <i class="fas fa-bars"></i>
+                        </a>
+                    </span>
+                  
+                  <span id="toc-menu"><i class="fas fa-list-alt"></i></span>
+                  
+                  <span class="links">
+                 
+                 
+                    
+          
+          
+            
+            
+          
+          
+            
+            
+          
+          
+            <a href='../../'>Delta Operational Metrics Store (DeltaOMS)</a> > <a href='../../getting_started/'>Getting Started</a> > Setup
+          
+        
+          
+        
+          
+        
+                 
+                  </span>
+                </div>
+                
+                    <div class="progress">
+    <div class="wrapper">
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#initialize-and-configure-the-deltaoms-database">Initialize and Configure the DeltaOMS Database</a></li>
+        <li><a href="#create-databricks-jobs-workflow">Create Databricks Jobs Workflow</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+</div>
+
+                
+              </div>
+            </div>
+            
+        <div id="head-tags">
+        
+        </div>
+        
+        <div id="body-inner">
+          
+            <h1>
+              
+              Setup
+            </h1>
+          
+
+        
+
+
+<h3 id="initialize-and-configure-the-deltaoms-database">Initialize and Configure the DeltaOMS Database</h3>
+<p>DeltaOMS is configured through Spark configurations with prefix <code>spark.databricks.labs.deltaoms.</code></p>
+<p>Refer to <a href="../../getting_started/additionalconfigurations//">Additional Configurations</a> section below for more details on the available configurations.</p>
+<p>Follow the below steps to initialize the DeltaOMS centralized Database and tables.</p>
+<ul>
+<li>
+<p>Import and Open the <a href="../../assets/OMS_Setup.scala">DeltaOMS Setup notebook</a> into your Databricks environment. You could also mount the DeltaOMS Github repo</p>
+</li>
+<li>
+<p>Refer to the provided <a href="../../assets/workflow/deltaoms_initialization_template.json">DeltaOMS workflow creation json template</a> to create a workflow (using <a href="https://docs.databricks.com/api-explorer/workspace/jobs/create">create api</a>) for DeltaOMS initialization and configuration through the notebook
+<img src="../../images/Initialization_Workflow.png" alt="Initialization Workflow"></p>
+</li>
+<li>
+<p>Set the Spark configurations for initializing DeltaOMS on the defined cluster
+<img src="../../images/DeltaOMS_Spark_Config.png" alt="Cluster Spark Config"></p>
+<p>or modify the value of the variables for catalog name, schema name, external location URl and name as appropriate for your environment on the notebook</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Variable</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">omsLocationUrl</td>
+<td style="text-align:left">Base location/path of the OMS catalog and schema on the Delta Lake. This is created as an EXTERNAL LOCATION on Unity Catalog (UC)</td>
+</tr>
+<tr>
+<td style="text-align:center">omsLocationName</td>
+<td style="text-align:left">Name of the UC EXTERNAL LOCATION for the OMS catalog and schema on the Delta Lake</td>
+</tr>
+<tr>
+<td style="text-align:center">storageCredentialName</td>
+<td style="text-align:left">Storage credential name for the UC EXTERNAL LOCATION created for DeltaOMS. This is usually provided by your admin</td>
+</tr>
+<tr>
+<td style="text-align:center">omsCatalogName</td>
+<td style="text-align:left">OMS Catalog Name. This is the UC Catalog where all the DeltaOMS tables will be created</td>
+</tr>
+<tr>
+<td style="text-align:center">omsSchemaName</td>
+<td style="text-align:left">OMS Schema Name. This is the database where all the Delta log details will be collected in tables</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>Make sure the appropriate DeltaOMS jar(as a library through Maven) is attached to the Unity Catalog Enabled cluster
+<img src="../../images/DeltaOMS_Maven_Library.png" alt="DeltaOMS Maven Library"></p>
+</li>
+<li>
+<p>On the notebook, INSERT reference to the input data objects (like Catalog, Schemas, Tables etc) those will be monitored by DeltaOMS into <code>sourceconfig</code> table
+<img src="../../images/SourceConfig.png" alt="DeltaOMS Source Config">
+Refer to the <a href="../../developer_guide/">Developer Guide</a> for more details on the tables.</p>
+</li>
+<li>
+<p>Execute the created workflow to create the OMS External Location , Catalog, Schema and tables and configure the paths for the input sources</p>
+</li>
+<li>
+<p>The notebook executes the <code>com.databricks.labs.deltaoms.init.InitializeOMS</code> and <code>com.databricks.labs.deltaoms.init.ConfigurePaths</code> main classes</p>
+</li>
+<li>
+<p>Upon execution, inspect the notebook output to validate the DeltaOMS tables and configurations were successfully created</p>
+</li>
+</ul>
+<h3 id="create-databricks-jobs-workflow">Create Databricks Jobs Workflow</h3>
+<p>Next, we will create a workflow composed of two tasks for ingesting the Delta transaction logs and processing them. You could create them as separate workflow also.</p>
+<p>Use the provided <a href="../../assets/workflow/deltaoms_processing_template.json">Processing Workflow json template</a> to create the workflow. The workflow comprises of two tasks :</p>
+<h4 id="streaming-transaction-log-ingestion-task">Streaming Transaction Log Ingestion Task</h4>
+<p>The first databricks job task will stream ingest the delta logs from the configured delta tables and persist in the <code>rawactions</code> DeltaOMS table.
+<img src="../../images/StreamingIngestion.png" alt="DeltaOMS Ingestion Task"></p>
+<p>The main configurations for the job are:</p>
+<p>Main class : <code>com.databricks.labs.deltaoms.ingest.StreamPopulateOMS</code></p>
+<p>Example Spark Configurations to be set for the task on the cluster :</p>
+<pre tabindex="0"><code>spark.databricks.labs.deltaoms.checkpoint.suffix _may24_1234567
+spark.databricks.labs.deltaoms.checkpoint.base s3://deltaoms-root/deltaoms-may24/__deltaoms/_checkpoints
+spark.databricks.labs.deltaoms.storage.credential.name oms_storage_credential
+spark.databricks.labs.deltaoms.location.url s3://deltaoms-root/deltaoms-may24
+spark.databricks.labs.deltaoms.schema.name oms_may24
+spark.databricks.labs.deltaoms.catalog.name deltaoms_may24
+spark.databricks.labs.deltaoms.location.name deltaoms-may24-external-location
+</code></pre><p>NOTE: These needs to run on a Non Unity Catalog Enabled cluster</p>
+<p>Refer to <a href="../../getting_started/additionalconfigurations//">Additional Configurations</a> for full configuration details</p>
+<h4 id="transaction-processing-task">Transaction Processing Task</h4>
+<p>The second job task will process the raw actions and organize them into Commit Info and Action snapshots for querying and further analytics.</p>
+<p>The main configurations for the job are:</p>
+<p>Main class : <code>com.databricks.labs.deltaoms.process.OMSProcessRawActions</code></p>
+<p>Note: For more details on multiple tasks workflows refer to <a href="https://docs.databricks.com/workflows/index.html">Databricks Workflows</a>.</p>
+<p>Refer to the <a href="../../developer_guide/">Developer Guide</a> for more details on multiple stream approach
+for DeltaOMS ingestion and the processing job.</p>
+
+
+<footer class="footline">
+	
+</footer>
+
+        
+        </div>
+        
+
+      </div>
+
+    <div id="navigation">
+        
+        
+
+        
+            
+            
+                
+                    
+                    
+                
+                
+
+                    
+                    
+                        
+                    
+                    
+
+                    
+                        
+            
+            
+                
+                    
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+                        
+            
+            
+                
+                    
+                        
+                        
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+                        
+            
+            
+                
+                    
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+                        
+            
+            
+                
+                    
+                        
+                        
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+                        
+            
+            
+                
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+                        
+            
+            
+                
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+            
+        
+                    
+                        
+            
+            
+                
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+                        
+            
+            
+                
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+                        
+            
+            
+                
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+                        
+            
+            
+                
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+                        
+            
+            
+                
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+            
+        
+                    
+                        
+            
+            
+                
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+                        
+            
+            
+                
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+                        
+            
+            
+                
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+                        
+            
+            
+                
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+            
+        
+                    
+                        
+            
+            
+                
+                    
+                
+                
+
+                    
+                    
+                    
+
+                    
+            
+        
+                    
+            
+        
+
+        
+
+
+	 
+	 
+		
+			<a class="nav nav-prev" href="../../getting_started/prerequisites/" title="Pre-Requisites"> <i class="fa fa-chevron-left"></i></a>
+		
+		
+			<a class="nav nav-next" href="../../getting_started/execute/" title="Execute" style="margin-right: 0px;"><i class="fa fa-chevron-right"></i></a>
+		
+	
+    </div>
+
+    </section>
+
+    <div style="left: -1000px; overflow: scroll; position: absolute; top: -1000px; border: none; box-sizing: content-box; height: 200px; margin: 0px; padding: 0px; width: 200px;">
+      <div style="border: none; box-sizing: content-box; height: 200px; margin: 0px; padding: 0px; width: 200px;"></div>
+    </div>
+    <script src="../../js/clipboard.min.js?1685021285"></script>
+    <script src="../../js/perfect-scrollbar.min.js?1685021285"></script>
+    <script src="../../js/perfect-scrollbar.jquery.min.js?1685021285"></script>
+    <script src="../../js/jquery.sticky.js?1685021285"></script>
+    <script src="../../js/featherlight.min.js?1685021285"></script>
+    <script src="../../js/highlight.pack.js?1685021285"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script src="../../js/modernizr.custom-3.6.0.js?1685021285"></script>
+    <script src="../../js/learn.js?1685021285"></script>
+    <script src="../../js/hugo-learn.js?1685021285"></script>
+    
+        
+            <script src="../../mermaid/mermaid.js?1685021285"></script>
+        
+        <script>
+            mermaid.initialize({ startOnLoad: true });
+        </script>
+    
+    
+
+  </body>
+</html>
+

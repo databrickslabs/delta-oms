@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Getting Started on Delta Operational Metrics Store (DeltaOMS)</title>
+    <link>https://databrickslabs.github.io/delta-oms/getting_started/</link>
+    <description>Recent content in Getting Started on Delta Operational Metrics Store (DeltaOMS)</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Wed, 04 Aug 2021 14:50:11 -0400</lastBuildDate><atom:link href="https://databrickslabs.github.io/delta-oms/getting_started/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pre-Requisites</title>
+      <link>https://databrickslabs.github.io/delta-oms/getting_started/prerequisites/</link>
+      <pubDate>Wed, 04 Aug 2021 14:25:26 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/getting_started/prerequisites/</guid>
+      <description>Make sure you have the following available before proceeding :
+Access to Databricks environment with access to Delta tables/databases defined on Unity Catalog and/or Hive Metastore Access to create and run notebooks on Unity Catalog and Non-Unity Catalog enabled clusters Ability to create Databricks job/workflows and run them on new cluster Proper access permissions to create catalog, schema, tables at the defined OMS external location Access to create libraries on your Databricks environment.</description>
+    </item>
+    
+    <item>
+      <title>Setup</title>
+      <link>https://databrickslabs.github.io/delta-oms/getting_started/setup/</link>
+      <pubDate>Wed, 04 Aug 2021 14:25:26 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/getting_started/setup/</guid>
+      <description>Initialize and Configure the DeltaOMS Database DeltaOMS is configured through Spark configurations with prefix spark.databricks.labs.deltaoms.
+Refer to Additional Configurations section below for more details on the available configurations.
+Follow the below steps to initialize the DeltaOMS centralized Database and tables.
+Import and Open the DeltaOMS Setup notebook into your Databricks environment. You could also mount the DeltaOMS Github repo
+Refer to the provided DeltaOMS workflow creation json template to create a workflow (using create api) for DeltaOMS initialization and configuration through the notebook Set the Spark configurations for initializing DeltaOMS on the defined cluster or modify the value of the variables for catalog name, schema name, external location URl and name as appropriate for your environment on the notebook</description>
+    </item>
+    
+    <item>
+      <title>Execute</title>
+      <link>https://databrickslabs.github.io/delta-oms/getting_started/execute/</link>
+      <pubDate>Wed, 04 Aug 2021 14:25:26 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/getting_started/execute/</guid>
+      <description>Execute the DeltaOMS Jobs You can run the jobs created in the previous step to ingest and process the delta transaction information for the configured tables into the centralized DeltaOMS schema.
+For example, the OMSIngestion_* job(s) bring in the raw delta logs from the configured databases/tables and the OMSProcessing_* job processes the raw delta logs to format and enrich them for analytics.
+For more advanced details on the working of these jobs please refer to the Developer Guide</description>
+    </item>
+    
+    <item>
+      <title>Analyze</title>
+      <link>https://databrickslabs.github.io/delta-oms/getting_started/analyze/</link>
+      <pubDate>Wed, 04 Aug 2021 14:25:26 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/getting_started/analyze/</guid>
+      <description>Run analytics using sample notebooks You can run some sample analytics on the data from the OMS database using the provided notebook with appropriate modification for your use-case/environment
+Modify the queries to reflect your configuration for the OMS Catalog Name , OMS DB Name and other table names (if applicable).
+Executing this notebook will give you an idea on the type of analysis and data structure that can be utilized as part of the DeltaOMS.</description>
+    </item>
+    
+    <item>
+      <title>Additional Configuration</title>
+      <link>https://databrickslabs.github.io/delta-oms/getting_started/additionalconfigurations/</link>
+      <pubDate>Wed, 04 Aug 2021 14:25:26 -0400</pubDate>
+      
+      <guid>https://databrickslabs.github.io/delta-oms/getting_started/additionalconfigurations/</guid>
+      <description>Spark Configuration DeltaOMS uses multiple Spark configurations to control its different components.
+DeltaOMS Spark configuration (spark.conf) details :
+Configuration Key Description Required Example Default Value Applies to components spark.databricks.labs.deltaoms.location.url Base location/path of the OMS catalog and schema on the Delta Lake. This is created as an EXTERNAL LOCATION on Unity Catalog (UC) Y s3:/delta-monitoring/deltaoms None All spark.databricks.labs.deltaoms.location.name Name of the UC EXTERNAL LOCATION for the OMS catalog and schema on the Delta Lake Y deltaoms-external-location None All spark.</description>
+    </item>
+    
+  </channel>
+</rss>
