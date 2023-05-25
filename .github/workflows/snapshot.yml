@@ -3,7 +3,7 @@ on:
   push:
     branches: [uc_support_dev]
 jobs:
-  publish:
+  publish-snapshot:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

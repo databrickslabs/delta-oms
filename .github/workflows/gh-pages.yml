@@ -8,7 +8,7 @@ defaults:
     working-directory: ./docs
 
 jobs:
-  deploy:
+  deploy-pages:
     runs-on: ubuntu-20.04
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
