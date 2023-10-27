@@ -70,14 +70,7 @@ display(spark.sql(s"describe extended $omsCatalogName.$omsSchemaName.commitinfos
 
 // COMMAND ----------
 
-spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES ('samples.tpch.orders',false)");
-// spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>*,false)");
-// spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME_1>*|<CATALOG_NAME_2>*,false)");
-// spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>,false)");
-// spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>.<SCHEMA_NAME>,false)");
-// spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (<CATALOG_NAME>.<SCHEMA_NAME>.<TABLE_NAME>,false)");
-// spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (hive_metastore.<SCHEMA_NAME>,false)");
-// spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES (CLOUD_STORAGE_PATH/**,false)");
+spark.sql(s"INSERT INTO $omsCatalogName.$omsSchemaName.sourceconfig VALUES ('CLOUD_STORAGE_BASE_PATH',false)");
 
 // COMMAND ----------
 
