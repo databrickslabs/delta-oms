@@ -54,10 +54,6 @@ trait OMSInitializer extends Serializable with Logging {
     val srcConfigTableQuery = tableCreateQuery(sourceConfigDefinition(config))
     executeSQL(srcConfigTableQuery._1, srcConfigTableQuery._2)
 
-    logInfo("Creating the Path Config table on OMS Delta Lake")
-    val pathConfigTableQuery = tableCreateQuery(pathConfigTableDefinition(config))
-    executeSQL(pathConfigTableQuery._1, pathConfigTableQuery._2)
-
     logInfo("Creating the Delta Raw Actions table on OMS Delta Lake")
     val rawActionsTableQuery = tableCreateQuery(rawActionsTableDefinition(config))
     executeSQL(rawActionsTableQuery._1, rawActionsTableQuery._2)

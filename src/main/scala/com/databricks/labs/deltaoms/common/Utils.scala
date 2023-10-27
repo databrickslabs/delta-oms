@@ -29,24 +29,6 @@ trait Utils extends Serializable with Logging with Schemas {
   private val tableProperties = Map("delta.autoOptimize.autoCompact" -> "auto",
       "delta.autoOptimize.optimizeWrite" -> "true", "delta.enableChangeDataFeed" -> "true")
 
-  def pathConfigTableDefinition(omsConfig: OMSConfig): TableDefinition = {
-    TableDefinition(tableName = getPathConfigTableName(omsConfig),
-      schemaName = getOMSSchemaName(omsConfig),
-      catalogName = getOMSCatalogName(omsConfig),
-      qualifiedSchemaName = getOMSQualifiedSchemaName(omsConfig),
-      locationUrl = getPathConfigTableUrl(omsConfig),
-      schema = pathConfig,
-      comment = Some("Delta OMS Path Config Table"),
-      properties = omsProperties ++ tableProperties
-    )
-  }
-
-  def getPathConfigTableName(config: OMSConfig): String =
-    s"${getOMSQualifiedSchemaName(config)}.`${config.pathConfigTable}`"
-
-  def getPathConfigTableUrl(config: OMSConfig): String =
-    s"${getOMSSchemaPath(config)}/${config.pathConfigTable}"
-
   def sourceConfigDefinition(omsConfig: OMSConfig): TableDefinition = {
     TableDefinition(tableName = getSourceConfigTableName(omsConfig),
       schemaName = getOMSSchemaName(omsConfig),

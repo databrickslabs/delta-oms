@@ -152,10 +152,6 @@ trait OMSSparkConf extends Serializable with SparkSettings {
         .fold(config.sourceConfigTable) {
           _.toString()
         },
-      pathConfigTable = getSparkConf(sparkOmsConfMap.pathConfigTable.sparkConfigName)
-        .fold(config.pathConfigTable) {
-          _.toString()
-        },
       processedHistoryTable = getSparkConf(sparkOmsConfMap.processedHistoryTable.sparkConfigName)
         .fold(config.processedHistoryTable) {
           _.toString()

@@ -19,8 +19,8 @@ package com.databricks.labs.deltaoms.utils
 import com.databricks.labs.deltaoms.common.Schemas
 import com.databricks.labs.deltaoms.common.Utils._
 import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, OMSConfig}
-import com.databricks.labs.deltaoms.model.{SchemaDefinition, SourceConfig}
-import com.databricks.labs.deltaoms.utils.UtilityOperations.{executeSQL, isUCEnabled, resolveWildCardPath}
+import com.databricks.labs.deltaoms.model.{SchemaDefinition}
+import com.databricks.labs.deltaoms.utils.UtilityOperations.{executeSQL, isUCEnabled}
 import org.scalatest.BeforeAndAfter
 
 import org.apache.spark.sql.QueryTest
@@ -47,23 +47,6 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
       ("dbfs:/databricks-datasets/*/*/_delta_log/*.json", "3a6538e"),
       ("dbfs:/databricks-datasets/*/_delta_log/*.json", "32cb366"))
     assert(UtilityOperations.consolidateWildCardPaths(wcPaths3).size == 1)
-  }
-
-  test("Invalid Wild Card Level") {
-    assertThrows[java.lang.AssertionError](
-      resolveWildCardPath("dbfs:/warehouse/deltaoms/table_6", 2))
-    assertThrows[java.lang.AssertionError](
-      resolveWildCardPath("dbfs:/warehouse/deltaoms/table_6", -2))
-  }
-
-  test("Valid Wild Card Level") {
-    val basePath = "dbfs:/warehouse/deltaoms/table_6"
-    assert(resolveWildCardPath(basePath, 1)
-      == "dbfs:/warehouse/*/*/_delta_log/*.json", "WildCard Level = 1")
-    assert(resolveWildCardPath(basePath, 0)
-      == "dbfs:/warehouse/deltaoms/*/_delta_log/*.json", "WildCard Level = 0")
-    assert(resolveWildCardPath(basePath, -1)
-      == "dbfs:/warehouse/deltaoms/table_6/_delta_log/*.json", "WildCard Level = -1")
   }
 
   test("Error creating Database") {
@@ -159,20 +142,6 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
     )
     assert(srcConfigTableQuery._2 == "TABLE")
 
-    // Path Config Table
-    val pathConfigTableQuery = UtilityOperations
-      .tableCreateQuery(pathConfigTableDefinition(testConfig))
-    assert(pathConfigTableQuery._1 == s"CREATE TABLE IF NOT EXISTS " +
-      s"${testConfig.catalogName.get}.`${testConfig.schemaName.get}`" +
-      s".`${testConfig.pathConfigTable}` (${Schemas.pathConfig.toDDL}) " +
-      s"LOCATION '/deltaoms/deltaoms/deltaoms/deltaoms_test/pathconfig' " +
-      s"TBLPROPERTIES('delta.enableChangeDataFeed'='true'," +
-      s"'delta.autoOptimize.autoCompact'='auto'," +
-      s"'entity'='${Schemas.ENTITY_NAME}','oms.version'='${Schemas.OMS_VERSION}'," +
-      s"'delta.autoOptimize.optimizeWrite'='true') " +
-      s"COMMENT 'Delta OMS Path Config Table'"
-    )
-
     // Raw Actions Table
     val rawActionsTableQuery = UtilityOperations
       .tableCreateQuery(rawActionsTableDefinition(testConfig))
@@ -234,11 +203,5 @@ class UtilityOperationsSuite extends QueryTest with SharedSparkSession with Delt
       s"'delta.autoOptimize.optimizeWrite'='true') " +
       s"COMMENT 'Delta OMS Action Snapshots Table'"
     )
-  }
-
-  test("resolveDeltaLocation Exception for hive_metastore") {
-    val exception = intercept[java.lang.RuntimeException](
-      UtilityOperations.resolveDeltaLocation(SourceConfig(s"hive_metastore")))
-    assert(exception.getMessage.contains("hive_metastore catalog is not supported."))
   }
 }

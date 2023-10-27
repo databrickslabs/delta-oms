@@ -21,7 +21,7 @@ import java.time.Instant
 import scala.util.{Failure, Success, Try}
 import com.databricks.labs.deltaoms.common.Utils._
 import com.databricks.labs.deltaoms.configuration.{OMSConfig, SparkSettings}
-import com.databricks.labs.deltaoms.model.{PathConfig, SourceConfig, StreamTargetInfo}
+import com.databricks.labs.deltaoms.model.{SourceConfig, StreamTargetInfo}
 import com.databricks.labs.deltaoms.utils.UtilityOperations._
 import io.delta.tables._
 
@@ -33,92 +33,29 @@ import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.streaming.{StreamingQuery, Trigger}
 import org.apache.spark.sql.types.{LongType, StructType}
-import org.apache.spark.util.SerializableConfiguration
 
 trait OMSOperations extends Serializable with SparkSettings with Logging with Schemas {
   val implicits = spark.implicits
 
   import implicits._
 
-  def updateOMSPathConfigFromSourceConfig(config: OMSConfig): Unit = {
-    // Fetch the latest tables configured
-    val configuredSources: Array[SourceConfig] = fetchSourceConfigForProcessing(config)
-    // Update the OMS Path Config
-    updateOMSPathConfigFromList(configuredSources.toSeq,
-      getPathConfigTableName(config),
-      config.truncatePathConfig)
-  }
-
-  def fetchSourceConfigForProcessing(config: OMSConfig): Array[SourceConfig] = {
-    val sourceConfigs = spark.read.table(getSourceConfigTableName(config))
-      .where(s"$SKIP_PROCESSING <> true").select(PATH, SKIP_PROCESSING).distinct()
-    processWildcardDirectories(sourceConfigs).collect()
-  }
-
-  def processWildcardDirectories(sourceConfigs: DataFrame): Dataset[SourceConfig] = {
-    val hadoopConf = new SerializableConfiguration(spark.sessionState.newHadoopConf())
-
-    val nonWildCardSourcePaths = sourceConfigs
-      .filter(substring(col(PATH), -2, 2) =!= "**").as[SourceConfig]
-    val wildCardSourcePaths = sourceConfigs
-      .filter(substring(col(PATH), -2, 2) === "**")
-      .selectExpr(s"substring($PATH,1,length($PATH)-2) as $PATH",
-        s"$SKIP_PROCESSING").as[SourceConfig]
-    val wildCardSubDirectories = wildCardSourcePaths.flatMap(listSubDirectories(_, hadoopConf))
-    val wildCardTablePaths = wildCardSubDirectories.repartition(32)
-      .flatMap(recursiveListDeltaTablePaths(_, hadoopConf))
-    wildCardTablePaths.unionByName(nonWildCardSourcePaths)
-  }
-
-  def updateOMSPathConfigFromList(sourceConfigs: Seq[SourceConfig],
-    pathConfigTableName: String,
-    truncate: Boolean = false)
-  : Unit = {
-    val tablePaths: DataFrame = sourceConfigs.flatMap(resolveDeltaLocation).filter(_._2.isDefined)
-      .toDF(QUALIFIED_NAME, PATH, PARAMETERS)
-    updatePathConfigToOMS(tablePathToPathConfig(tablePaths),
-      pathConfigTableName,
-      truncate)
-  }
-
-  def tablePathToPathConfig(tablePaths: DataFrame): Dataset[PathConfig] = {
-    val deltaWildCardPath = getDeltaWildCardPathUDF()
-    tablePaths
-      .withColumn(PUID, substring(sha1($"path"), 0, 7))
-      .withColumn("wildCardPath",
-        deltaWildCardPath(col(s"$PATH"), col(s"$PARAMETERS.$WILDCARD_LEVEL")))
-      .withColumn(WUID, substring(sha1($"wildCardPath"), 0, 7))
-      .withColumn("skipProcessing", lit(false))
-      .withColumn(UPDATE_TS, lit(Instant.now())).as[PathConfig]
-  }
-
-  def updatePathConfigToOMS(pathConfigs: Dataset[PathConfig],
-    pathConfigTableName: String,
-    truncate: Boolean = false): Unit = {
-    val pathConfigOMSDeltaTable = Try {
-      DeltaTable.forName(pathConfigTableName)
-    }
-    pathConfigOMSDeltaTable match {
-      case Success(pct) =>
-        if (truncate) pct.delete()
-        pct.as("pathconfig")
-          .merge(pathConfigs.toDF().as("pathconfig_updates"),
-            s"""pathconfig.$PUID = pathconfig_updates.$PUID and
-               |pathconfig.$WUID = pathconfig_updates.$WUID
-               |""".stripMargin)
-          .whenNotMatched.insertAll().execute()
-      case Failure(ex) => throw new RuntimeException(s"Unable to update the Path Config table. $ex")
-    }
+  def fetchSourceConfigForProcessing(sourceConfigTableUrl: String): Dataset[SourceConfig] = {
+    spark.read.format("delta").load(sourceConfigTableUrl)
+      .where(s"$SKIP_PROCESSING <> true")
+      .select(PATH, SKIP_PROCESSING)
+      .distinct().as[SourceConfig]
   }
 
   def streamingUpdateRawDeltaActionsToOMS(config: OMSConfig): Unit = {
     val uniquePaths: Seq[(String, String)] = if (config.consolidateWildcardPaths) {
       consolidateWildCardPaths(
-        fetchPathForStreamProcessing(getPathConfigTableUrl(config),
-          startingStream = config.startingStream, endingStream = config.endingStream))
+        fetchPathForStreamProcessing(getSourceConfigTableUrl(config),
+          startingStream = config.startingStream,
+          endingStream = config.endingStream))
     } else {
-      fetchPathForStreamProcessing(getPathConfigTableUrl(config),
-        startingStream = config.startingStream, endingStream = config.endingStream)
+      fetchPathForStreamProcessing(getSourceConfigTableUrl(config),
+        startingStream = config.startingStream,
+        endingStream = config.endingStream)
     }
 
     val logReadStreams: Seq[(DataFrame, StreamTargetInfo)] = uniquePaths.flatMap(p =>
@@ -194,32 +131,20 @@ trait OMSOperations extends Serializable with SparkSettings with Logging with Sc
     newDeltaLogDF.unpersist()
   }
 
-  def fetchPathForStreamProcessing(pathConfigTableUrl: String,
-    useWildCardPath: Boolean = true, startingStream: Int = 1, endingStream: Int = 50):
+  def fetchPathForStreamProcessing(sourceConfigTableUrl: String,
+    startingStream: Int = 1, endingStream: Int = 50):
   Seq[(String, String)] = {
-    if (useWildCardPath) {
-      val wildcard_window = Window.orderBy(WUID)
-      fetchPathConfigForProcessing(pathConfigTableUrl)
-        .select(WILDCARD_PATH, WUID)
-        .distinct()
-        .withColumn("wildcard_row_id", row_number().over(wildcard_window))
-        .where($"wildcard_row_id".between(startingStream, endingStream))
-        .drop("wildcard_row_id")
-        .as[(String, String)].collect()
-    } else {
-      val path_window = Window.orderBy(PUID)
-      fetchPathConfigForProcessing(pathConfigTableUrl)
-        .select(concat(col(PATH), lit("/_delta_log/*.json")).as(PATH), col(PUID))
-        .distinct()
-        .withColumn("path_row_id", row_number().over(path_window))
-        .where($"path_row_id".between(startingStream, endingStream))
-        .drop("path_row_id")
-        .as[(String, String)].collect()
-    }
-  }
-
-  def fetchPathConfigForProcessing(pathConfigTableUrl: String): Dataset[PathConfig] = {
-    spark.read.format("delta").load(pathConfigTableUrl).as[PathConfig]
+    val wildcard_window = Window.orderBy(WUID)
+    fetchSourceConfigForProcessing(sourceConfigTableUrl)
+      .withColumn(PUID, substring(sha1(col(PATH)), 0, 7))
+      .withColumn(WILDCARD_PATH, concat(col(PATH), lit("/*/_delta_log/*.json")))
+      .withColumn(WUID, substring(sha1(col(WILDCARD_PATH)), 0, 7))
+      .select(WILDCARD_PATH, WUID)
+      .distinct()
+      .withColumn("wildcard_row_id", row_number().over(wildcard_window))
+      .where($"wildcard_row_id".between(startingStream, endingStream))
+      .drop("wildcard_row_id")
+      .as[(String, String)].collect()
   }
 
   def fetchStreamTargetAndDeltaLogForPath(pathInfo: (String, String),

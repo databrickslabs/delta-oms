@@ -121,7 +121,6 @@ class OMSCommonSuite extends QueryTest with SharedSparkSession with DeltaTestSha
         checkpointSuffix = None,
         rawActionTable = "test.rawactions",
         sourceConfigTable = "test.sourceconfig",
-        pathConfigTable = "test.pathconfig",
         processedHistoryTable = "test.processhistory",
         commitInfoSnapshotTable = "test.commitinfosnapshot",
         actionSnapshotTable = "test.actionsnapshot",

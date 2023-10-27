@@ -20,15 +20,6 @@ import java.time.Instant
 
 import org.apache.spark.sql.types.StructType
 
-case class PathConfig(path: String,
-  puid: String,
-  wildCardPath: String,
-  wuid: String,
-  parameters: Map[String, String] = Map.empty[String, String],
-  qualifiedName: Option[String] = None,
-  skipProcessing: Boolean = false,
-  update_ts: Instant = Instant.now())
-
 case class SourceConfig(path: String, skipProcessing: Boolean = false)
 
 case class ProcessedHistory(tableName: String, lastVersion: Long,

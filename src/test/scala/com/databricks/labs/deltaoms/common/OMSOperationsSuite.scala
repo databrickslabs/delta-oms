@@ -22,15 +22,12 @@ import com.databricks.labs.deltaoms.common.OMSOperations._
 import com.databricks.labs.deltaoms.common.Utils._
 import com.databricks.labs.deltaoms.configuration.{ConfigurationSettings, OMSConfig}
 import com.databricks.labs.deltaoms.mock.MockDeltaTransactionGenerator
-import com.databricks.labs.deltaoms.model.{PathConfig, SourceConfig}
-import com.databricks.labs.deltaoms.utils.UtilityOperations
-import com.databricks.labs.deltaoms.utils.UtilityOperations.listSubDirectories
+import com.databricks.labs.deltaoms.model.SourceConfig
 
-import org.apache.spark.sql.{QueryTest, Row}
+import org.apache.spark.sql.{Dataset, QueryTest, Row}
 import org.apache.spark.sql.delta.test.DeltaTestSharedSession
 import org.apache.spark.sql.streaming.StreamTest
 import org.apache.spark.sql.test.SharedSparkSession
-import org.apache.spark.util.SerializableConfiguration
 
 class OMSOperationsSuite extends QueryTest
   with SharedSparkSession
@@ -62,8 +59,9 @@ class OMSOperationsSuite extends QueryTest
     // spark.sql(s"show tables in $db1Name").show()
     // spark.sql(s"describe extended $db1Name.$table1Name").show(false)
     spark.sql(s"INSERT INTO ${omsConfig.schemaName.get}.${omsConfig.sourceConfigTable} " +
-      s"VALUES('$baseMockDir/**', false)")
-    updateOMSPathConfigFromSourceConfig(omsConfig)
+      s"VALUES('$baseMockDir/$db1Name', false)")
+    spark.sql(s"INSERT INTO ${omsConfig.schemaName.get}.${omsConfig.sourceConfigTable} " +
+      s"VALUES('$baseMockDir/$db2Name', false)")
   }
 
   override def afterAll(): Unit = {
@@ -85,66 +83,30 @@ class OMSOperationsSuite extends QueryTest
   test("OMS Source Configured") {
     val sourcePaths = spark.sql(
       s"SELECT path FROM ${omsConfig.schemaName.get}.${omsConfig.sourceConfigTable}")
-    checkDatasetUnorderly(sourcePaths.as[String], s"$baseMockDir/**")
+    checkDatasetUnorderly(sourcePaths.as[String],
+    s"$baseMockDir/$db1Name", s"$baseMockDir/$db2Name")
   }
 
   test("fetchSourceConfigForProcessing") {
-    val srcConfigs = fetchSourceConfigForProcessing(omsConfig)
-    assert(srcConfigs.nonEmpty)
-    val paths = srcConfigs.map(_.path)
-    assert(Array(s"file:$baseMockDir/$db1Name/$table1Name",
-      s"file:$baseMockDir/$db1Name/$table3Name",
-      s"file:$baseMockDir/$db2Name/$table2Name").forall(paths.contains))
-  }
-
-  test("updateOMSPathConfigFromSourceConfig") {
-    updateOMSPathConfigFromSourceConfig(omsConfig)
-    val pathConfigTable = s"${omsConfig.schemaName.get}.${omsConfig.pathConfigTable}"
-    checkAnswer(spark.sql(s"SELECT count(*) FROM $pathConfigTable"), Row(3))
-    checkAnswer(spark.sql(s"SELECT count(distinct ${Utils.WUID}) FROM $pathConfigTable"), Row(2))
-    checkAnswer(spark.sql(s"SELECT count(distinct ${Utils.PUID}) FROM $pathConfigTable"), Row(3))
-    val qns = spark.sql(s"SELECT qualifiedName FROM $pathConfigTable").as[String].collect()
-    assert(qns.length == 3)
-    assert(Array(s"file:$baseMockDir/$db1Name/$table1Name",
-      s"file:$baseMockDir/$db1Name/$table3Name",
-      s"file:$baseMockDir/$db2Name/$table2Name").forall(qns.contains))
-  }
-
-  test("updateOMSPathConfigFromList") {
-    val configuredSources: Array[SourceConfig] = fetchSourceConfigForProcessing(omsConfig)
-    updateOMSPathConfigFromList(configuredSources.toSeq,
-      getPathConfigTableName(omsConfig), truncate = true)
-    val pathConfigTable = s"${omsConfig.schemaName.get}.${omsConfig.pathConfigTable}"
-    checkAnswer(spark.sql(s"SELECT count(*) FROM $pathConfigTable"), Row(3))
-    checkAnswer(spark.sql(s"SELECT count(distinct ${Utils.WUID}) FROM $pathConfigTable"), Row(2))
-    checkAnswer(spark.sql(s"SELECT count(distinct ${Utils.PUID}) FROM $pathConfigTable"), Row(3))
-    val qns = spark.sql(s"SELECT qualifiedName FROM $pathConfigTable").as[String].collect()
-    assert(qns.length == 3)
-    assert(Array(s"file:$baseMockDir/$db1Name/$table1Name",
-      s"file:$baseMockDir/$db1Name/$table3Name",
-      s"file:$baseMockDir/$db2Name/$table2Name").forall(qns.contains))
+    val srcConfigs = fetchSourceConfigForProcessing(getSourceConfigTableUrl(omsConfig))
+      .select("path")
+    checkDatasetUnorderly(srcConfigs.as[String],
+    s"$baseMockDir/$db1Name",
+    s"$baseMockDir/$db2Name")
   }
 
   test("Wildcardpath fetchPathForStreamProcessing") {
-    val streamPaths = fetchPathForStreamProcessing(getPathConfigTableUrl(omsConfig))
+    val streamPaths = fetchPathForStreamProcessing(getSourceConfigTableUrl(omsConfig))
     assert(streamPaths.nonEmpty)
     assert(streamPaths.map(_._1).length == 2)
     assert(streamPaths.map(_._1).exists(_ endsWith "_delta_log/*.json"))
   }
 
   test("Wildcardpath startingStream fetchPathForStreamProcessing") {
-    val streamPaths = fetchPathForStreamProcessing(getPathConfigTableUrl(omsConfig),
+    val streamPaths = fetchPathForStreamProcessing(getSourceConfigTableUrl(omsConfig),
       endingStream = 1)
     assert(streamPaths.nonEmpty)
     assert(streamPaths.map(_._1).length == 1)
-    assert(streamPaths.map(_._1).exists(_ endsWith "_delta_log/*.json"))
-  }
-
-  test("Non Wildcardpath fetchPathForStreamProcessing") {
-    val streamPaths = fetchPathForStreamProcessing(getPathConfigTableUrl(omsConfig),
-      useWildCardPath = false)
-    assert(streamPaths.nonEmpty)
-    assert(streamPaths.map(_._1).length == 3)
     assert(streamPaths.map(_._1).exists(_ endsWith "_delta_log/*.json"))
   }
 
@@ -203,43 +165,6 @@ class OMSOperationsSuite extends QueryTest
     val lastVersion = getLastProcessedRawActionsVersion(getProcessedHistoryTableUrl(omsConfig),
       omsConfig.rawActionTable)
     assert(lastVersion == 3L)
-  }
-
-  test("recursiveListDeltaTablePaths") {
-    val wildCardSourceConfig = SourceConfig("/tmp/spark-warehouse/")
-    val hadoopConf = new SerializableConfiguration(spark.sessionState.newHadoopConf())
-
-    val wildCardSubDirectories = listSubDirectories(wildCardSourceConfig, hadoopConf)
-    assert(wildCardSubDirectories.length == 2)
-    val wildCardTablePaths = wildCardSubDirectories
-      .flatMap(UtilityOperations.recursiveListDeltaTablePaths(_, hadoopConf))
-    assert(wildCardTablePaths.length == 9)
-    assert(wildCardTablePaths.
-      contains(SourceConfig("file:/tmp/spark-warehouse/oms.db/oms_default_inbuilt/raw_actions")))
-  }
-
-  test("resolveDeltaLocation") {
-    val validateDB =
-      UtilityOperations.resolveDeltaLocation(SourceConfig(s"hive_metastore.${db1Name}"))
-    assert(validateDB.head._1 == s"`${db1Name}`.`${table1Name}`")
-    assert(validateDB.head._2.get == s"file:${baseMockDir}/${db1Name}/${table1Name}")
-
-    val validatedTable = UtilityOperations.resolveDeltaLocation(
-      SourceConfig(s"hive_metastore.${db1Name}.${table1Name}"))
-    assert(validatedTable.head._1 == s"`${db1Name}`.`${table1Name}`")
-    assert(validatedTable.head._2.get == s"file:${baseMockDir}/${db1Name}/${table1Name}")
-
-    val validatedPath =
-      UtilityOperations.resolveDeltaLocation(SourceConfig(s"$baseMockDir/**"))
-    assert(validatedPath.head._1 == s"$baseMockDir/**")
-  }
-
-  test("updatePathConfigToOMS exception check") {
-    val exception = intercept[java.lang.RuntimeException](
-      updatePathConfigToOMS(
-        Seq(PathConfig("MockPath", "MockPuid", "MockWcPath", "MockWuid")).toDS(),
-        OMSConfig().pathConfigTable))
-    assert(exception.getMessage.contains("Unable to update the Path Config table."))
   }
 
   test("getCurrentRawActionsVersion Invalid Table URL") {

@@ -56,7 +56,6 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
     initializeOMS(omsConfig, dropAndRecreate = true)
     assert(spark.catalog.databaseExists(dbName))
     assert(spark.catalog.tableExists(dbName, omsConfig.sourceConfigTable))
-    assert(spark.catalog.tableExists(dbName, omsConfig.pathConfigTable))
     assert(spark.catalog.tableExists(dbName, omsConfig.rawActionTable))
     assert(spark.catalog.tableExists(dbName, omsConfig.processedHistoryTable))
     assert(spark.catalog.tableExists(dbName, omsConfig.commitInfoSnapshotTable))
@@ -65,10 +64,6 @@ class OMSInitializerSuite extends QueryTest with SharedSparkSession with DeltaTe
     val sourceConfigSchema = spark.read.table(getSourceConfigTableName(omsConfig)).schema
     assert(sourceConfigSchema.equals(Schemas.sourceConfig))
     assert(sourceConfigSchema == Schemas.sourceConfig)
-
-    val pathConfigSchema = spark.read.table(getPathConfigTableName(omsConfig)).schema
-    assert(pathConfigSchema.equals(Schemas.pathConfig))
-    assert(pathConfigSchema == Schemas.pathConfig)
 
     val rawActionsSchema =
       spark.read.format("delta").load(getRawActionsTableUrl(omsConfig)).schema

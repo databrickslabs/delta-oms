@@ -34,7 +34,6 @@ trait ConfigurationSettings extends Serializable with Logging {
       checkpointSuffix = Some("_1"),
       rawActionTable = "raw_actions",
       sourceConfigTable = "source_config",
-      pathConfigTable = "path_config",
       processedHistoryTable = "processed_history",
       commitInfoSnapshotTable = "commitinfo_snapshots",
       actionSnapshotTable = "action_snapshots")

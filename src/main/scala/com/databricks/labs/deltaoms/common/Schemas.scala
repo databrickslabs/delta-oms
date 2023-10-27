@@ -16,7 +16,7 @@
 
 package com.databricks.labs.deltaoms.common
 
-import com.databricks.labs.deltaoms.model.{PathConfig, ProcessedHistory, SourceConfig}
+import com.databricks.labs.deltaoms.model.{ProcessedHistory, SourceConfig}
 
 import org.apache.spark.sql.catalyst.ScalaReflection
 import org.apache.spark.sql.delta.actions.{AddFile, CommitInfo, SingleAction}
@@ -67,7 +67,6 @@ trait Schemas {
     .add(StructField(UPDATE_TS, TimestampType))
     .add(StructField(PUID, StringType))
     .add(StructField(COMMIT_DATE, DateType))
-  final val pathConfig = ScalaReflection.schemaFor[PathConfig].dataType.asInstanceOf[StructType]
   final val sourceConfig = ScalaReflection.schemaFor[SourceConfig].dataType.asInstanceOf[StructType]
   final val processedHistory = ScalaReflection.schemaFor[ProcessedHistory].dataType
     .asInstanceOf[StructType]
